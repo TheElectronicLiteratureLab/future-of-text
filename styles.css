@@ -1,0 +1,142 @@
+#upload-button {
+  width: 150px;
+  display: block;
+  margin: 20px auto;
+}
+
+#file-to-upload {
+  display: none;
+}
+
+#pdf-main-container {
+/*  width: 400px;*/
+  margin: 20px auto;
+}
+
+#pdf-loader {
+  display: none;
+  text-align: center;
+  color: #999999;
+  font-size: 13px;
+  line-height: 100px;
+  height: 100px;
+}
+
+#pdf-contents {
+  display: none;
+}
+
+#pdf-meta {
+  overflow: hidden;
+  margin: 0 0 20px 0;
+}
+
+#pdf-buttons {
+  float: left;
+  z-index: 999;
+}
+
+#page-count-container {
+  float: right;
+}
+
+#pdf-current-page {
+  display: inline;
+}
+
+#pdf-total-pages {
+  display: inline;
+}
+
+#pdf-canvas {
+  border: 1px solid rgba(0,0,0,0.2);
+  box-sizing: border-box;
+}
+
+#page-loader {
+  height: 100px;
+  line-height: 100px;
+  text-align: center;
+  display: none;
+  color: #999999;
+  font-size: 13px;
+}
+
+#text-layer { 
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  opacity: 0.2;
+  line-height: 1.0;
+}
+
+#text-layer > div {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.placeholder {
+	position: fixed;
+	width: 6px;
+	height: 6px;
+  transform: translate(-3px,-3px);
+	background: magenta;
+	top: 0px;
+	left: 0px;
+	z-index: 999;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*#VRButton::before {
+  background: red;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: -20px;
+  content: "";
+}*/
+
+#VRButton {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 500px !important;
+  height: 500px !important;
+  transform: translate(-50%, -50%) !important;
+  border-radius: 50% !important;
+  /*background: linear-gradient(#C3E3F0, #000) !important;*/
+  background: rgba(0,0,0,0) !important;
+  /*opacity: 0.9 !important;*/
+  border: none !important;
+  font-size: 1.5em !important;
+}
+
+#VRButton::after {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 50px;
+  content: "I will live on your wrist. Tap me for options.";
+  font-style: italic;
+  font-size: 0.6em;
+  /*background: red;*/
+  width: 300px;
+}

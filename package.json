@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@tweenjs/tween.js": "^23.1.1",
+    "pdfjs-dist": "^4.0.379",
+    "three": "^0.160.0",
+    "troika-three-text": "^0.49.0"
+  },
+  "devDependencies": {
+    "react-scripts": "^5.0.1",
+    "vite": "^5.0.10"
+  }
+}
