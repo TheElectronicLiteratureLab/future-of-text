@@ -54,21 +54,6 @@ window.addEventListener('resize', () => {
 // Set background
 scene.background = new THREE.Color ( 0xdddddd );
 
-// Create a skysphere
-// var skyGeo = new THREE.SphereGeometry(1000, 25, 25);
-// var skyMat = new THREE.MeshBasicMaterial( {
-//         map: new THREE.TextureLoader().load(
-//             // './skysphere-ell-lab.png'
-//             // './snowy_forest_4k.png'
-//             './steinbach_field_4k.png'
-//     )
-// } );
-// var skysphere = new THREE.Mesh(skyGeo, skyMat);
-//     skysphere.material.side = THREE.BackSide;
-    // scene.add(skysphere);
-    // skysphere.rotation.y = 2;
-
-
 // Add a floor axis for testing
 var floorAxisGeo = new THREE.PlaneGeometry(0.5, 0.5);
 var floorAxisMat = new THREE.MeshBasicMaterial( {
@@ -710,10 +695,15 @@ function btnPress(intersect) {
                 menuSphereMat.emissiveIntensity = normalizedResult;
             } else if (funct.slice(7,13) == "reader") {
                 var newRange = normalizedResult * 10 + 0.5;
-                blockText.curveRadius = newRange;
                 headText.curveRadius = newRange;
-                blockText.position.set( blockText.position.x, blockText.position.y, -newRange );
-                swipeRayLengthBase = newRange - 0.15;
+                headText.position.set( headText.position.x, headText.position.y, -newRange );
+                swipeRayLengthBase = newRange - 0.12;
+
+                for (var i = textBlock.length - 1; i >= 0; i--) {
+                    textBlock[i].curveRadius = newRange;
+                    textBlock[i].position.z = -newRange;
+                }
+
             }
             
         }
@@ -807,7 +797,7 @@ function subMenu(v) {
 
 
 
-let toolSelector, toolSelectorTip, toolSelectorBeam, toolSelectorDot;
+let toolSelector, toolSelectorCore, toolSelectorTip, toolSelectorTip2, toolSelectorBeam, toolSelectorDot;
 
 function initTools() {
 
@@ -816,7 +806,7 @@ function initTools() {
     const beamGeo = new THREE.BoxGeometry( 0.001, 0.001, 0.001 );
     const dotGeo = new THREE.SphereGeometry( 0.005, 9, 9 );
     var toolMat = new THREE.MeshStandardMaterial({ 
-        color: 0xFFD663,
+        color: 0x93dbf0,
         transparent: true,
         opacity: 1,
         roughness: 0.32,
@@ -828,85 +818,172 @@ function initTools() {
         depthWrite: true
     });
     const colorMat = new THREE.MeshBasicMaterial( {
-        color: 0xFCDD23,
+        color: 0x659fe6,
         transparent: true,
         opacity: 1,
         depthWrite: true
     } );
 
-    toolSelector = new THREE.Mesh( stickGeo, toolMat );
+    toolSelector = new THREE.Group();
+    toolSelectorCore = new THREE.Group();
     toolSelectorTip = new THREE.Mesh( tipGeo, colorMat );
+    toolSelectorTip2 = new THREE.Mesh( tipGeo, colorMat );
     toolSelectorBeam = new THREE.Mesh( beamGeo, colorMat );
     toolSelectorDot = new THREE.Mesh( dotGeo, colorMat );
 
-    toolSelector.attach( toolSelectorTip );
-    toolSelector.attach( toolSelectorBeam );
-    toolSelector.attach( toolSelectorDot );
+    toolSelectorCore.attach( toolSelectorTip );
+    toolSelectorCore.attach( toolSelectorTip2 );
+    toolSelectorCore.attach( toolSelectorBeam );
+    toolSelectorCore.attach( toolSelectorDot );
 
-    toolSelectorBeam.translateZ( -0.081 );
-    toolSelectorDot.translateZ( -0.081 );
-    toolSelectorTip.translateZ( -0.081 );
+    // toolSelectorBeam.translateZ( -0.081 );
+
+    // toolSelectorDot.translateZ( -0.081 );
+
     toolSelectorTip.rotateY( Math.PI / 4 );
     toolSelectorTip.rotateX( Math.PI / 4 );
 
-    setToolPositions();
+    toolSelectorTip2.rotateY( Math.PI / 4 );
+    toolSelectorTip2.rotateX( Math.PI / 4 );
+
+    toolSelectorCore.translateZ( -0.111 );
+    toolSelectorCore.translateY( -0.113 );
+    toolSelectorCore.translateX( -0.015 );
+
+    toolSelectorCore.rotateX( -Math.PI / 2.5);
+
+    toolSelector.attach( toolSelectorCore );
+    scene.add( toolSelector );
 
     toolSelector.renderOrder = 99;
     toolSelectorTip.renderOrder = 99;
+    toolSelectorTip2.renderOrder = 99;
     toolSelectorDot.renderOrder = 99;
+
+    for (var i = toolSelectorSmoothSteps - 1; i >= 0; i--) {
+        var rotVector = [wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z];
+        toolSelectorPrevRotations.push(rotVector);
+
+        var posVector = [wrist2.position.x, wrist2.position.y, wrist2.position.z];
+        toolSelectorPrevPositions.push(posVector);
+    }
 
 }
 
+var toolSelectorSmoothSteps = 20;
+var toolSelectorPrevRotations = [];
+var toolSelectorPrevPositions = [];
+
 function setToolPositions() {
 
-    scene.attach( toolSelector );
+    var runningRotVector = [0.0,0.0,0.0];
+    var runningPosVector = [0.0,0.0,0.0];
 
-    toolSelector.position.set( indexKnuckle2.position.x, indexKnuckle2.position.y, indexKnuckle2.position.z );
-    toolSelector.rotation.set( wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z );
+    for (var i = toolSelectorSmoothSteps - 1; i >= 0; i--) {
+        var rotVector = toolSelectorPrevRotations[i];
+        runningRotVector[0] += rotVector[0];
+        runningRotVector[1] += rotVector[1];
+        runningRotVector[2] += rotVector[2];
+
+        var posVector = toolSelectorPrevPositions[i];
+        runningPosVector[0] += posVector[0];
+        runningPosVector[1] += posVector[1];
+        runningPosVector[2] += posVector[2];
+    }
+
+    // add the current wrist position & rotation to the end of the arrays
+    toolSelectorPrevRotations.push([wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z]);
+    toolSelectorPrevPositions.push([wrist2.position.x, wrist2.position.y, wrist2.position.z]);
+    // remove the first elements of the arrays
+    toolSelectorPrevRotations.shift();
+    toolSelectorPrevPositions.shift();
+
+    // Move the tool to 'chase' the destination average (reduce jitter)
+    toolSelector.position.set( runningPosVector[0] / toolSelectorSmoothSteps, runningPosVector[1] / toolSelectorSmoothSteps, runningPosVector[2] / toolSelectorSmoothSteps );
+    toolSelector.rotation.set( runningRotVector[0] / toolSelectorSmoothSteps, runningRotVector[1] / toolSelectorSmoothSteps, runningRotVector[2] / toolSelectorSmoothSteps );
 
 
-    toolSelector.rotateX( -1.25 );
-    toolSelector.translateY( -0.01 );
-    toolSelector.translateZ( -0.04 );
-
-    scene.add( toolSelector );
-    wrist2.attach( toolSelector );
 
 }
 
 function animateTools() {
-    // toolSelector.rotation.z += 0.01;
+
+    if (toolSelectorActive) { setToolPositions() };
+    
     toolSelectorTip.rotation.y -= 0.01;
     toolSelectorTip.rotation.x -= 0.01;
+    toolSelectorTip2.rotation.y += 0.01;
+    toolSelectorTip2.rotation.x += 0.01;
 }
 
 
 var tempSelectorQuat = new THREE.Quaternion();
 var tempSelectorWorld = new THREE.Vector3();
-var tempSelectorDotTween;
+var tempSelectorDotTween, tempSelectorIntroTween, tempSelectorIntroTween2, tempSelectorOutroTween2;
 var tempSelectorActive = false;
-var tempSelectorStart, tempSelectorEnd;
+var tempSelectorStart, tempSelectorEnd, tempSelectorDotIntroTween, tempSelectorOutroTween, tempSelectorDotOutroTween;
+var tempSelectorTweenedIn = true;
+var tempSelectorTweenedOut = false;
 
 var highlightMat = new THREE.MeshBasicMaterial( {
     color: 0x000077,
-    transparent:true,
-    opacity:0.2,
+    transparent: true,
+    opacity: 0.2,
     side: THREE.DoubleSide,
     blending: THREE.SubtractiveBlending
 } );
 
+var textsToReset = [];
+var toolSelectorActive = false;
+
 function tryTools() {
     animateTools();
     let fingersMaxDist = 0.09;
-    let fingersMinDist = 0.05;
+    let fingersMinDist = 0.07;
     let fingersCurDist = thumbTip2.position.distanceTo(indexFingerTip2.position);
     let fingersNormalized = 1 - norm(fingersCurDist, fingersMinDist, fingersMaxDist);
     let fingersClamped = clamp(fingersNormalized, 0, 1);
 
-    if (currentTool2) { // Change this to only trigger when the correct tool is active
+    if (pinkyFingerTip2.position.distanceTo(wrist2.position) < 0.13 
+    && ringFingerTip2.position.distanceTo(wrist2.position) < 0.13
+    && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13) {
 
-        toolSelector.material.opacity = fingersClamped;
-        toolSelectorTip.material.opacity = fingersClamped;
+        toolSelectorActive = true;
+
+        // Animate in the selector core
+        if (!tempSelectorTweenedIn && tempSelectorTweenedOut) {
+            tempSelectorTweenedOut = false;
+
+            toolSelectorTip.visible = true;
+            toolSelectorTip2.visible = true;
+            toolSelectorDot.visible = true;
+
+            tempSelectorIntroTween = new TWEEN.Tween( toolSelectorTip.scale )
+                    .to( {x: 1, y: 1, z: 1}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.Out )
+                    .start()
+                    .onComplete(() => {
+                        tempSelectorTweenedIn = true;
+                    });
+
+            tempSelectorIntroTween2 = new TWEEN.Tween( toolSelectorTip2.scale )
+                    .to( {x: 1, y: 1, z: 1}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.Out )
+                    .start()
+                    .onComplete(() => {
+                        tempSelectorTweenedIn = true;
+                    });
+
+            tempSelectorDotIntroTween = new TWEEN.Tween( toolSelectorDot.scale )
+                    .to( {x: 1, y: 1, z: 1}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.Out )
+                    .start()
+                    ;
+
+        }
+
+        // toolSelector.material.opacity = fingersClamped;
+        // toolSelectorTip.material.opacity = fingersClamped;
 
         toolSelectorTip.getWorldPosition(tempSelectorWorld);
 
@@ -925,26 +1002,48 @@ function tryTools() {
             }
         }
 
+        // If there are any bolded texts, clear them
+        if (textsToReset.length > 0) {
+            for (var i = textsToReset.length - 1; i >= 0; i--) {
+                textsToReset[i].fontSize = 0.02;
+                textsToReset[i].fontWeight = "normal";
+                textsToReset.splice(textsToReset[i], 1);
+            }
+        }
+
         if (fingersNormalized >= 1) {
             var raycaster = new THREE.Raycaster();
             raycaster.layers.set( 3 );
-            toolSelector.getWorldQuaternion(tempSelectorQuat);
+            toolSelectorCore.getWorldQuaternion(tempSelectorQuat);
             var rayForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(tempSelectorQuat);
             raycaster.set(tempSelectorWorld, rayForward);
             var intersects = raycaster.intersectObjects(scene.children);
             var intersect = intersects[0];
 
+            // placeholderArrow(raycaster, 1, 0x65e6ae);
+
             if (intersect) {
 
                 let beamScale = tempSelectorWorld.distanceTo(intersect.point) * 1000;
                 toolSelectorBeam.scale.z = beamScale;
-                toolSelectorBeam.position.z = -(beamScale/2000) - 0.081;
+                toolSelectorBeam.visible = true;
+                toolSelectorBeam.position.z = -(beamScale/2000);
 
-                toolSelectorDot.position.z = -(beamScale/1000) - 0.081;
+                toolSelectorDot.position.z = -(beamScale/1000);
+
+                intersect.object.fontSize = 0.025;
+                intersect.object.fontWeight = "bold";
+
+                textsToReset.push(intersect.object);
+
+                // console.log(textsToReset.length);
+
             }
 
+            // Selection function - user has clamped their fingers together while pointing
             if (intersect && fingersCurDist <= 0.01 && !tempSelectorActive) {
                 tempSelectorActive = true;
+
                 // Tween the selector dot
                 tempSelectorDotTween = new TWEEN.Tween( toolSelectorDot.scale )
                     .to( {x: 3, y: 3, z: 3}, 100 )
@@ -957,57 +1056,119 @@ function tryTools() {
                         .start()
                     });
 
-                var localHitPos = intersect.object.worldToLocal(intersect.point);
+                var tempTextResult = intersect.object.text.slice(1).split(']')[0];
+                var tempSource = intersect.object.userData.source;
+                findCitation(tempSource, tempTextResult, intersect.object);
+                // console.log("result: " + tempTextResult);
 
-                var tempCaret = getCaretAtPoint(intersect.object.textRenderInfo, localHitPos.x, localHitPos.y);
+            } else if (fingersCurDist > 0.02 && tempSelectorActive) {
+                tempSelectorActive = false;
+            }
 
-                tempSelectorStart = tempCaret.charIndex;
+            // if (intersect && fingersCurDist <= 0.01 && !tempSelectorActive) {
+            //     tempSelectorActive = true;
+            //     // Tween the selector dot
+            //     tempSelectorDotTween = new TWEEN.Tween( toolSelectorDot.scale )
+            //         .to( {x: 3, y: 3, z: 3}, 100 )
+            //         .easing( TWEEN.Easing.Quadratic.Out )
+            //         .start()
+            //         .onComplete(() => {
+            //             new TWEEN.Tween(toolSelectorDot.scale)
+            //             .to( {x:1, y: 1, z: 1}, 100 )
+            //             .easing( TWEEN.Easing.Quadratic.In )
+            //             .start()
+            //         });
 
-            } else if (intersect && fingersCurDist <= 0.01 && tempSelectorActive) {
+            //     var localHitPos = intersect.object.worldToLocal(intersect.point);
 
-                var localHitPos = intersect.object.worldToLocal(intersect.point);
+            //     var tempCaret = getCaretAtPoint(intersect.object.textRenderInfo, localHitPos.x, localHitPos.y);
 
-                var tempCaret = getCaretAtPoint(intersect.object.textRenderInfo, localHitPos.x, localHitPos.y);
+            //     tempSelectorStart = tempCaret.charIndex;
 
-                tempSelectorEnd = tempCaret.charIndex;
+            // } else if (intersect && fingersCurDist <= 0.01 && tempSelectorActive) {
 
-                // Display the selection box
-                var tempSelectionBoxes = getSelectionRects(intersect.object.textRenderInfo, tempSelectorStart, tempSelectorEnd);
+                // var localHitPos = intersect.object.worldToLocal(intersect.point);
 
-                for (var i = tempSelectionBoxes.length - 1; i >= 0; i--) {
-                    var radius = intersect.object.curveRadius;
-                    var height = intersect.object.fontSize;
-                    var theta = (tempSelectionBoxes[i].left - tempSelectionBoxes[i].right) / radius;
-                    var tempGeo = new THREE.CylinderGeometry( radius, radius, height, 32, 1, true, 0, theta );
-                    var tempNewHighlight = new THREE.Mesh( tempGeo, highlightMat );
-                    scene.add(tempNewHighlight);
-                    allHighlights.push(tempNewHighlight);
-                    intersect.object.parent.attach(tempNewHighlight);
+                // var tempCaret = getCaretAtPoint(intersect.object.textRenderInfo, localHitPos.x, localHitPos.y);
 
-                    tempNewHighlight.position.y = tempSelectionBoxes[i].bottom + height/2 + intersect.object.position.y;
-                    tempNewHighlight.rotation.y = Math.PI - tempSelectionBoxes[i].left;
+                // tempSelectorEnd = tempCaret.charIndex;
 
-                    tempNewHighlight.renderOrder = 98;
-                    console.log(intersect.object.parent.rotation.y);
-                }
+                // // Display the selection box
+                // var tempSelectionBoxes = getSelectionRects(intersect.object.textRenderInfo, tempSelectorStart, tempSelectorEnd);
+
+                // for (var i = tempSelectionBoxes.length - 1; i >= 0; i--) {
+                //     // Highlight
+                //     var radius = intersect.object.curveRadius;
+                //     var height = intersect.object.fontSize;
+                //     var theta = (tempSelectionBoxes[i].left - tempSelectionBoxes[i].right) / radius;
+                //     var tempGeo = new THREE.CylinderGeometry( radius, radius, height, 32, 1, true, 0, theta );
+                //     var tempNewHighlight = new THREE.Mesh( tempGeo, highlightMat );
+                //     scene.add(tempNewHighlight);
+                //     allHighlights.push(tempNewHighlight);
+                //     intersect.object.parent.attach(tempNewHighlight);
+
+                //     tempNewHighlight.position.y = tempSelectionBoxes[i].bottom + height/2 + intersect.object.position.y;
+                //     tempNewHighlight.rotation.y = Math.PI - tempSelectionBoxes[i].left;
+
+                //     tempNewHighlight.renderOrder = 98;
+                //     console.log(intersect.object.parent.rotation.y);
+                // }
 
                 // console.log(tempSelectionBoxes);
 
-            } else if (fingersCurDist > 0.01 && tempSelectorActive) {
-                tempSelectorActive = false;
+            // } else if (fingersCurDist > 0.01 && tempSelectorActive) {
+            //     tempSelectorActive = false;
 
-                if (intersect != undefined){
-                    var tempTextResult = intersect.object.text.slice(tempSelectorStart, tempSelectorEnd + 1);
+            //     if (intersect != undefined){
+            //         var tempTextResult = intersect.object.text.slice(tempSelectorStart, tempSelectorEnd + 1);
 
-                    console.log("RESULT: " + tempTextResult);
-                }
+            //         // console.log("RESULT: " + tempTextResult);
+            //     }
 
-            }
+            // }
 
         } else {
             toolSelectorBeam.scale.z = 0;
-            toolSelectorBeam.position.z = -0.081;
-            toolSelectorDot.position.z = -0.081;
+            toolSelectorBeam.visible = false;
+            toolSelectorBeam.position.z = 0;
+            toolSelectorDot.position.z = 0;
+
+        }
+
+    } else {
+
+        toolSelectorActive = false;
+
+        // Animate out the selector core
+        if (tempSelectorTweenedIn && !tempSelectorTweenedOut) {
+            tempSelectorTweenedIn = false;
+            toolSelectorBeam.visible = false;
+            
+            tempSelectorOutroTween = new TWEEN.Tween( toolSelectorTip.scale )
+                    .to( {x: 0, y: 0, z: 0}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.In )
+                    .start()
+                    .onComplete(() => {
+                        tempSelectorTweenedOut = true;
+                        toolSelectorTip.visible = false;
+                    });
+
+            tempSelectorOutroTween2 = new TWEEN.Tween( toolSelectorTip2.scale )
+                    .to( {x: 0, y: 0, z: 0}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.In )
+                    .start()
+                    .onComplete(() => {
+                        tempSelectorTweenedOut = true;
+                        toolSelectorTip2.visible = false;
+                    });
+
+            tempSelectorDotOutroTween = new TWEEN.Tween( toolSelectorDot.scale )
+                    .to( {x: 0, y: 0, z: 0}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.In )
+                    .start()
+                    .onComplete(() => {
+                        toolSelectorDot.visible = false;
+                    });
 
         }
 
@@ -1031,28 +1192,163 @@ function tryTools() {
 
 
 
-var testDisplayHead = "Several Hypertexts"
-var testDisplayText = "[1] Espen J Aarseth. 1994. Nonlinearity and literary theory.\n[2] Robert M. Akscyn, Donald L. McCracken, and Elise Yoder. 1987. KMS: A Distributed Hypermedia System for Managing Knowledge in Organizations.\n[3] G. L. Anderson. 1953. The McBee Keysort System for Mechanically Sorting Folklore Data.\n[4] Kenneth M. Anderson, Richard N. Taylor, and E. James Whitehead. 1994. Chimera: Hypertext for Heterogeneous Software Environments.\n[5] Mark W. R. Anderson, Les A. Carr, and David E. Millard. 2017. There and Here: Patterns of Content Transclusion in Wikipedia.\n[6] Mark W. R. Anderson and David Millard. 2022. Hypertext’s Meta-History: Documenting in-Conference Citations, Authors and Keyword Data, 1987-2021.\n[7] Claus Atzenbeck, Eelco Herder, and Daniel Roßner. 2023. Breaking The Routine: Spatial Hypertext Concepts for Active Decision Making in Recommender Systems.\n[8] Claus Atzenbeck, Peter Nürnberg, and Daniel Roßner. 2021. Synthesising augmentation and automation. New Review of Hypermedia and Multimedia.\n[9] Claus Atzenbeck and Peter J. Nürnberg. 2019. Hypertext as Method.\n[10] Claus Atzenbeck, Daniel Roßner, and Manolis Tzagarakis. 2018. Mother: An Integrated Approach to Hypertext Domains.\n[11] Claus Atzenbeck, Thomas Schedel, Manolis Tzagarakis, Daniel Roßner, and Lucas Mages. 2017. Revisiting Hypertext Infrastructure.\n[12] Ruth Aylett. 2000. Emergent narrative, social immersion and “storification”.\n[13] Albert Lásló Barabási, Hawoong Jeong, Zoltán Néda, Erzsébet Ravasz, András P. Schubert, and Tamás Vicsek. 2002. Evolution of the social network of scientific collaborations. Physica A: Statistical Mechanics and its Applications\n[14] Thierry Bardini. 2000. Bootstrapping: Douglas Engelbart, Coevolution, and the Origins of Personal Computing.\n[15] Belinda Barnet. 2013. Memory Machines: The Evolution of Hypertext.\n[16] Roland Barthes and S. Heath. 1977. Death of The Author.\n[17] Meltem Huri Baturay. 2015. An overview of the world of MOOCs.\n[18] Sean Bechhofer, Iain Buchan, David De Roure, Paolo Missier, John Ainsworth, Jiten Bhagat, Philip Couch, Don Cruickshank, Mark Delderfield, Ian Dunlop, et al. 2013. Why linked data is not enough for scientists.\n[19] Tim Berners-Lee. 2006. Linked Data.\n[20] Tim Berners-Lee, James A. Hendler, and Ora Lassila. 2001. The Semantic Web.\n[21] Tim Berners-Lee and Kieron O’Hara. 2013. The read–write Linked Data Web.\n[22] Mark Bernstein. 1988. The Bookmark and the Compass: Orientation Tools for Hypertext Users.\n[23] Mark Bernstein. 1998. Patterns of Hypertext.\n[24] Mark Bernstein. 1999. Where Are The Hypertexts?\n[25] Mark Bernstein. 2001. Card Shark and Thespis: Exotic Tools for Hypertext Narrative.\n[26] Mark Bernstein. 2002. Storyspace 1.\n[27] Mark Bernstein. 2002. Tinderbox. Eastgate Systems.\n[28] Mark Bernstein. 2009. On Hypertext Narrative.\n[29] Mark Bernstein. 2010. Criticism.\n[30] Mark Bernstein. 2022. On The Origins Of Hypertext In The Disasters Of The Short 20th Century.\n[31] Mark Bernstein and Clare J. Hooper. 2018. A Villain’s Guide To Social Media And Web Science.\n[32] Mark Bernstein, David E. Millard, and Mark J. Weal. 2002. On Writing Sculptural Hypertext.\n[33] Jay David Bolter. 1992. Virtual Reality and the Future of Hypertext (Abstract).\n[34] Jay David Bolter and Richard A. Grusin. 2000. Remediation: Understanding New Media.\n[35] Jay David Bolter and Michael Joyce. 1987. Hypertext and Creative Writing.\n[36] Jorge Luis Borges. 1941. The Garden of Forking Paths.\n[37] Rodrigo A. Botafogo, Ehud Rivlin, and Ben Shneiderman. 1992. Structural Analysis of Hypertexts: Identifying Hierarchies and Useful Metrics.\n[38] Sam Brooker. 2019. Man Proposes, God Disposes: Re-Assessing Correspondences in Hypertext and Anti-Authorist Literary Theory.\n[39] Peter J. Brown. 1987. Turning Ideas into Products: The Guide System.\n[40] Peter Brusilovsky. 2001. Adaptive Hypermedia.\n[41] Peter Brusilovsky, Alfred Kobsa, and Julita Vassileva. 1998. Adaptive Hypertext and Hypermedia. Kluwer Academic Publishers, Dordrecht. 274 pages. https://doi.org/10.1007/978-94-017-0617-9\n[42] Colin Burke. 1991. A Practical View of Memex: The Career of The Rapid Selector.\n[43] Vannevar Bush. 1945. As We May Think. The Atlantic Monthly\n[44] Christoph J. Bussler, John Davies, Dieter Fensel, and Rudi Studer (Eds.). 2004. The Semantic Web: Research and Applications.\n[45] Meeyoung Cha, Alan Mislove, and Krishna P. Gummadi. 2009. A Measurement-Driven Analysis of Information Propagation in the Flickr Social Network.\n[46] James M. Clark and Allan Paivio. 1991. Dual coding theory and education.\n[47] Jeff Conklin. 1987. Hypertext: An Introduction and Survey.\n[48] Jeff Conklin. 1987. A Survey of Hypertext.\n[49] Jeff Conklin and Michael L. Begeman. 1988. gIBIS: A Hypertext Tool for Exploratory Policy Discussion.\n[50] Cunningham & Cunningham, Inc. 2005. Wiki Gardener.\n[51] Nada Dabbagh and Anastasia Kitsantas. 2012. Personal Learning Environments, social media, and self-regulated learning: A natural formula for connecting formal and informal learning.\n[52] Hugh C. Davis, Andy Lewis, and Antoine Rizk. 1996. OHP: A Draft Proposal for a Standard Open Hypermedia Protocol.\n[53] Hugh C. Davis, Siegfried Reich, and David E. Millard. 1997. A Proposal for a Common Navigational Hypertext Protocol.\n[54] Paul M. E. De Bra and Jan-Peter Ruiter. 2001. AHA! Adaptive Hypermedia for All.\n[55] Norman M. Delisle and Mayer D. Schwartz. 1986. Neptune: A Hypertext System for CAD Applications.\n[56] Steven J. DeRose and Andries van Dam. 1999. Document Structure and Markup in the FRESS Hypertext System.\n[57] Jacques Derrida. 1967. La structure, le signe et le jeu dans le discours des sciences humaines.\n[58] Andrea A. Di Sessa. 1985. A Principled Design for an Integrated Computational Environment.\n[59] Darcy DiNucci. 1999. Fragmented Future.\n[60] J. Yellowlees Douglas. 1994. “How do I stop this thing?”: Closure and Indeterminacy in Interactive Narratives.\n[61] Deborah M. Edwards. 1989. Lost in Hyperspace: Cognitive Mapping And Navigation in A Hypertext Environment.\n[62] Electronic Literature Organization. 1999. Electronic Literature Organization (ELO).\n[63] William C. Elm and David D. Woods. 1985. Getting Lost: A Case Study in Interface Design.\n[64] Douglas Carl Engelbart. 1962. Augmenting Human Intellect: A Conceptual Framework.\n[65] Douglas Carl Engelbart. 1968. The Mother of All Demos.\n[66] Douglas Carl Engelbart. 1984. Authorship provisions in AUGMENT.\n[67] Douglas Carl Engelbart and William K. English. 1968. A Research Center for Augmenting Human Intellect.\n[58] Douglas Carl Engelbart and Eugene E. Kim. 2006. The Augmented Wiki.\n[69] Ayelet Even-Ezra. 2021. Lines of Thought.\n[70] Steven Feiner. 1988. Seeing the Forest for the Trees: Hierarchical Displays of Hypertext Structures.\n[71] Steven Feiner, Sandor Nagy, and Andries Van Dam. 1981. An Integrated System for Creating and Presenting Complex Computer-Based Documents.\n[72] Cliff Figallo. 1993. The WELL: small town on the Internet highway system adapted from a paper presented to the” Public Access to the Internet” conference, Harvard University.\n[73] Steven Roger Fischer. 2020. A History of Writing.\n[74] Jim Flanagan. 2003. Search Referral Zeitgeist.\n[75] Judith Flanders. 2020. A Place For Everything.\n[76] Andrew M. Fountain, Wendy Hall, Ian Heath, and Hugh C. Davis. 1990. MICROCOSM: An Open Model for Hypermedia with Dynamic Linking.\n[77] Mark S. Fox and Andrew J. Palay. 1979. The BROWSE system: an introduction.\n[78] Jane Friedhoff. 2013. Untangling Twine: A Platform Study.\n[79] David Gibson. 2004. The Site Browser: Catalyzing Improvements in Hypertext Organization.\n[80] Jennifer Golbeck and Jim Hendler. 2006. FilmTrust: Movie Recommendations using Trust in Web-based Social Networks.\n[81] Ira P. Goldstein and Daniel G. Bobrow. 1980. A Layered Approach to Software Design.\n[82] Danny Goodman et al. 1988. The Complete Hypercard Handbook.\n[83] Dene Grigar. 2017. The Legacy of Judy Malloy.\n[84] Dene Grigar. 2019. Tear Down the Walls: An Exhibition of Hypertext & Participatory Narrative.\n[85] Dene Grigar, Nicholas Schiller, Vanessa Rhodes, Veronica Whitney, Mariah Gwin, and Katie Bowen. 2018. Rebooting Electronic Literature, Volume 1.\n[86] Dimitris Gritzalis, Miltiadis Kandias, Vasilis Stavrou, and Lilian Mitrou. 2014. History of Information: The case of Privacy and Security in Social Media.\n[87] Jonathan Grudin. 1994. Computer-Supported Cooperative Work: History And Focus.\n[88] Kaj Grønbæk and Randall H. Trigg. 1994. Design Issues for a Dexter-Based Hypermedia System.\n[89] Eric Gullichsen, Dilip D’Souza, and Pat Lincoln. 1986. The PlaneText Book: Technical Report STP-333-86 (P).\n[90] Bernard J. Haan, Paul Kahn, Victor A. Riley, James H. Coombs, and Norman K. Meyrowitz. 1992. IRIS Hypermedia Services.\n[91] Sean Haas. 2022. Doug Engelbart, Edge Notched Cards, and Early Links.\n[92] Frank G. Halasz. 1987. Reflections on NoteCards: Seven Issues for the next Generation of Hypermedia Systems.\n[93] Frank G. Halasz. 1991. “Seven Issues”: Revisited.\n[94] Frank G. Halasz. 2001. Reflections on “Seven Issues”: Hypertext in the Era of the Web.\n[95] Frank G. Halasz, Thomas P. Moran, and Randall H. Trigg. 1986. NoteCards in a Nutshell.\n[96] Frank G. Halasz and Mayer Schwartz. 1990. The Dexter Hypertext Reference Model.\n[97] Wendy Hall. 2011. From Hypertext to Linked Data: The Ever Evolving Web.\n[98] Wendy Hall, Hugh C. Davis, and Gerard Hutchings. 1996. Rethinking Hypermedia: The Microcosm Approach.\n[99] Charlie Hargood, Rosamund Davies, David E. Millard, Matt R. Taylor, and Samuel Brooker. 2012. Exploring (the Poetics of) Strange (and Fractal) Hypertexts.\n[100] Charlie Hargood, Mark J. Weal, and David E. Millard. 2018. The StoryPlaces Platform: Building a Web-Based Locative Hypertext System."
+var testDisplayHead = "Several Hypertexts";
+var testDisplayText = ["[1] Espen J Aarseth. 1994. Nonlinearity and literary theory.","[2] Robert M. Akscyn, Donald L. McCracken, and Elise Yoder. 1987. KMS: A Distributed Hypermedia System for Managing Knowledge in Organizations.","[3] G. L. Anderson. 1953. The McBee Keysort System for Mechanically Sorting Folklore Data.","[4] Kenneth M. Anderson, Richard N. Taylor, and E. James Whitehead. 1994. Chimera: Hypertext for Heterogeneous Software Environments.","[5] Mark W. R. Anderson, Les A. Carr, and David E. Millard. 2017. There and Here: Patterns of Content Transclusion in Wikipedia.","[6] Mark W. R. Anderson and David Millard. 2022. Hypertext’s Meta-History: Documenting in-Conference Citations, Authors and Keyword Data, 1987-2021.","[7] Claus Atzenbeck, Eelco Herder, and Daniel Roßner. 2023. Breaking The Routine: Spatial Hypertext Concepts for Active Decision Making in Recommender Systems.","[8] Claus Atzenbeck, Peter Nürnberg, and Daniel Roßner. 2021. Synthesising augmentation and automation. New Review of Hypermedia and Multimedia.","[9] Claus Atzenbeck and Peter J. Nürnberg. 2019. Hypertext as Method.","[10] Claus Atzenbeck, Daniel Roßner, and Manolis Tzagarakis. 2018. Mother: An Integrated Approach to Hypertext Domains.","[11] Claus Atzenbeck, Thomas Schedel, Manolis Tzagarakis, Daniel Roßner, and Lucas Mages. 2017. Revisiting Hypertext Infrastructure.","[12] Ruth Aylett. 2000. Emergent narrative, social immersion and “storification”.","[13] Albert Lásló Barabási, Hawoong Jeong, Zoltán Néda, Erzsébet Ravasz, András P. Schubert, and Tamás Vicsek. 2002. Evolution of the social network of scientific collaborations. Physica A: Statistical Mechanics and its Applications","[14] Thierry Bardini. 2000. Bootstrapping: Douglas Engelbart, Coevolution, and the Origins of Personal Computing.","[15] Belinda Barnet. 2013. Memory Machines: The Evolution of Hypertext.","[16] Roland Barthes and S. Heath. 1977. Death of The Author.","[17] Meltem Huri Baturay. 2015. An overview of the world of MOOCs.","[18] Sean Bechhofer, Iain Buchan, David De Roure, Paolo Missier, John Ainsworth, Jiten Bhagat, Philip Couch, Don Cruickshank, Mark Delderfield, Ian Dunlop, et al. 2013. Why linked data is not enough for scientists.","[19] Tim Berners-Lee. 2006. Linked Data.","[20] Tim Berners-Lee, James A. Hendler, and Ora Lassila. 2001. The Semantic Web.","[21] Tim Berners-Lee and Kieron O’Hara. 2013. The read–write Linked Data Web.","[22] Mark Bernstein. 1988. The Bookmark and the Compass: Orientation Tools for Hypertext Users.","[23] Mark Bernstein. 1998. Patterns of Hypertext.","[24] Mark Bernstein. 1999. Where Are The Hypertexts?","[25] Mark Bernstein. 2001. Card Shark and Thespis: Exotic Tools for Hypertext Narrative.","[26] Mark Bernstein. 2002. Storyspace 1.","[27] Mark Bernstein. 2002. Tinderbox. Eastgate Systems.","[28] Mark Bernstein. 2009. On Hypertext Narrative.","[29] Mark Bernstein. 2010. Criticism.","[30] Mark Bernstein. 2022. On The Origins Of Hypertext In The Disasters Of The Short 20th Century.","[31] Mark Bernstein and Clare J. Hooper. 2018. A Villain’s Guide To Social Media And Web Science.","[32] Mark Bernstein, David E. Millard, and Mark J. Weal. 2002. On Writing Sculptural Hypertext.","[33] Jay David Bolter. 1992. Virtual Reality and the Future of Hypertext (Abstract).","[34] Jay David Bolter and Richard A. Grusin. 2000. Remediation: Understanding New Media.","[35] Jay David Bolter and Michael Joyce. 1987. Hypertext and Creative Writing.","[36] Jorge Luis Borges. 1941. The Garden of Forking Paths.","[37] Rodrigo A. Botafogo, Ehud Rivlin, and Ben Shneiderman. 1992. Structural Analysis of Hypertexts: Identifying Hierarchies and Useful Metrics.","[38] Sam Brooker. 2019. Man Proposes, God Disposes: Re-Assessing Correspondences in Hypertext and Anti-Authorist Literary Theory.","[39] Peter J. Brown. 1987. Turning Ideas into Products: The Guide System.","[40] Peter Brusilovsky. 2001. Adaptive Hypermedia.","[41] Peter Brusilovsky, Alfred Kobsa, and Julita Vassileva. 1998. Adaptive Hypertext and Hypermedia. Kluwer Academic Publishers, Dordrecht. 274 pages. https://doi.org/10.1007/978-94-017-0617-9","[42] Colin Burke. 1991. A Practical View of Memex: The Career of The Rapid Selector.","[43] Vannevar Bush. 1945. As We May Think. The Atlantic Monthly","[44] Christoph J. Bussler, John Davies, Dieter Fensel, and Rudi Studer (Eds.). 2004. The Semantic Web: Research and Applications.","[45] Meeyoung Cha, Alan Mislove, and Krishna P. Gummadi. 2009. A Measurement-Driven Analysis of Information Propagation in the Flickr Social Network.","[46] James M. Clark and Allan Paivio. 1991. Dual coding theory and education.","[47] Jeff Conklin. 1987. Hypertext: An Introduction and Survey.","[48] Jeff Conklin. 1987. A Survey of Hypertext.","[49] Jeff Conklin and Michael L. Begeman. 1988. gIBIS: A Hypertext Tool for Exploratory Policy Discussion.","[50] Cunningham & Cunningham, Inc. 2005. Wiki Gardener.","[51] Nada Dabbagh and Anastasia Kitsantas. 2012. Personal Learning Environments, social media, and self-regulated learning: A natural formula for connecting formal and informal learning.","[52] Hugh C. Davis, Andy Lewis, and Antoine Rizk. 1996. OHP: A Draft Proposal for a Standard Open Hypermedia Protocol.","[53] Hugh C. Davis, Siegfried Reich, and David E. Millard. 1997. A Proposal for a Common Navigational Hypertext Protocol.","[54] Paul M. E. De Bra and Jan-Peter Ruiter. 2001. AHA! Adaptive Hypermedia for All.","[55] Norman M. Delisle and Mayer D. Schwartz. 1986. Neptune: A Hypertext System for CAD Applications.","[56] Steven J. DeRose and Andries van Dam. 1999. Document Structure and Markup in the FRESS Hypertext System.","[57] Jacques Derrida. 1967. La structure, le signe et le jeu dans le discours des sciences humaines.","[58] Andrea A. Di Sessa. 1985. A Principled Design for an Integrated Computational Environment.","[59] Darcy DiNucci. 1999. Fragmented Future.","[60] J. Yellowlees Douglas. 1994. “How do I stop this thing?”: Closure and Indeterminacy in Interactive Narratives.","[61] Deborah M. Edwards. 1989. Lost in Hyperspace: Cognitive Mapping And Navigation in A Hypertext Environment.","[62] Electronic Literature Organization. 1999. Electronic Literature Organization (ELO).","[63] William C. Elm and David D. Woods. 1985. Getting Lost: A Case Study in Interface Design.","[64] Douglas Carl Engelbart. 1962. Augmenting Human Intellect: A Conceptual Framework.","[65] Douglas Carl Engelbart. 1968. The Mother of All Demos.","[66] Douglas Carl Engelbart. 1984. Authorship provisions in AUGMENT.","[67] Douglas Carl Engelbart and William K. English. 1968. A Research Center for Augmenting Human Intellect.","[58] Douglas Carl Engelbart and Eugene E. Kim. 2006. The Augmented Wiki.","[69] Ayelet Even-Ezra. 2021. Lines of Thought.","[70] Steven Feiner. 1988. Seeing the Forest for the Trees: Hierarchical Displays of Hypertext Structures.","[71] Steven Feiner, Sandor Nagy, and Andries Van Dam. 1981. An Integrated System for Creating and Presenting Complex Computer-Based Documents.","[72] Cliff Figallo. 1993. The WELL: small town on the Internet highway system adapted from a paper presented to the” Public Access to the Internet” conference, Harvard University.","[73] Steven Roger Fischer. 2020. A History of Writing.","[74] Jim Flanagan. 2003. Search Referral Zeitgeist.","[75] Judith Flanders. 2020. A Place For Everything.","[76] Andrew M. Fountain, Wendy Hall, Ian Heath, and Hugh C. Davis. 1990. MICROCOSM: An Open Model for Hypermedia with Dynamic Linking.","[77] Mark S. Fox and Andrew J. Palay. 1979. The BROWSE system: an introduction.","[78] Jane Friedhoff. 2013. Untangling Twine: A Platform Study.","[79] David Gibson. 2004. The Site Browser: Catalyzing Improvements in Hypertext Organization.","[80] Jennifer Golbeck and Jim Hendler. 2006. FilmTrust: Movie Recommendations using Trust in Web-based Social Networks.","[81] Ira P. Goldstein and Daniel G. Bobrow. 1980. A Layered Approach to Software Design.","[82] Danny Goodman et al. 1988. The Complete Hypercard Handbook.","[83] Dene Grigar. 2017. The Legacy of Judy Malloy.","[84] Dene Grigar. 2019. Tear Down the Walls: An Exhibition of Hypertext & Participatory Narrative.","[85] Dene Grigar, Nicholas Schiller, Vanessa Rhodes, Veronica Whitney, Mariah Gwin, and Katie Bowen. 2018. Rebooting Electronic Literature, Volume 1.","[86] Dimitris Gritzalis, Miltiadis Kandias, Vasilis Stavrou, and Lilian Mitrou. 2014. History of Information: The case of Privacy and Security in Social Media.","[87] Jonathan Grudin. 1994. Computer-Supported Cooperative Work: History And Focus.","[88] Kaj Grønbæk and Randall H. Trigg. 1994. Design Issues for a Dexter-Based Hypermedia System.","[89] Eric Gullichsen, Dilip D’Souza, and Pat Lincoln. 1986. The PlaneText Book: Technical Report STP-333-86 (P).","[90] Bernard J. Haan, Paul Kahn, Victor A. Riley, James H. Coombs, and Norman K. Meyrowitz. 1992. IRIS Hypermedia Services.","[91] Sean Haas. 2022. Doug Engelbart, Edge Notched Cards, and Early Links.","[92] Frank G. Halasz. 1987. Reflections on NoteCards: Seven Issues for the next Generation of Hypermedia Systems.","[93] Frank G. Halasz. 1991. “Seven Issues”: Revisited.","[94] Frank G. Halasz. 2001. Reflections on “Seven Issues”: Hypertext in the Era of the Web.","[95] Frank G. Halasz, Thomas P. Moran, and Randall H. Trigg. 1986. NoteCards in a Nutshell.","[96] Frank G. Halasz and Mayer Schwartz. 1990. The Dexter Hypertext Reference Model.","[97] Wendy Hall. 2011. From Hypertext to Linked Data: The Ever Evolving Web.","[98] Wendy Hall, Hugh C. Davis, and Gerard Hutchings. 1996. Rethinking Hypermedia: The Microcosm Approach.","[99] Charlie Hargood, Rosamund Davies, David E. Millard, Matt R. Taylor, and Samuel Brooker. 2012. Exploring (the Poetics of) Strange (and Fractal) Hypertexts.","[100] Charlie Hargood, Mark J. Weal, and David E. Millard. 2018. The StoryPlaces Platform: Building a Web-Based Locative Hypertext System."];
 
 const textGroup = new THREE.Group();
 const headText = new Text();
-const blockText = new Text();
+const textBlock = [];
 
-function displayTextBlock(head, text) {
+function loadTextBlock(url) {
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'html',
+        success: function(data) {
+
+            // set up the variables
+            var displayHead, displayText;
+            var $html = $(data);
+
+            // get the title
+            var results = $html.find('.title');
+            results.each(function() {
+                displayHead = $(this).html();
+            });
+
+            // get the citations
+            var displayText = [];
+            var citationMain = $html.find('.bibUl').first();
+            var allCitations = citationMain.find('li');
+            var citationNumb = 0;
+            allCitations.each(function() {
+                citationNumb++;
+                var listItem = $(this).text();
+                var number = "[" + citationNumb + "]";
+                var newListItem = number.concat(' ', listItem);
+                displayText.push(newListItem);
+            })
+
+            // pass the data to be built
+            displayTextBlock( displayHead, displayText, url )
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching HTML: ', error);
+        }
+    });
+}
+
+function findCitation(url, num, object) {
+    // console.log(url + " " + num);
+    var object = object;
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'html',
+        success: function(data) {
+            var $html = $(data);
+
+            // Find all classes 'bib' and read their inner html
+            var bibElements = $html.find('.bib');
+            bibElements.each(function() {
+                var innerHTML = $(this).html();
+                if (innerHTML == num) {
+                    var result = $(this).parent().text();
+                    displayCitation(result, object);
+                }
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching HTML: ', error);
+        }
+    });
+}
+
+var temporaryCitation;
+var temporaryCitationLine;
+
+function displayCitation(text, object) {
+    console.log(text);
+
+    if (temporaryCitation != undefined) {
+        temporaryCitation.parent.remove(temporaryCitation);
+        temporaryCitationLine.parent.remove(temporaryCitationLine);
+    }
+
+    temporaryCitation = new Text();
+    temporaryCitation.text = text;
+    temporaryCitation.fontSize = 0.015;
+    temporaryCitation.color = 0x000000;
+    temporaryCitation.anchorX = 'left';
+    temporaryCitation.anchorY = 'top';
+    temporaryCitation.maxWidth = 1;
+    temporaryCitation.curveRadius = 0;
+
+    scene.add(temporaryCitation);
+    object.parent.attach(temporaryCitation);
+    temporaryCitation.position.set( object.position.x, object.position.y, object.position.z );
+    temporaryCitation.rotation.set( object.rotation.x, object.rotation.y, object.rotation.z );
+    temporaryCitation.translateX( -1.1 );
+
+    temporaryCitation.sync();
+
+    const lineLength = 1.1;
+
+    const lineGeo = new THREE.BoxGeometry( 0.001, 0.001, lineLength );
+    const lineMat = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+    temporaryCitationLine = new THREE.Mesh( lineGeo, lineMat );
+
+    scene.add(temporaryCitationLine);
+    object.parent.attach(temporaryCitationLine);
+    temporaryCitationLine.position.set( object.position.x, object.position.y, object.position.z );
+
+    var newRot = new THREE.Quaternion().setFromRotationMatrix(
+        new THREE.Matrix4().lookAt( temporaryCitationLine.position, temporaryCitation.position, new THREE.Vector3( 0, -1, 0 ) ) 
+    );
+
+    temporaryCitationLine.quaternion.copy( newRot );
+
+    temporaryCitationLine.translateZ(-lineLength/2);
+
+}
+
+// loadTextBlock('./3511095.3531271.html');
+
+function displayTextBlock(head, text, source) {
     // Create:
-    textGroup.add(blockText)
     textGroup.add(headText)
-    blockText.attach(headText);
-    blockText.layers.enable( 3 );
     scene.add(textGroup);
 
-    // Set properties to configure:
-    blockText.text = text;
-    blockText.fontSize = 0.02;
-    blockText.color = 0x000000;
-    blockText.anchorX = 'left';
-    blockText.anchorY = 'top';
-    blockText.curveRadius = 1;
+    let textOffset = -0.03;
+    let totalTextOffset = textOffset;
+
+    for (var i = 0; i <= text.length - 1; i++) {
+        var tempText = new Text();
+        textGroup.add(tempText);
+        tempText.layers.enable( 3 );
+
+        tempText.position.set( 0, 0.0, -1.0 );
+
+        tempText.text = text[i];
+        tempText.fontSize = 0.02;
+        tempText.color = 0x000000;
+        tempText.anchorX = 'left';
+        tempText.anchorY = 'middle';
+        tempText.curveRadius = 1;
+
+        tempText.position.y = totalTextOffset;
+        totalTextOffset += textOffset;
+
+        tempText.sync();
+
+        textBlock.push(tempText);
+
+        tempText.userData.source = source;
+
+        // console.log(source);
+    }
 
     headText.text = head;
     headText.fontSize = 0.03;
@@ -1060,29 +1356,74 @@ function displayTextBlock(head, text) {
     headText.anchorX = 'left';
     headText.anchorY = 'bottom';
     headText.curveRadius = 1;
+    headText.position.set( 0, 0.0, -1.0 );
 
-    blockText.position.set( 0, 0.0, -1.0 );
+    // textGroup.userData.constrainMin = new THREE.Vector3(0, -0.15, 0);
+    // textGroup.userData.constrainMax = new THREE.Vector3(0, 2.5, 0);
 
-    blockText.userData.constrainMin = new THREE.Vector3(0, -0.1, 0);
-    blockText.userData.constrainMax = new THREE.Vector3(0, 2.5, 0)
-
-    // console.log(blockText);
+    // console.log(headText);
     headText.sync();
-    blockText.sync();
 }
 
 // displayTextBlock(testDisplayHead,testDisplayText);
 
+function HTMLtitle(htmlContent) {
+    var $html = $(htmlContent);
+    var results = $html.find('.title');
+    var innerHTML;
+
+    results.each(function() {
+        innerHTML = $(this).html();
+    });
+
+    return innerHTML;
+
+}
+
+// fetchHTML('./3511095.3531271.html', HTMLtitle);
+// console.log(fetchHTML('./3511095.3531271.html', HTMLtitle));
 
 
 
 
 
 
+// NOTE FOR ME: Change the citation loading to now extract from the html document dynamically
+// THEN: Selecting a text line prints it in the console
+// MORE: Print the citation reference instead of just the text line
+// EXTRA: Display the reference of the selected citation
 
 
 
+function fetchHTML(url, callback) {
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'html',
+        success: function(data) {
+            // console.log(callback(data));
+            return callback(data);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching HTML: ', error);
+        }
+    });
+}
 
+
+function processHTML(htmlContent) {
+    var $html = $(htmlContent);
+
+    // Find all classes 'bib' and read their inner html
+    var bibElements = $html.find('.bib');
+    bibElements.each(function() {
+        var innerHTML = $(this).html();
+        console.log(innerHTML);
+    });
+}
+
+
+// fetchHTML('./3511095.3531271.html', processHTML);
 
 
 
@@ -1214,10 +1555,10 @@ function onDocumentMouseDown(event) {
 
             // mesh.position.x += 1;
             mesh.parent.remove(mesh);
-            console.log("FCT: Removed Highlight");
+            // console.log("FCT: Removed Highlight");
         }
         else {
-            console.log("ERR: Invalid Selection");
+            // console.log("ERR: Invalid Selection");
         }
     }
 }
@@ -1587,7 +1928,7 @@ function collideObject( indexTip, thumbTip, indexStrt, thumbStrt ) {
             }
         }
         catch { // The backup ray didn't hit anything either
-            console.log("ERR: No Grabbable Found");
+            // console.log("ERR: No Grabbable Found");
         }
         // Nothing succeeded, no valid hit results
         return null;
@@ -1942,9 +2283,9 @@ function trySwipe() {
         // placeholderArrow(raycaster, swipeRayLength, 0xd310ff);
 
         // Check if the object has userdata that would constrain its movement
-        if (intersect && intersect.object.userData.constrainMin && intersect.object.userData.constrainMax) {
-            yMin = intersect.object.userData.constrainMin.y;
-            yMax = intersect.object.userData.constrainMax.y;
+        if (intersect && intersect.object.parent.userData.constrainMin && intersect.object.parent.userData.constrainMax) {
+            yMin = intersect.object.parent.userData.constrainMin.y;
+            yMax = intersect.object.parent.userData.constrainMax.y;
         }
 
         // Check if the hand is gesturing vertically or horizontally
@@ -1964,9 +2305,9 @@ function trySwipe() {
 
                 var movement = intersect.point.y - offsetPositionY;
 
-                if (movement && intersect.object.position.y + movement >= yMin && intersect.object.position.y + movement <= yMax) {
-                    intersect.object.position.y += movement;
-                    // console.log(intersect.object.position.y);
+                if (movement && intersect.object.parent.position.y + movement >= yMin && intersect.object.parent.position.y + movement <= yMax) {
+                    intersect.object.parent.position.y += movement;
+                    // console.log(intersect.object.parent.position.y);
                 }
 
                 offsetPositionY = intersect.point.y;
@@ -2451,96 +2792,77 @@ function tryRecenter() {
 // });
 
 
-function fetchHTML(url, callback) {
-    $.ajax({
-        url: url,
-        type: 'GET',
-        dataType: 'html',
-        success: function(data) {
-            callback(data);
-        },
-        error: function(xhr, status, error) {
-            console.error('Error fetching HTML: ', error);
-        }
-    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var currentURL = './3511095.3531271.html';
+
+// change the url of the document to load
+$('#urlin').change(function(){
+    var url = $('#urlin').val();
+    currentURL = url;
+    console.log("Changed document to: " + url);
+});
+
+
+
+function changeURL() {
+    
 }
-
-
-function processHTML(htmlContent) {
-    var $html = $(htmlContent);
-
-    // Find all classes 'bib' and read their inner html
-    var bibElements = $html.find('.bib');
-    bibElements.each(function() {
-        var innerHTML = $(this).html();
-        console.log(innerHTML);
-    });
-}
-
-
-fetchHTML('./3511095.3531271.html', processHTML);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2591,7 +2913,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 repositionWorld();
                 initMenu();
                 initTools();
-                displayTextBlock(testDisplayHead,testDisplayText);
+                loadTextBlock(currentURL);
 
                 testPillar.visible = true;
             } else if (firstInit && !secondInit && indexFingerTip2.position.distanceTo(wrist2.position) > 0.1 && indexFingerTip1.position.distanceTo(wrist1.position)){
