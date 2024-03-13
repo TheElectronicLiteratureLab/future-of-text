@@ -68,92 +68,14 @@ floorAxis.position.set( 0, -1.3, 0 );
 floorAxis.rotation.set( -Math.PI / 2, 0, -Math.PI / 2 );
 
 
+// Universal axis definitions
 
-
-
-
-
-
-
-// Test loading files into three.js
-var pdfDoc = null;
-var pageNum = 1;
-var pageRendering = false;
-var canvas = document.createElement('canvas');
-var context = canvas.getContext('2d');
-var arrowHelp;
-var allHighlights = [];
-var pdfDefaultResolution = 3;
-
-var TESTPDF = new THREE.Mesh();
-
-
-
-// Function to render a page
-function renderPage(num) {
-    pageRendering = true;
-    pdfDoc.getPage(num).then(function(page) {
-        var viewport = page.getViewport({ scale: pdfDefaultResolution });
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-
-        var renderContext = {
-            canvasContext: context,
-            viewport: viewport,
-            intent: "print"
-        };
-
-        var renderTask = page.render(renderContext);
-        renderTask.promise.then(function() {
-
-            pageRendering = false;
-            var texture = new THREE.CanvasTexture(canvas);
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            texture.colorSpace = THREE.SRGBColorSpace;
-            var geometry = new THREE.PlaneGeometry(viewport.width / 1000 / pdfDefaultResolution , viewport.height / 1000 / pdfDefaultResolution);
-            var material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-            var pdfPlane = new THREE.Mesh(geometry, material);
-
-            scene.add(pdfPlane);
-
-            // TESTPDF = pdfPlane;
-            startPos(pdfPlane);
-
-            // Make the pdf grabbable
-            pdfPlane.userData.grabbable = "true";
-            pdfPlane.layers.enable( 1 );
-
-            // Assign data like page number, transform, and doc name
-            pdfPlane.userData.objType = "pdf";
-            
-            // Return the text contents of the page after the pdf has been rendered in the canvas
-      		// return page.getTextContent();
-	    });
-    });
-}
-
-// Function to load the PDF
-function loadPDF(url) {
-    pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
-        pdfDoc = pdfDoc_;
-        renderPage(pageNum);
-    });
-}
-
-// Progress the pages over time
-function timeout() {
-    setTimeout(function () {
-        nextPage();
-        timeout();
-    }, 1000);
-}
-
-function nextPage() {
-    if (pageNum < pdfDoc.numPages) {
-        pageNum++;
-        renderPage(pageNum);
-    }
-}
+const _xbackward = new THREE.Vector3( -1, 0, 0 );
+const _xforward = new THREE.Vector3( 1, 0, 0 );
+const _ybackward = new THREE.Vector3( 0, -1, 0 );
+const _yforward = new THREE.Vector3( 0, 1, 0 );
+const _zbackward = new THREE.Vector3( 0, 0, -1 );
+const _zforward = new THREE.Vector3( 0, 0, 1 );
 
 
 
@@ -163,73 +85,6 @@ function nextPage() {
 
 
 
-
-
-
-
-let hasFetchedMap = false;
-
-function fetchMap() {
-    hasFetchedMap = true;
-
-// Test text with Troika
-fetch('./testtext.json')
-    .then((response) => response.json())
-    .then((json) => {
-        for (var i = json.nodes.length - 1; i >= 0; i--) {
-        
-
-        // Create:
-        const myText = new Text()
-        scene.add(myText)
-        myText.userData.grabbable = "true";
-        myText.layers.enable( 1 );
-
-        // Set properties to configure:
-        myText.text = json.nodes[i].title;
-        myText.fontSize = 0.15;
-        myText.color = 0x000000;
-        // myText.strokeColor = 0xffffff;
-        // myText.strokeWidth = 0.001;
-        myText.anchorX = 'center';
-        myText.anchorY = 'middle';
-
-        myText.position.x = (Math.random()-0.5) * json.nodes.length / 5;
-        myText.position.y = (Math.random()-0.5) * json.nodes.length / 15 + 2;
-        myText.position.z = (Math.random()-0.5) * json.nodes.length / 50 - 7;
-
-
-        // console.log(json.nodes[i].title);
-
-
-
-        }
-
-
-    // var width = json.nodes.length / 5 + 10;
-    // var height = json.nodes.length / 15 + 8;
-    // var geometry = new THREE.PlaneGeometry(width, height);
-    // var material = new THREE.MeshBasicMaterial( {
-    //     color: 0xffffff,
-    //     transparent: true,
-    //     opacity:0.75
-    // } );
-    // var mapBackground = new THREE.Mesh( geometry, material ) ;
-    
-
-    // scene.add( mapBackground );
-
-    // mapBackground.position.z = (-0.5 * json.nodes.length / 20 - 7.1);
-    // mapBackground.position.y = 2;
-
-
-
-
-
-    });
-
-// console.log(testtext);
-}
 
 
 
@@ -293,7 +148,7 @@ var menuMat = new THREE.MeshStandardMaterial({
     transparent: false,
     opacity: 0.95,
     roughness: 0.32,
-    metalness: 1,
+    metalness: 0.1,
     normalScale: new THREE.Vector2( 1, 1 ),
     emissive: 0xeeeeee,
     emissiveIntensity: 0.1,
@@ -695,13 +550,30 @@ function btnPress(intersect) {
                 menuSphereMat.emissiveIntensity = normalizedResult;
             } else if (funct.slice(7,13) == "reader") {
                 var newRange = normalizedResult * 10 + 0.5;
-                headText.curveRadius = newRange;
-                headText.position.set( headText.position.x, headText.position.y, -newRange );
-                swipeRayLengthBase = newRange - 0.12;
+                console.log('====================');
+                for (var i = snapDistanceOne.length - 1; i >= 0; i--) {
+                    console.log(i);
+                    var thisGroup = snapDistanceOne[i];
+                    // Set the curve radius and position of the header
+                    if (thisGroup.userData.header != undefined) {
+                        var headText = thisGroup.userData.header;
+                        headText.curveRadius = newRange;
+                        headText.position.set( headText.position.x, headText.position.y, -newRange );
+                    }
+                    // Set the curve radius and position of all text block elements
+                    if (thisGroup.userData.textBlock != undefined) {
+                        var textBlock = thisGroup.userData.textBlock;
+                        for (var j = textBlock.length - 1; j >= 0; j--) {
+                            textBlock[j].curveRadius = newRange;
+                            textBlock[j].position.z = -newRange;
+                        }
+                    }
+                    // Set the position of the handle
+                    if (thisGroup.userData.handle != undefined) {
+                        var handle = thisGroup.userData.handle;
+                        handle.position.z = -newRange;
+                    }
 
-                for (var i = textBlock.length - 1; i >= 0; i--) {
-                    textBlock[i].curveRadius = newRange;
-                    textBlock[i].position.z = -newRange;
                 }
 
             }
@@ -797,7 +669,7 @@ function subMenu(v) {
 
 
 
-let toolSelector, toolSelectorCore, toolSelectorTip, toolSelectorTip2, toolSelectorBeam, toolSelectorDot;
+let toolSelector, toolSelectorCore, toolSelectorTip, toolSelectorTip2, toolSelectorBeam, toolSelectorDot, toolSelectorDotFX;
 
 function initTools() {
 
@@ -818,10 +690,17 @@ function initTools() {
         depthWrite: true
     });
     const colorMat = new THREE.MeshBasicMaterial( {
-        color: 0x659fe6,
+        // color: 0x659fe6,
+        color: 0xffffff,
         transparent: true,
         opacity: 1,
         depthWrite: true
+    } );
+    var fxMat = new THREE.MeshBasicMaterial( {
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.75,
+        depthWrite: false
     } );
 
     toolSelector = new THREE.Group();
@@ -830,15 +709,13 @@ function initTools() {
     toolSelectorTip2 = new THREE.Mesh( tipGeo, colorMat );
     toolSelectorBeam = new THREE.Mesh( beamGeo, colorMat );
     toolSelectorDot = new THREE.Mesh( dotGeo, colorMat );
+    toolSelectorDotFX = new THREE.Mesh( dotGeo, fxMat );
 
     toolSelectorCore.attach( toolSelectorTip );
     toolSelectorCore.attach( toolSelectorTip2 );
     toolSelectorCore.attach( toolSelectorBeam );
     toolSelectorCore.attach( toolSelectorDot );
-
-    // toolSelectorBeam.translateZ( -0.081 );
-
-    // toolSelectorDot.translateZ( -0.081 );
+    toolSelectorDot.attach( toolSelectorDotFX );
 
     toolSelectorTip.rotateY( Math.PI / 4 );
     toolSelectorTip.rotateX( Math.PI / 4 );
@@ -850,7 +727,7 @@ function initTools() {
     toolSelectorCore.translateY( -0.113 );
     toolSelectorCore.translateX( -0.015 );
 
-    toolSelectorCore.rotateX( -Math.PI / 2.5);
+    toolSelectorCore.rotateX( -Math.PI / 2.9);
 
     toolSelector.attach( toolSelectorCore );
     scene.add( toolSelector );
@@ -859,6 +736,7 @@ function initTools() {
     toolSelectorTip.renderOrder = 99;
     toolSelectorTip2.renderOrder = 99;
     toolSelectorDot.renderOrder = 99;
+    // toolSelectorDotFX.renderOrder = 98;
 
     for (var i = toolSelectorSmoothSteps - 1; i >= 0; i--) {
         var rotVector = [wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z];
@@ -936,6 +814,9 @@ var highlightMat = new THREE.MeshBasicMaterial( {
 var textsToReset = [];
 var toolSelectorActive = false;
 
+// change this to show/hide the selector beam and tool
+var toolSelectorVisible = false;
+
 function tryTools() {
     animateTools();
     let fingersMaxDist = 0.09;
@@ -954,9 +835,8 @@ function tryTools() {
         if (!tempSelectorTweenedIn && tempSelectorTweenedOut) {
             tempSelectorTweenedOut = false;
 
-            toolSelectorTip.visible = true;
-            toolSelectorTip2.visible = true;
-            toolSelectorDot.visible = true;
+            toolSelectorTip.visible = toolSelectorVisible;
+            toolSelectorTip2.visible = toolSelectorVisible;
 
             tempSelectorIntroTween = new TWEEN.Tween( toolSelectorTip.scale )
                     .to( {x: 1, y: 1, z: 1}, 300 )
@@ -982,32 +862,15 @@ function tryTools() {
 
         }
 
-        // toolSelector.material.opacity = fingersClamped;
-        // toolSelectorTip.material.opacity = fingersClamped;
-
         toolSelectorTip.getWorldPosition(tempSelectorWorld);
-
-        // If there are any highlights, clear them
-        if (allHighlights.length > 0) {
-            for (var i = allHighlights.length - 1; i >= 0; i--) {
-                var highlight = allHighlights[i];
-                if (highlight != null) {
-                    
-                    if (highlight.parent != null) {
-                        highlight.parent.remove(highlight);
-                    }
-
-                    
-                }
-            }
-        }
 
         // If there are any bolded texts, clear them
         if (textsToReset.length > 0) {
             for (var i = textsToReset.length - 1; i >= 0; i--) {
-                textsToReset[i].fontSize = 0.02;
-                textsToReset[i].fontWeight = "normal";
-                textsToReset.splice(textsToReset[i], 1);
+                var thisText = textsToReset[i];
+                thisText.fontSize = thisText.userData.fontSize;
+                thisText.fontWeight = "normal";
+                textsToReset.splice(thisText, 1);
             }
         }
 
@@ -1024,14 +887,19 @@ function tryTools() {
 
             if (intersect) {
 
+                toolSelectorDot.visible = true;
+
                 let beamScale = tempSelectorWorld.distanceTo(intersect.point) * 1000;
                 toolSelectorBeam.scale.z = beamScale;
-                toolSelectorBeam.visible = true;
+                toolSelectorBeam.visible = toolSelectorVisible;
                 toolSelectorBeam.position.z = -(beamScale/2000);
 
                 toolSelectorDot.position.z = -(beamScale/1000);
 
-                intersect.object.fontSize = 0.025;
+                let distScale = (beamScale / 2000) + 1;
+                toolSelectorDot.scale.set( distScale, distScale, distScale );
+
+                intersect.object.fontSize = intersect.object.userData.fontSize * 1.1;
                 intersect.object.fontWeight = "bold";
 
                 textsToReset.push(intersect.object);
@@ -1045,99 +913,114 @@ function tryTools() {
                 tempSelectorActive = true;
 
                 // Tween the selector dot
-                tempSelectorDotTween = new TWEEN.Tween( toolSelectorDot.scale )
-                    .to( {x: 3, y: 3, z: 3}, 100 )
+                tempSelectorDotTween = new TWEEN.Tween( toolSelectorDotFX.scale )
+                    .to( {x: 3, y: 3, z: 3}, 150 )
                     .easing( TWEEN.Easing.Quadratic.Out )
                     .start()
+                    .onUpdate(function() {
+                        toolSelectorDotFX.material.opacity = 3 - toolSelectorDotFX.scale.x;
+                    })
                     .onComplete(() => {
-                        new TWEEN.Tween(toolSelectorDot.scale)
-                        .to( {x:1, y: 1, z: 1}, 100 )
-                        .easing( TWEEN.Easing.Quadratic.In )
-                        .start()
+                        toolSelectorDotFX.scale.set( 1, 1, 1 );
+                        toolSelectorDotFX.material.opacity = 1;
                     });
 
-                var tempTextResult = intersect.object.text.slice(1).split(']')[0];
-                var tempSource = intersect.object.userData.source;
-                findCitation(tempSource, tempTextResult, intersect.object);
-                // console.log("result: " + tempTextResult);
+                if (intersect.object.userData.type == "citation") {
+                    popupMenu(intersect.object);
+                } else if (intersect.object.userData.type == "popup-find") {
+                    var target = intersect.object.userData.target;
+                    var tempTextResult = target.text.slice(1).split(']')[0];
+                    var tempSource = target.userData.source;
+                    findCitation(tempSource, tempTextResult, target);
+                    popupMenu(undefined);
+                } else if (intersect.object.userData.type == "popup-close") {
+                    popupMenu(undefined);
+                } else if (intersect.object.userData.type == "popup-detach") {
+                    var target = intersect.object.userData.target;
+                    target.userData.originMatrix = [ target.position.x, target.position.y, target.position.z, target.rotation.x, target.rotation.y, target.rotation.z ];
+                    var oldGroup = target.parent;
+                    var newGroup = new THREE.Group();
+                    newGroup.position.set( 
+                        oldGroup.position.x,
+                        oldGroup.position.y,
+                        oldGroup.position.z
+                    );
+                    newGroup.rotation.set( 
+                        oldGroup.rotation.x,
+                        oldGroup.rotation.y,
+                        oldGroup.rotation.z
+                    );
+                    scene.add(newGroup);
+                    newGroup.attach(target);
+                    var tempNewGroupTween = new TWEEN.Tween( newGroup.rotation )
+                        .to( {x: oldGroup.rotation.x, y: oldGroup.rotation.y + 0.1, z: oldGroup.rotation.z }, 500 )
+                        .easing( TWEEN.Easing.Quadratic.InOut )
+                        .start()
+                    target.userData.detachedParent = oldGroup;
+                    createHandle(target);
+                    const index = oldGroup.userData.textBlock.indexOf(target);
+                    oldGroup.userData.textBlock.splice(index,1);
+                    var newArray = [];
+                    newArray.push(target);
+                    newGroup.userData.textBlock = newArray;
+                    snapDistanceOne.push(newGroup);
+                    popupMenu(undefined);
+                } else if (intersect.object.userData.type == "popup-attach") {
+                    var target = intersect.object.userData.target;
+                    var oldGroup = target.userData.detachedParent;
+                    var newGroup = target.parent;
+                    var destination = target.userData.originMatrix;
+                    oldGroup.attach(target);
+                    target.userData.detachedParent = undefined;
+                    // Tween to the original position and rotation
+                    var tempReturnPosTween = new TWEEN.Tween( target.position )
+                    .to( {x: destination[0], y: destination[1], z: -target.curveRadius}, 500 )
+                    .easing( TWEEN.Easing.Quadratic.InOut )
+                    .start()
+                    var tempReturnRotTween = new TWEEN.Tween( target.rotation )
+                    .to( {x: destination[3], y: destination[4], z: destination[5]}, 500 )
+                    .easing( TWEEN.Easing.Quadratic.InOut )
+                    .start()
+                    oldGroup.userData.textBlock.push(target);
+                    const index = snapDistanceOne.indexOf(newGroup);
+                    snapDistanceOne.splice(index,1);
+                    newGroup.parent.remove(newGroup);
+                    popupMenu(undefined);
+                } else if (intersect.object.userData.type == "handle") {
+                    startSwipe(intersect.object);
+                    popupMenu(undefined);
+                } else if (intersect.object.userData.type == "reference") {
+                    popupMenu(intersect.object, "reference");
+                } else if (intersect.object.userData.type == "popup-remove") {
+                    console.log("remove");
+                    popupMenu(undefined);
+                    var target = intersect.object.userData.target;
+                    var line = target.userData.line;
+                    var index = animatedConnections.indexOf(line);
+                    animatedConnections.splice(index,1);
+                    console.log(line);
+                    scene.remove(line);
+                    scene.remove(target.parent);
+                }
 
             } else if (fingersCurDist > 0.02 && tempSelectorActive) {
                 tempSelectorActive = false;
+                stopSwipe();
             }
-
-            // if (intersect && fingersCurDist <= 0.01 && !tempSelectorActive) {
-            //     tempSelectorActive = true;
-            //     // Tween the selector dot
-            //     tempSelectorDotTween = new TWEEN.Tween( toolSelectorDot.scale )
-            //         .to( {x: 3, y: 3, z: 3}, 100 )
-            //         .easing( TWEEN.Easing.Quadratic.Out )
-            //         .start()
-            //         .onComplete(() => {
-            //             new TWEEN.Tween(toolSelectorDot.scale)
-            //             .to( {x:1, y: 1, z: 1}, 100 )
-            //             .easing( TWEEN.Easing.Quadratic.In )
-            //             .start()
-            //         });
-
-            //     var localHitPos = intersect.object.worldToLocal(intersect.point);
-
-            //     var tempCaret = getCaretAtPoint(intersect.object.textRenderInfo, localHitPos.x, localHitPos.y);
-
-            //     tempSelectorStart = tempCaret.charIndex;
-
-            // } else if (intersect && fingersCurDist <= 0.01 && tempSelectorActive) {
-
-                // var localHitPos = intersect.object.worldToLocal(intersect.point);
-
-                // var tempCaret = getCaretAtPoint(intersect.object.textRenderInfo, localHitPos.x, localHitPos.y);
-
-                // tempSelectorEnd = tempCaret.charIndex;
-
-                // // Display the selection box
-                // var tempSelectionBoxes = getSelectionRects(intersect.object.textRenderInfo, tempSelectorStart, tempSelectorEnd);
-
-                // for (var i = tempSelectionBoxes.length - 1; i >= 0; i--) {
-                //     // Highlight
-                //     var radius = intersect.object.curveRadius;
-                //     var height = intersect.object.fontSize;
-                //     var theta = (tempSelectionBoxes[i].left - tempSelectionBoxes[i].right) / radius;
-                //     var tempGeo = new THREE.CylinderGeometry( radius, radius, height, 32, 1, true, 0, theta );
-                //     var tempNewHighlight = new THREE.Mesh( tempGeo, highlightMat );
-                //     scene.add(tempNewHighlight);
-                //     allHighlights.push(tempNewHighlight);
-                //     intersect.object.parent.attach(tempNewHighlight);
-
-                //     tempNewHighlight.position.y = tempSelectionBoxes[i].bottom + height/2 + intersect.object.position.y;
-                //     tempNewHighlight.rotation.y = Math.PI - tempSelectionBoxes[i].left;
-
-                //     tempNewHighlight.renderOrder = 98;
-                //     console.log(intersect.object.parent.rotation.y);
-                // }
-
-                // console.log(tempSelectionBoxes);
-
-            // } else if (fingersCurDist > 0.01 && tempSelectorActive) {
-            //     tempSelectorActive = false;
-
-            //     if (intersect != undefined){
-            //         var tempTextResult = intersect.object.text.slice(tempSelectorStart, tempSelectorEnd + 1);
-
-            //         // console.log("RESULT: " + tempTextResult);
-            //     }
-
-            // }
 
         } else {
             toolSelectorBeam.scale.z = 0;
             toolSelectorBeam.visible = false;
             toolSelectorBeam.position.z = 0;
             toolSelectorDot.position.z = 0;
-
+            toolSelectorDot.visible = false;
+            stopSwipe();
         }
 
     } else {
 
         toolSelectorActive = false;
+        stopSwipe();
 
         // Animate out the selector core
         if (tempSelectorTweenedIn && !tempSelectorTweenedOut) {
@@ -1181,6 +1064,161 @@ function tryTools() {
 
 
 
+var newPopup;
+
+var popupMat = new THREE.MeshStandardMaterial({ 
+    color: 0x7c7c7c,
+    transparent: false,
+    roughness: 0.92,
+    metalness: 0,
+    normalScale: new THREE.Vector2( 1, 1 ),
+    normalMap: normalNone
+});
+
+var centerSource = new THREE.Vector3();
+
+function popupMenu(target, variation = "citation") {
+
+    var popupItems = [];
+
+    if (newPopup != undefined) { newPopup.parent.remove(newPopup); newPopup = undefined; };
+    
+    if (target != undefined) {
+
+        // popup background panel
+        const popupGeo = new THREE.PlaneGeometry(0.25, 0.4);
+        newPopup = new THREE.Mesh( popupGeo, popupMat );
+
+        // popup header text
+        const popupHead = new Text();
+        scene.add(popupHead);
+        popupHead.fontSize = 0.015;
+        popupHead.color = 0xffffff;
+        popupHead.anchorX = 'center';
+        if (target.text.length >= 30) {
+            popupHead.text = target.text.slice(0,28) + '...';
+        } else {
+            popupHead.text = target.text;
+        }
+        newPopup.attach(popupHead);
+        popupHead.position.y = 0.185;
+        popupItems.push(popupHead);
+
+        if (variation == "citation") {
+    // DETACH / REATTACH popup button
+            const popupDetach = new Text();
+            scene.add(popupDetach);
+            if (target.userData.detachedParent != undefined) {
+            // ATTACH
+                popupDetach.text = "Reattach to Group";
+                popupDetach.userData.type = "popup-attach";
+            } else {
+            // DETACH
+                popupDetach.text = "Detach from Group";
+                popupDetach.userData.type = "popup-detach";
+            }
+            popupDetach.fontSize = 0.02;
+            popupDetach.userData.fontSize = 0.02;
+            popupDetach.color = 0xffffff;
+            popupDetach.anchorX = 'left';
+            popupDetach.anchorY = 'middle';
+            newPopup.attach(popupDetach);
+            popupDetach.position.x = -0.11;
+            popupDetach.position.y = 0.1;
+            popupDetach.layers.enable( 3 );
+            popupDetach.userData.target = target;
+            popupItems.push(popupDetach);
+
+    // FIND IN DOCUMENT popup button
+            const popupFind = new Text();
+            scene.add(popupFind);
+            popupFind.text = "Find in Document";
+            popupFind.fontSize = 0.02;
+            popupFind.userData.fontSize = 0.02;
+            popupFind.color = 0xffffff;
+            popupFind.anchorX = 'left';
+            popupFind.anchorY = 'middle';
+            newPopup.attach(popupFind);
+            popupFind.position.x = -0.11;
+            popupFind.position.y = 0.0;
+            popupFind.layers.enable( 3 );
+            popupFind.userData.type = "popup-find";
+            popupFind.userData.target = target;
+            popupItems.push(popupFind);
+        } else if (variation == "reference") {
+    // REMOVE popup button
+            const popupRemove = new Text();
+            scene.add(popupRemove);
+            popupRemove.text = "Remove";
+            popupRemove.userData.type = "popup-remove";
+            popupRemove.fontSize = 0.02;
+            popupRemove.userData.fontSize = 0.02;
+            popupRemove.color = 0xffffff;
+            popupRemove.anchorX = 'left';
+            popupRemove.anchorY = 'middle';
+            newPopup.attach(popupRemove);
+            popupRemove.position.x = -0.11;
+            popupRemove.position.y = 0.1;
+            popupRemove.layers.enable( 3 );
+            popupRemove.userData.target = target;
+            popupItems.push(popupRemove);
+        }
+
+// CLOSE popup button
+        const popupClose = new Text();
+        scene.add(popupClose);
+        popupClose.text = "Close";
+        popupClose.fontSize = 0.02;
+        popupClose.userData.fontSize = 0.02;
+        popupClose.color = 0xffffff;
+        popupClose.anchorX = 'left';
+        popupClose.anchorY = 'middle';
+        newPopup.attach(popupClose);
+        popupClose.position.x = -0.11;
+        popupClose.position.y = -0.1;
+        popupClose.layers.enable( 3 );
+        popupClose.userData.type = "popup-close";
+        popupItems.push(popupClose);
+
+        // display and position popup
+        var tempWorldPos = new THREE.Vector3();
+        toolSelectorDot.getWorldPosition(tempWorldPos);
+        newPopup.position.set( tempWorldPos.x, tempWorldPos.y, tempWorldPos.z );
+
+        centerSource.set( camera.position.x, tempWorldPos.y, camera.position.z );
+
+        var newRot = new THREE.Quaternion().setFromRotationMatrix(
+            new THREE.Matrix4().lookAt( centerSource, newPopup.position, _yforward ) 
+        );
+
+        newPopup.quaternion.copy( newRot );
+
+        // newPopup.rotation.set( target.parent.rotation.x, target.parent.rotation.y, target.parent.rotation.z );
+
+        for (var i = popupItems.length - 1; i >= 0; i--) {
+            popupItems[i].translateZ(0.001);
+            popupItems[i].sync();
+        }
+
+        newPopup.translateZ(0.1);
+        
+        scene.add(newPopup);
+        newPopup.layers.enable( 3 );
+
+        popupHead.sync();
+
+        newPopup.scale.set( 0, 0, 0 );
+
+        var tempScale = camera.position.distanceTo(newPopup.position);
+
+        // tween the popup
+        new TWEEN.Tween( newPopup.scale )
+                .to( {x: tempScale, y: tempScale, z: tempScale}, 300 )
+                .easing( TWEEN.Easing.Quadratic.Out )
+                .start()
+        ;
+    }
+}
 
 
 
@@ -1192,12 +1230,14 @@ function tryTools() {
 
 
 
-var testDisplayHead = "Several Hypertexts";
-var testDisplayText = ["[1] Espen J Aarseth. 1994. Nonlinearity and literary theory.","[2] Robert M. Akscyn, Donald L. McCracken, and Elise Yoder. 1987. KMS: A Distributed Hypermedia System for Managing Knowledge in Organizations.","[3] G. L. Anderson. 1953. The McBee Keysort System for Mechanically Sorting Folklore Data.","[4] Kenneth M. Anderson, Richard N. Taylor, and E. James Whitehead. 1994. Chimera: Hypertext for Heterogeneous Software Environments.","[5] Mark W. R. Anderson, Les A. Carr, and David E. Millard. 2017. There and Here: Patterns of Content Transclusion in Wikipedia.","[6] Mark W. R. Anderson and David Millard. 2022. Hypertext’s Meta-History: Documenting in-Conference Citations, Authors and Keyword Data, 1987-2021.","[7] Claus Atzenbeck, Eelco Herder, and Daniel Roßner. 2023. Breaking The Routine: Spatial Hypertext Concepts for Active Decision Making in Recommender Systems.","[8] Claus Atzenbeck, Peter Nürnberg, and Daniel Roßner. 2021. Synthesising augmentation and automation. New Review of Hypermedia and Multimedia.","[9] Claus Atzenbeck and Peter J. Nürnberg. 2019. Hypertext as Method.","[10] Claus Atzenbeck, Daniel Roßner, and Manolis Tzagarakis. 2018. Mother: An Integrated Approach to Hypertext Domains.","[11] Claus Atzenbeck, Thomas Schedel, Manolis Tzagarakis, Daniel Roßner, and Lucas Mages. 2017. Revisiting Hypertext Infrastructure.","[12] Ruth Aylett. 2000. Emergent narrative, social immersion and “storification”.","[13] Albert Lásló Barabási, Hawoong Jeong, Zoltán Néda, Erzsébet Ravasz, András P. Schubert, and Tamás Vicsek. 2002. Evolution of the social network of scientific collaborations. Physica A: Statistical Mechanics and its Applications","[14] Thierry Bardini. 2000. Bootstrapping: Douglas Engelbart, Coevolution, and the Origins of Personal Computing.","[15] Belinda Barnet. 2013. Memory Machines: The Evolution of Hypertext.","[16] Roland Barthes and S. Heath. 1977. Death of The Author.","[17] Meltem Huri Baturay. 2015. An overview of the world of MOOCs.","[18] Sean Bechhofer, Iain Buchan, David De Roure, Paolo Missier, John Ainsworth, Jiten Bhagat, Philip Couch, Don Cruickshank, Mark Delderfield, Ian Dunlop, et al. 2013. Why linked data is not enough for scientists.","[19] Tim Berners-Lee. 2006. Linked Data.","[20] Tim Berners-Lee, James A. Hendler, and Ora Lassila. 2001. The Semantic Web.","[21] Tim Berners-Lee and Kieron O’Hara. 2013. The read–write Linked Data Web.","[22] Mark Bernstein. 1988. The Bookmark and the Compass: Orientation Tools for Hypertext Users.","[23] Mark Bernstein. 1998. Patterns of Hypertext.","[24] Mark Bernstein. 1999. Where Are The Hypertexts?","[25] Mark Bernstein. 2001. Card Shark and Thespis: Exotic Tools for Hypertext Narrative.","[26] Mark Bernstein. 2002. Storyspace 1.","[27] Mark Bernstein. 2002. Tinderbox. Eastgate Systems.","[28] Mark Bernstein. 2009. On Hypertext Narrative.","[29] Mark Bernstein. 2010. Criticism.","[30] Mark Bernstein. 2022. On The Origins Of Hypertext In The Disasters Of The Short 20th Century.","[31] Mark Bernstein and Clare J. Hooper. 2018. A Villain’s Guide To Social Media And Web Science.","[32] Mark Bernstein, David E. Millard, and Mark J. Weal. 2002. On Writing Sculptural Hypertext.","[33] Jay David Bolter. 1992. Virtual Reality and the Future of Hypertext (Abstract).","[34] Jay David Bolter and Richard A. Grusin. 2000. Remediation: Understanding New Media.","[35] Jay David Bolter and Michael Joyce. 1987. Hypertext and Creative Writing.","[36] Jorge Luis Borges. 1941. The Garden of Forking Paths.","[37] Rodrigo A. Botafogo, Ehud Rivlin, and Ben Shneiderman. 1992. Structural Analysis of Hypertexts: Identifying Hierarchies and Useful Metrics.","[38] Sam Brooker. 2019. Man Proposes, God Disposes: Re-Assessing Correspondences in Hypertext and Anti-Authorist Literary Theory.","[39] Peter J. Brown. 1987. Turning Ideas into Products: The Guide System.","[40] Peter Brusilovsky. 2001. Adaptive Hypermedia.","[41] Peter Brusilovsky, Alfred Kobsa, and Julita Vassileva. 1998. Adaptive Hypertext and Hypermedia. Kluwer Academic Publishers, Dordrecht. 274 pages. https://doi.org/10.1007/978-94-017-0617-9","[42] Colin Burke. 1991. A Practical View of Memex: The Career of The Rapid Selector.","[43] Vannevar Bush. 1945. As We May Think. The Atlantic Monthly","[44] Christoph J. Bussler, John Davies, Dieter Fensel, and Rudi Studer (Eds.). 2004. The Semantic Web: Research and Applications.","[45] Meeyoung Cha, Alan Mislove, and Krishna P. Gummadi. 2009. A Measurement-Driven Analysis of Information Propagation in the Flickr Social Network.","[46] James M. Clark and Allan Paivio. 1991. Dual coding theory and education.","[47] Jeff Conklin. 1987. Hypertext: An Introduction and Survey.","[48] Jeff Conklin. 1987. A Survey of Hypertext.","[49] Jeff Conklin and Michael L. Begeman. 1988. gIBIS: A Hypertext Tool for Exploratory Policy Discussion.","[50] Cunningham & Cunningham, Inc. 2005. Wiki Gardener.","[51] Nada Dabbagh and Anastasia Kitsantas. 2012. Personal Learning Environments, social media, and self-regulated learning: A natural formula for connecting formal and informal learning.","[52] Hugh C. Davis, Andy Lewis, and Antoine Rizk. 1996. OHP: A Draft Proposal for a Standard Open Hypermedia Protocol.","[53] Hugh C. Davis, Siegfried Reich, and David E. Millard. 1997. A Proposal for a Common Navigational Hypertext Protocol.","[54] Paul M. E. De Bra and Jan-Peter Ruiter. 2001. AHA! Adaptive Hypermedia for All.","[55] Norman M. Delisle and Mayer D. Schwartz. 1986. Neptune: A Hypertext System for CAD Applications.","[56] Steven J. DeRose and Andries van Dam. 1999. Document Structure and Markup in the FRESS Hypertext System.","[57] Jacques Derrida. 1967. La structure, le signe et le jeu dans le discours des sciences humaines.","[58] Andrea A. Di Sessa. 1985. A Principled Design for an Integrated Computational Environment.","[59] Darcy DiNucci. 1999. Fragmented Future.","[60] J. Yellowlees Douglas. 1994. “How do I stop this thing?”: Closure and Indeterminacy in Interactive Narratives.","[61] Deborah M. Edwards. 1989. Lost in Hyperspace: Cognitive Mapping And Navigation in A Hypertext Environment.","[62] Electronic Literature Organization. 1999. Electronic Literature Organization (ELO).","[63] William C. Elm and David D. Woods. 1985. Getting Lost: A Case Study in Interface Design.","[64] Douglas Carl Engelbart. 1962. Augmenting Human Intellect: A Conceptual Framework.","[65] Douglas Carl Engelbart. 1968. The Mother of All Demos.","[66] Douglas Carl Engelbart. 1984. Authorship provisions in AUGMENT.","[67] Douglas Carl Engelbart and William K. English. 1968. A Research Center for Augmenting Human Intellect.","[58] Douglas Carl Engelbart and Eugene E. Kim. 2006. The Augmented Wiki.","[69] Ayelet Even-Ezra. 2021. Lines of Thought.","[70] Steven Feiner. 1988. Seeing the Forest for the Trees: Hierarchical Displays of Hypertext Structures.","[71] Steven Feiner, Sandor Nagy, and Andries Van Dam. 1981. An Integrated System for Creating and Presenting Complex Computer-Based Documents.","[72] Cliff Figallo. 1993. The WELL: small town on the Internet highway system adapted from a paper presented to the” Public Access to the Internet” conference, Harvard University.","[73] Steven Roger Fischer. 2020. A History of Writing.","[74] Jim Flanagan. 2003. Search Referral Zeitgeist.","[75] Judith Flanders. 2020. A Place For Everything.","[76] Andrew M. Fountain, Wendy Hall, Ian Heath, and Hugh C. Davis. 1990. MICROCOSM: An Open Model for Hypermedia with Dynamic Linking.","[77] Mark S. Fox and Andrew J. Palay. 1979. The BROWSE system: an introduction.","[78] Jane Friedhoff. 2013. Untangling Twine: A Platform Study.","[79] David Gibson. 2004. The Site Browser: Catalyzing Improvements in Hypertext Organization.","[80] Jennifer Golbeck and Jim Hendler. 2006. FilmTrust: Movie Recommendations using Trust in Web-based Social Networks.","[81] Ira P. Goldstein and Daniel G. Bobrow. 1980. A Layered Approach to Software Design.","[82] Danny Goodman et al. 1988. The Complete Hypercard Handbook.","[83] Dene Grigar. 2017. The Legacy of Judy Malloy.","[84] Dene Grigar. 2019. Tear Down the Walls: An Exhibition of Hypertext & Participatory Narrative.","[85] Dene Grigar, Nicholas Schiller, Vanessa Rhodes, Veronica Whitney, Mariah Gwin, and Katie Bowen. 2018. Rebooting Electronic Literature, Volume 1.","[86] Dimitris Gritzalis, Miltiadis Kandias, Vasilis Stavrou, and Lilian Mitrou. 2014. History of Information: The case of Privacy and Security in Social Media.","[87] Jonathan Grudin. 1994. Computer-Supported Cooperative Work: History And Focus.","[88] Kaj Grønbæk and Randall H. Trigg. 1994. Design Issues for a Dexter-Based Hypermedia System.","[89] Eric Gullichsen, Dilip D’Souza, and Pat Lincoln. 1986. The PlaneText Book: Technical Report STP-333-86 (P).","[90] Bernard J. Haan, Paul Kahn, Victor A. Riley, James H. Coombs, and Norman K. Meyrowitz. 1992. IRIS Hypermedia Services.","[91] Sean Haas. 2022. Doug Engelbart, Edge Notched Cards, and Early Links.","[92] Frank G. Halasz. 1987. Reflections on NoteCards: Seven Issues for the next Generation of Hypermedia Systems.","[93] Frank G. Halasz. 1991. “Seven Issues”: Revisited.","[94] Frank G. Halasz. 2001. Reflections on “Seven Issues”: Hypertext in the Era of the Web.","[95] Frank G. Halasz, Thomas P. Moran, and Randall H. Trigg. 1986. NoteCards in a Nutshell.","[96] Frank G. Halasz and Mayer Schwartz. 1990. The Dexter Hypertext Reference Model.","[97] Wendy Hall. 2011. From Hypertext to Linked Data: The Ever Evolving Web.","[98] Wendy Hall, Hugh C. Davis, and Gerard Hutchings. 1996. Rethinking Hypermedia: The Microcosm Approach.","[99] Charlie Hargood, Rosamund Davies, David E. Millard, Matt R. Taylor, and Samuel Brooker. 2012. Exploring (the Poetics of) Strange (and Fractal) Hypertexts.","[100] Charlie Hargood, Mark J. Weal, and David E. Millard. 2018. The StoryPlaces Platform: Building a Web-Based Locative Hypertext System."];
 
-const textGroup = new THREE.Group();
-const headText = new Text();
-const textBlock = [];
+
+
+
+
+
+
+const snapDistanceOne = [];
 
 function loadTextBlock(url) {
 
@@ -1266,66 +1306,137 @@ function findCitation(url, num, object) {
     });
 }
 
-var temporaryCitation;
-var temporaryCitationLine;
+
+var animatedConnections = [];
 
 function displayCitation(text, object) {
+    var temporaryCitation;
+    var temporaryCitationGroup;
+    var temporaryCitationLine;
     console.log(text);
 
     if (temporaryCitation != undefined) {
         temporaryCitation.parent.remove(temporaryCitation);
+        temporaryCitation = undefined;
         temporaryCitationLine.parent.remove(temporaryCitationLine);
+        temporaryCitationLine = undefined;
     }
 
+    var distanceModifier = object.curveRadius;
+    // console.log(distanceModifier);
+
+    temporaryCitationGroup = new THREE.Group();
     temporaryCitation = new Text();
     temporaryCitation.text = text;
     temporaryCitation.fontSize = 0.015;
+    temporaryCitation.userData.fontSize = 0.015;
     temporaryCitation.color = 0x000000;
     temporaryCitation.anchorX = 'left';
     temporaryCitation.anchorY = 'top';
     temporaryCitation.maxWidth = 1;
-    temporaryCitation.curveRadius = 0;
+    temporaryCitation.curveRadius = distanceModifier;
 
-    scene.add(temporaryCitation);
-    object.parent.attach(temporaryCitation);
+    temporaryCitationGroup.add(temporaryCitation);
+    scene.add(temporaryCitationGroup);
+
+// Either or for these, grouped to move with the parent, otherwise enable layers 3
+    // object.parent.attach(temporaryCitationGroup);
+    temporaryCitation.layers.enable( 3 );
+
+    temporaryCitationGroup.position.set( object.parent.position.x, object.parent.position.y, object.parent.position.z );
     temporaryCitation.position.set( object.position.x, object.position.y, object.position.z );
-    temporaryCitation.rotation.set( object.rotation.x, object.rotation.y, object.rotation.z );
-    temporaryCitation.translateX( -1.1 );
+
+    temporaryCitationGroup.rotation.set( object.parent.rotation.x, object.parent.rotation.y + (1.1 / distanceModifier), object.parent.rotation.z );
 
     temporaryCitation.sync();
 
-    const lineLength = 1.1;
+    snapDistanceOne.push(temporaryCitationGroup);
+    var newArray = [];
+    newArray.push(temporaryCitation);
+    temporaryCitationGroup.userData.textBlock = newArray;
+    temporaryCitation.userData.type = "reference";
 
-    const lineGeo = new THREE.BoxGeometry( 0.001, 0.001, lineLength );
+    temporaryCitation.addEventListener("synccomplete", function passHandle() {
+        createHandle(temporaryCitation);
+        this.removeEventListener("synccomplete", passHandle);
+    });
+    
+
+    // Citation line
+    const lineGeo = new THREE.BoxGeometry( 0.001, 0.001, 1 );
     const lineMat = new THREE.MeshBasicMaterial( { color: 0x000000 } );
     temporaryCitationLine = new THREE.Mesh( lineGeo, lineMat );
 
     scene.add(temporaryCitationLine);
-    object.parent.attach(temporaryCitationLine);
-    temporaryCitationLine.position.set( object.position.x, object.position.y, object.position.z );
 
-    var newRot = new THREE.Quaternion().setFromRotationMatrix(
-        new THREE.Matrix4().lookAt( temporaryCitationLine.position, temporaryCitation.position, new THREE.Vector3( 0, -1, 0 ) ) 
-    );
+    temporaryCitationLine.userData.startObj = object;
+    temporaryCitationLine.userData.endObj = temporaryCitation;
+    temporaryCitation.userData.line = temporaryCitationLine;
 
-    temporaryCitationLine.quaternion.copy( newRot );
+    animatedConnections.push(temporaryCitationLine);
 
-    temporaryCitationLine.translateZ(-lineLength/2);
+}
+
+var temporaryCitationWorldPos = new THREE.Vector3();
+var temporaryCitationBlockWorldPos = new THREE.Vector3();
+
+function animateCitationLines() {
+    
+    if (animatedConnections.length > 0) {
+        for (var i = animatedConnections.length - 1; i >= 0; i--) {
+        
+            var thisLine = animatedConnections[i];
+            var startObj = thisLine.userData.startObj;
+            var endObj = thisLine.userData.endObj;
+
+            endObj.getWorldPosition(temporaryCitationWorldPos);
+            startObj.getWorldPosition(temporaryCitationBlockWorldPos);
+
+            thisLine.position.set(
+                temporaryCitationBlockWorldPos.x,
+                temporaryCitationBlockWorldPos.y,
+                temporaryCitationBlockWorldPos.z 
+            );
+
+            var lineLength = thisLine.position.distanceTo(temporaryCitationWorldPos);
+
+            thisLine.scale.z = lineLength;
+
+            var newRot = new THREE.Quaternion().setFromRotationMatrix(
+                new THREE.Matrix4().lookAt( thisLine.position, temporaryCitationWorldPos, _ybackward ) 
+            );
+
+            thisLine.quaternion.copy( newRot );
+
+            thisLine.translateZ(-lineLength/2);
+
+        }
+
+    }
 
 }
 
 // loadTextBlock('./3511095.3531271.html');
 
+var tempSize = new THREE.Vector3();
+
 function displayTextBlock(head, text, source) {
     // Create:
+    const textBlock = [];
+    const headText = new Text();
+    const textGroup = new THREE.Group();
+
     textGroup.add(headText)
     scene.add(textGroup);
 
     let textOffset = -0.03;
     let totalTextOffset = textOffset;
 
+    let totalPreInstance = 0;
+    let totalPostInstance = 0;
+
     for (var i = 0; i <= text.length - 1; i++) {
-        var tempText = new Text();
+        let tempText = new Text();
         textGroup.add(tempText);
         tempText.layers.enable( 3 );
 
@@ -1333,9 +1444,10 @@ function displayTextBlock(head, text, source) {
 
         tempText.text = text[i];
         tempText.fontSize = 0.02;
+        tempText.userData.fontSize = 0.02;
         tempText.color = 0x000000;
         tempText.anchorX = 'left';
-        tempText.anchorY = 'middle';
+        tempText.anchorY = 'top';
         tempText.curveRadius = 1;
 
         tempText.position.y = totalTextOffset;
@@ -1346,8 +1458,18 @@ function displayTextBlock(head, text, source) {
         textBlock.push(tempText);
 
         tempText.userData.source = source;
+        tempText.userData.type = "citation";
 
-        // console.log(source);
+        totalPreInstance++;
+
+        tempText.addEventListener("synccomplete", () => {
+
+            totalPostInstance++;
+            if (totalPreInstance == totalPostInstance && totalPreInstance > 0) {
+                createHandle(tempText, true);
+            }
+        });
+
     }
 
     headText.text = head;
@@ -1363,6 +1485,10 @@ function displayTextBlock(head, text, source) {
 
     // console.log(headText);
     headText.sync();
+    textGroup.userData.header = headText;
+    textGroup.userData.textBlock = textBlock;
+    snapDistanceOne.push(textGroup);
+
 }
 
 // displayTextBlock(testDisplayHead,testDisplayText);
@@ -1379,21 +1505,6 @@ function HTMLtitle(htmlContent) {
     return innerHTML;
 
 }
-
-// fetchHTML('./3511095.3531271.html', HTMLtitle);
-// console.log(fetchHTML('./3511095.3531271.html', HTMLtitle));
-
-
-
-
-
-
-// NOTE FOR ME: Change the citation loading to now extract from the html document dynamically
-// THEN: Selecting a text line prints it in the console
-// MORE: Print the citation reference instead of just the text line
-// EXTRA: Display the reference of the selected citation
-
-
 
 function fetchHTML(url, callback) {
     $.ajax({
@@ -1421,9 +1532,6 @@ function processHTML(htmlContent) {
         console.log(innerHTML);
     });
 }
-
-
-// fetchHTML('./3511095.3531271.html', processHTML);
 
 
 
@@ -1454,13 +1562,6 @@ function startPos(mesh) {
     mesh.position.x = camera.position.x;
     mesh.position.y = camera.position.y - 0.3;
     mesh.position.z = camera.position.z;
-
-    // Set rotation to the camera
-    // mesh.rotation.x = camera.rotation.x;
-    // mesh.rotation.y = camera.rotation.y;
-    // mesh.rotation.z = camera.rotation.z;
-    // -------------------------------------------- Rotate the menu so it spawns relative to the camera, but not angled ---------
-    
 
     // Get the direction the camera is facing
     var pLocal = new THREE.Vector3( 0, 0, -1 );
@@ -1497,152 +1598,61 @@ function startPos(mesh) {
 
 
 
+// NOTES:
+// popup menu to change snap distance
 
 
 
 
 
 
+function createHandle(object, useParentY = false) {
+    var width = 0.05;
 
+    const tempBox = new THREE.Box3().setFromObject(object.parent);
+    tempBox.getSize(tempSize);
+    var height = tempSize.y;
 
-
-
-
-// Logic to handle mouse clicks to select text
-function onDocumentMouseDown(event) {
-    event.preventDefault();
-
-    var mouse = new THREE.Vector2();
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-
-    var raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, camera);
-
-    var intersects = raycaster.intersectObjects(scene.children);
-
-    // Draw a placeholder arrow to visualize the raycast
-    // placeholderArrow(raycaster, 1, 0x7d10d3);
-
-    if (intersects.length > 0) {
-    	// Get the first intersection (closest to the camera)
-        var intersection = intersects[0];
-
-        // Access the mesh that was hit
-        var mesh = intersection.object;
-
-        if (mesh.userData.objType == "pdf"){
-            // Multiply by the dimensions of the mesh to get local coordinates
-            var width = mesh.geometry.parameters.width * 100; // Adjust as needed
-            var height = mesh.geometry.parameters.height * 100; // Adjust as needed
-            var intersectionPoint = new THREE.Vector2(
-                intersection.uv.x * width,
-                intersection.uv.y * height
-            );
-            // Output intersectionPoint for reference
-            // console.log('Intersection Point:', intersectionPoint);
-
-            pdfDoc.getPage(pageNum).then(function(page) {
-            return page.getTextContent();
-            }).then(function(textContent) {
-                var selectedText = getSelectedContent(textContent, intersectionPoint.x, intersectionPoint.y, mesh);
-                console.log("Selected Text:", selectedText);
-            });
-        }
-        else if (mesh.userData.objType == "highlight") {
-            var foundHighlight = allHighlights.indexOf(mesh);
-            allHighlights.splice(foundHighlight, 1);
-
-            // mesh.position.x += 1;
-            mesh.parent.remove(mesh);
-            // console.log("FCT: Removed Highlight");
-        }
-        else {
-            // console.log("ERR: Invalid Selection");
-        }
-    }
-}
-
-function getSelectedContent(textContent, canvasX, canvasY, mesh) {
-    var selectedText = "";
-    var mesh = mesh;
-
-    // console.log(textContent);
-
-    textContent.items.forEach(function (hitItem) {
-        var bounds = hitItem.transform;
-        var minX = bounds[4];
-        var minY = bounds[5];
-        var maxX = bounds[4] + hitItem.width;
-        var maxY = bounds[5] + hitItem.height;
-        if (canvasX >= minX && canvasX <= maxX && canvasY >= minY && canvasY <= maxY) {
-            selectedText += hitItem.str;
-
-            drawHighlight(minX/100,minY/100,maxX/100,maxY/100, mesh);
-            // console.log(textContent.items[0]);
-        }
+    const boundingGeo = new THREE.PlaneGeometry( width, height );
+    // const boundingWire = new THREE.EdgesGeometry( boundingGeo, 90 );
+    // const boundingLine = new THREE.LineSegments( boundingWire );
+    var boundingMat = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide
     });
+    const boundingMesh = new THREE.Mesh( boundingGeo, boundingMat );
 
-    return selectedText;
-}
+    scene.add( boundingMesh );
+    object.parent.attach( boundingMesh );
+    boundingMesh.layers.enable( 3 );
+    boundingMesh.userData.type = "handle";
+    object.parent.userData.handle = boundingMesh;
 
-function drawHighlight(minX, minY, maxX, maxY, mesh) {
-    var x = 0, y = 0;
-    var mesh = mesh;
-
-    var geometry = new THREE.PlaneGeometry(maxX-minX, maxY-minY);
-    var material = new THREE.MeshBasicMaterial( {
-        color: 0x000077,
-        transparent:true,
-        opacity:0.2,
-        side: THREE.DoubleSide,
-        blending: THREE.SubtractiveBlending
-    } );
-    var newHighlight = new THREE.Mesh( geometry, material ) ;
-    var width = mesh.geometry.parameters.width;
-    var height = mesh.geometry.parameters.height
-
-    // Add this highlight to the current highlights array
-    scene.add( newHighlight );
-    allHighlights.push( newHighlight );
-
-    // Set the relative position of the new highlight
-    var relativePosition = new THREE.Vector3(
-        - width/2 + minX + (maxX - minX)/2,
-        - height/2 + minY + (maxY - minY)/2,
-        0
-    ); 
-
-    // Create a matrix to represent the combined rotation and translation of the mesh
-    var meshMatrix = new THREE.Matrix4();
-    meshMatrix.compose(mesh.position, mesh.quaternion, mesh.scale);
-
-    // Apply the matrix to the relative position
-    relativePosition.applyMatrix4(meshMatrix);
-
-    // Set the highlight's position
-    newHighlight.position.copy(relativePosition);
-
-    // Set the highlight's rotation
-    newHighlight.rotation.x = mesh.rotation.x;
-    newHighlight.rotation.y = mesh.rotation.y;
-    newHighlight.rotation.z = mesh.rotation.z;
-
-    // Move the highlight very slightly towards the camera to avoid clipping
-    newHighlight.translateOnAxis(newHighlight.worldToLocal(new THREE.Vector3(camera.position.x,camera.position.y,camera.position.z)), 0.002);
-
-    // Attach the highlight to its parent
-    TESTPDF.attach(newHighlight);
-
-    // Assign custom data to the highlight
-    newHighlight.userData.objType = "highlight";
-
-    console.log(allHighlights);
+    if ( useParentY ) {
+        boundingMesh.position.set( object.position.x, object.parent.position.y - height/2 + 0.036, object.position.z );
+    } else {
+        boundingMesh.position.set( object.position.x, object.position.y - height/2 - 0.002, object.position.z );
+    }
+    
+    boundingMesh.rotation.set( object.parent.rotation.x, 0, object.parent.rotation.z );
+    boundingMesh.translateX( -0.04 );
 }
 
 
-// Event listener for mouse down
-document.addEventListener('mousedown', onDocumentMouseDown, false);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2065,10 +2075,13 @@ function clamp(value, min, max) {
 
 
 
-//  TEST CUBE FOR GRABBING =================================
+//  PLACEHOLDER CENTER BEAM =================================
+const showPlaceholder = false;
 const testGeo = new THREE.BoxGeometry( 0.02, 0.02, 0.02 );
 const testMat = new THREE.MeshBasicMaterial( {
-    color: Math.random() * 0xffffff
+    color: Math.random() * 0xffffff,
+    transparent: true,
+    opacity: 0.8
 } );
 const testCube = new THREE.Mesh( testGeo, testMat );
 testCube.geometry.computeBoundingSphere();
@@ -2077,13 +2090,14 @@ testCube.position.set( 0, 0, 0 );
 // spawn.userData.grabbable = "true";
 // testCube.layers.enable( 1 );
 
-scene.add( testCube );
-
 const testPillarGeo = new THREE.CylinderGeometry( 0.005, 0.005, 1.5, 4);
 const testPillar = new THREE.Mesh( testPillarGeo, testMat );
-scene.add( testPillar );
-testPillar.position.set( 0, -0.75, 0 );
-testPillar.visible = false;
+if (showPlaceholder) {
+    scene.add( testCube );
+    scene.add( testPillar );
+    testPillar.position.set( 0, -0.75, 0 );
+    testPillar.visibility = false;
+}
 // =========================================================
 
 
@@ -2221,26 +2235,20 @@ function calcRotationObjs() {
 
 
 
-// page mapping test
-function cylMapTest(radius = 1, height = 1, thetaStart = 0, thetaLength = Math.PI * 2) {
-    height = 1707 / 2000;
-    thetaLength = 8192 / 2000;
-    const geo = new THREE.CylinderGeometry( radius, radius, height, 64, 1, true, thetaStart, thetaLength );
-    // const mat = new THREE.MeshBasicMaterial( {color: 0xfde0f0, side: THREE.DoubleSide} );
-    const mat = new THREE.MeshBasicMaterial( {
-        color: 0xffffff,
-        side: THREE.BackSide,
-        map: new THREE.TextureLoader().load(
-            './12-page-spread-for-testing.jpg'
-    )
-} );
-    const cyl = new THREE.Mesh ( geo, mat );
-    scene.add( cyl );
 
-    cyl.scale.x = -1;
-    cyl.position.y = 1.5;
-    cyl.layers.enable( 2 );
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 var offsetPositionY;
 var offsetAngle;
@@ -2249,108 +2257,182 @@ var wrist2NormalZVector = new THREE.Vector3();
 var wrist2Roll, wrist2Pitch;
 var curObjDir = new THREE.Vector3();
 var swipeRayLengthBase = 0.75;
+var rSwipeObj = undefined;
+
+
+
+function startSwipe(object) {
+    // console.log("==== swipe started on " + object + " ====");
+    rSwipeObj = object.parent;
+}
+
+
+function stopSwipe() {
+    // console.log("==== swipe stopped ====");
+    rSwipeObj = undefined;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var toolSelectorDotWorld = new THREE.Vector3();
+var curObjDir = new THREE.Vector3();
 
 function trySwipe() {
-    if ( rHeldObj == undefined && currentTool2 == 'none'
-    && pinkyFingerTip2.position.distanceTo(wrist2.position) > 0.15 
-    && ringFingerTip2.position.distanceTo(wrist2.position) > 0.15
-    && middleFingerTip2.position.distanceTo(wrist2.position) > 0.15
-    && indexFingerTip2.position.distanceTo(wrist2.position) > 0.15
-    ) {
-        // get the orientation of the palm
-        palm2NormalX.getWorldPosition(wrist2NormalXVector);
-        palm2NormalZ.getWorldPosition(wrist2NormalZVector);
-        wrist2Roll = Math.abs(wrist2.position.y - wrist2NormalXVector.y);
-        wrist2Pitch = Math.abs(wrist2.position.y - wrist2NormalZVector.y);
+    if ( rSwipeObj != undefined ) {
 
-        // console.log("World Direction: " + wrist2Pitch);
+        toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
 
-        // Modify the ray length based on the palm pitch
-        var swipeRayLength = swipeRayLengthBase;
-        // 0 (flat) - 0.3 (vertical)
-
-        // raycast for objects being pointed at
-        var raycaster = new THREE.Raycaster();
-        raycaster.layers.set( 3 );
-        var forward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(wrist2.quaternion);
-        raycaster.set(wrist2.getWorldPosition(new THREE.Vector3), forward);
-        var intersects = raycaster.intersectObjects(scene.children);
-        var intersect = intersects[0];
-        var yMin = -99;
-        var yMax = 99;
-
-        // placeholder arrow
-        // placeholderArrow(raycaster, swipeRayLength, 0xd310ff);
-
-        // Check if the object has userdata that would constrain its movement
-        if (intersect && intersect.object.parent.userData.constrainMin && intersect.object.parent.userData.constrainMax) {
-            yMin = intersect.object.parent.userData.constrainMin.y;
-            yMax = intersect.object.parent.userData.constrainMax.y;
+        // Vertical movement
+        if (!offsetPositionY) {
+            offsetPositionY = toolSelectorDotWorld.y;
         }
 
-        // Check if the hand is gesturing vertically or horizontally
-        // roll is large & pitch is small = horizontal
-        // roll is large & pitch is large = nothing
-        // roll is small & pitch is large = vertical
-        // roll is small & pitch is small = vertical
-        if (wrist2Roll < 0.23) { // VERTICAL
+        var movement = toolSelectorDotWorld.y - offsetPositionY;
 
-            offsetAngle = undefined;
-
-            if (intersect && intersect.distance <= swipeRayLength) {
-
-                if (!offsetPositionY) {
-                    offsetPositionY = intersect.point.y;
-                }
-
-                var movement = intersect.point.y - offsetPositionY;
-
-                if (movement && intersect.object.parent.position.y + movement >= yMin && intersect.object.parent.position.y + movement <= yMax) {
-                    intersect.object.parent.position.y += movement;
-                    // console.log(intersect.object.parent.position.y);
-                }
-
-                offsetPositionY = intersect.point.y;
-
-            }
-            else if (offsetPositionY) {
-                offsetPositionY = undefined;
-            }
-
-        } else if (wrist2Pitch < 0.2) { // HORIZONTAL
-
-            offsetPositionY = undefined;
-
-            if (intersect && intersect.distance <= swipeRayLength) {
-
-                var curObjDir = new THREE.Vector3();
-                curObjDir.subVectors(intersect.point, intersect.object.parent.position).normalize();
-                var angle = Math.atan2(curObjDir.x, curObjDir.z);
-
-                if (!offsetAngle) {
-                    offsetAngle = angle;
-                }
-
-                var movement = angle - offsetAngle;
-
-                if (movement) {
-                    intersect.object.parent.rotation.y += movement;
-                    // console.log(movement + ' | ' + angle + ' | ' + offsetAngle);
-                }
-
-                offsetAngle = angle;
-
-            }
-            else if (offsetAngle) {
-                offsetAngle = undefined;
-            }
+        if (movement) {
+            rSwipeObj.position.y += movement;
         }
+
+        offsetPositionY = toolSelectorDotWorld.y;
+
+        // Horizontal movement
+        curObjDir.subVectors(toolSelectorDotWorld, rSwipeObj.position).normalize();
+        var angle = Math.atan2(curObjDir.x, curObjDir.z);
+
+        if (!offsetAngle) {
+            offsetAngle = angle;
+        }
+
+        var rotation = angle - offsetAngle;
+
+        if (rotation) {
+            rSwipeObj.rotation.y += rotation;
+        }
+
+        offsetAngle = angle;
+
     }
     else if (offsetPositionY || offsetAngle) {
         offsetPositionY = undefined;
         offsetAngle = undefined;
     }
 }
+
+
+// function trySwipe() {
+//     if ( rHeldObj == undefined && currentTool2 == 'none'
+//     && pinkyFingerTip2.position.distanceTo(wrist2.position) > 0.15 
+//     && ringFingerTip2.position.distanceTo(wrist2.position) > 0.15
+//     && middleFingerTip2.position.distanceTo(wrist2.position) > 0.15
+//     && indexFingerTip2.position.distanceTo(wrist2.position) > 0.15
+//     ) {
+    
+//         // get the orientation of the palm
+//         palm2NormalX.getWorldPosition(wrist2NormalXVector);
+//         palm2NormalZ.getWorldPosition(wrist2NormalZVector);
+//         wrist2Roll = Math.abs(wrist2.position.y - wrist2NormalXVector.y);
+//         wrist2Pitch = Math.abs(wrist2.position.y - wrist2NormalZVector.y);
+
+//         // console.log("World Direction: " + wrist2Pitch);
+
+//         // Modify the ray length based on the palm pitch
+//         var swipeRayLength = swipeRayLengthBase;
+//         // 0 (flat) - 0.3 (vertical)
+
+//         // raycast for objects being pointed at
+//         var raycaster = new THREE.Raycaster();
+//         raycaster.layers.set( 3 );
+//         var forward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(wrist2.quaternion);
+//         raycaster.set(wrist2.getWorldPosition(new THREE.Vector3), forward);
+//         var intersects = raycaster.intersectObjects(scene.children);
+//         var intersect = intersects[0];
+//         var yMin = -99;
+//         var yMax = 99;
+
+//         // placeholder arrow
+//         // placeholderArrow(raycaster, swipeRayLength, 0xd310ff);
+
+//         // Check if the object has userdata that would constrain its movement
+//         if (intersect && intersect.object.parent.userData.constrainMin && intersect.object.parent.userData.constrainMax) {
+//             yMin = intersect.object.parent.userData.constrainMin.y;
+//             yMax = intersect.object.parent.userData.constrainMax.y;
+//         }
+
+//         // Check if the hand is gesturing vertically or horizontally
+//         // roll is large & pitch is small = horizontal
+//         // roll is large & pitch is large = nothing
+//         // roll is small & pitch is large = vertical
+//         // roll is small & pitch is small = vertical
+//         if (wrist2Roll < 0.23) { // VERTICAL
+
+//             offsetAngle = undefined;
+
+//             if (intersect && intersect.distance <= swipeRayLength) {
+
+//                 if (!offsetPositionY) {
+//                     offsetPositionY = intersect.point.y;
+//                 }
+
+//                 var movement = intersect.point.y - offsetPositionY;
+
+//                 if (movement && intersect.object.parent.position.y + movement >= yMin && intersect.object.parent.position.y + movement <= yMax) {
+//                     intersect.object.parent.position.y += movement;
+//                     // console.log(intersect.object.parent.position.y);
+//                 }
+
+//                 offsetPositionY = intersect.point.y;
+
+//             }
+//             else if (offsetPositionY) {
+//                 offsetPositionY = undefined;
+//             }
+
+//         } else if (wrist2Pitch < 0.2) { // HORIZONTAL
+
+//             offsetPositionY = undefined;
+
+//             if (intersect && intersect.distance <= swipeRayLength) {
+
+//                 var curObjDir = new THREE.Vector3();
+//                 curObjDir.subVectors(intersect.point, intersect.object.parent.position).normalize();
+//                 var angle = Math.atan2(curObjDir.x, curObjDir.z);
+
+//                 if (!offsetAngle) {
+//                     offsetAngle = angle;
+//                 }
+
+//                 var movement = angle - offsetAngle;
+
+//                 if (movement) {
+//                     intersect.object.parent.rotation.y += movement;
+//                     // console.log(movement + ' | ' + angle + ' | ' + offsetAngle);
+//                 }
+
+//                 offsetAngle = angle;
+
+//             }
+//             else if (offsetAngle) {
+//                 offsetAngle = undefined;
+//             }
+//         }
+//     }
+//     else if (offsetPositionY || offsetAngle) {
+//         offsetPositionY = undefined;
+//         offsetAngle = undefined;
+//     }
+// }
 
 
 
@@ -2930,6 +3012,8 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryBtns();
                 tryRecenter();
                 tryTools();
+
+                animateCitationLines();
             }
 
         };
