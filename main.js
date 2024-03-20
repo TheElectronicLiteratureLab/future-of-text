@@ -66,6 +66,7 @@ var floorAxis = new THREE.Mesh( floorAxisGeo, floorAxisMat );
 scene.add(floorAxis);
 floorAxis.position.set( 0, -1.3, 0 );
 floorAxis.rotation.set( -Math.PI / 2, 0, -Math.PI / 2 );
+floorAxis.visible = false;
 
 
 // Universal axis definitions
@@ -77,7 +78,7 @@ const _yforward = new THREE.Vector3( 0, 1, 0 );
 const _zbackward = new THREE.Vector3( 0, 0, -1 );
 const _zforward = new THREE.Vector3( 0, 0, 1 );
 
-
+var debugMode = false;
 
 
 
@@ -99,35 +100,37 @@ const _zforward = new THREE.Vector3( 0, 0, 1 );
 // ================================== MENU CONTENT =========================================
 
 const normalNone = new THREE.TextureLoader().load( './normal-none.jpg' );
-const normalArtdeco = new THREE.TextureLoader().load( './normal-artdeco.jpg' );
-const normalGrate = new THREE.TextureLoader().load( './normal-grate.jpg' );
-const normalLace = new THREE.TextureLoader().load( './normal-lace.jpg' );
-const normalScifi1 = new THREE.TextureLoader().load( './normal-scifi-1.jpg' );
-const normalScifi2 = new THREE.TextureLoader().load( './normal-scifi-2.jpg' );
-const normalScifi3 = new THREE.TextureLoader().load( './normal-scifi-3.jpg' );
-const normalScifi4 = new THREE.TextureLoader().load( './normal-scifi-4.jpg' );
-const normalScifi5 = new THREE.TextureLoader().load( './normal-scifi-5.jpg' );
-const normalScifi6 = new THREE.TextureLoader().load( './normal-scifi-6.jpg' );
-const normalScifi7 = new THREE.TextureLoader().load( './normal-scifi-7.jpg' );
-const normalScifi8 = new THREE.TextureLoader().load( './normal-scifi-8.jpg' );
-const normalScifi9 = new THREE.TextureLoader().load( './normal-scifi-9.jpg' );
-const normalScifi10 = new THREE.TextureLoader().load( './normal-scifi-10.jpg' );
-const normalScifi11 = new THREE.TextureLoader().load( './normal-scifi-11.jpg' );
+// const normalArtdeco = new THREE.TextureLoader().load( './normal-artdeco.jpg' );
+// const normalGrate = new THREE.TextureLoader().load( './normal-grate.jpg' );
+// const normalLace = new THREE.TextureLoader().load( './normal-lace.jpg' );
+// const normalScifi1 = new THREE.TextureLoader().load( './normal-scifi-1.jpg' );
+// const normalScifi2 = new THREE.TextureLoader().load( './normal-scifi-2.jpg' );
+// const normalScifi3 = new THREE.TextureLoader().load( './normal-scifi-3.jpg' );
+// const normalScifi4 = new THREE.TextureLoader().load( './normal-scifi-4.jpg' );
+// const normalScifi5 = new THREE.TextureLoader().load( './normal-scifi-5.jpg' );
+// const normalScifi6 = new THREE.TextureLoader().load( './normal-scifi-6.jpg' );
+// const normalScifi7 = new THREE.TextureLoader().load( './normal-scifi-7.jpg' );
+// const normalScifi8 = new THREE.TextureLoader().load( './normal-scifi-8.jpg' );
+// const normalScifi9 = new THREE.TextureLoader().load( './normal-scifi-9.jpg' );
+// const normalScifi10 = new THREE.TextureLoader().load( './normal-scifi-10.jpg' );
+// const normalScifi11 = new THREE.TextureLoader().load( './normal-scifi-11.jpg' );
 
-const normalOptions = [normalArtdeco,normalGrate,normalLace,normalScifi1,normalScifi2,normalScifi3,
-    normalScifi4,normalScifi5,normalScifi6,normalScifi7,normalScifi8,normalScifi9,normalScifi10,normalScifi11];
+// const normalOptions = [normalArtdeco,normalGrate,normalLace,normalScifi1,normalScifi2,normalScifi3,
+//     normalScifi4,normalScifi5,normalScifi6,normalScifi7,normalScifi8,normalScifi9,normalScifi10,normalScifi11];
 
-var nbtnArt,nbtnGrate,nbtnLace,nbtnSci1,nbtnSci2,nbtnSci3,nbtnSci4,nbtnSci5,nbtnSci6,nbtnSci7,
-    nbtnSci8,nbtnSci9,nbtnSci10,nbtnSci11;
+// var nbtnArt,nbtnGrate,nbtnLace,nbtnSci1,nbtnSci2,nbtnSci3,nbtnSci4,nbtnSci5,nbtnSci6,nbtnSci7,
+//     nbtnSci8,nbtnSci9,nbtnSci10,nbtnSci11;
 
-const normalBtns = [nbtnArt,nbtnGrate,nbtnLace,nbtnSci1,nbtnSci2,nbtnSci3,nbtnSci4,nbtnSci5,nbtnSci6,nbtnSci7,
-    nbtnSci8,nbtnSci9,nbtnSci10,nbtnSci11];
+// const normalBtns = [nbtnArt,nbtnGrate,nbtnLace,nbtnSci1,nbtnSci2,nbtnSci3,nbtnSci4,nbtnSci5,nbtnSci6,nbtnSci7,
+//     nbtnSci8,nbtnSci9,nbtnSci10,nbtnSci11];
 
 var normalMainBtn, sliderMainBtn, settingsBackBtn, slidersBackBtn;
 
 var sliderNormalScale, sliderEmissive, sliderReaderDistanceMin;
 
 var sliderNormalBg, sliderEmissiveBg, sliderReaderDistanceBg;
+
+var debugBtn, debugText;
 
 // =========================================================================================
 
@@ -139,7 +142,6 @@ var sliderNormalBg, sliderEmissiveBg, sliderReaderDistanceBg;
 
 
 
-// var menuGeo = new THREE.PlaneGeometry(0.5, 0.2);
 const menuGroup = new THREE.Group();
 
 var menuGeo = new THREE.CylinderGeometry( 0.1, 0.1, 0.6, 3, 1, false );
@@ -159,7 +161,7 @@ menuSphereMat.side = THREE.BackSide;
 
 var menu = new THREE.Mesh( menuGeo, menuMat );
 
-var sphereGeo = new THREE.SphereGeometry( 0.03 );
+var sphereGeo = new THREE.SphereGeometry( 0.038 );
 var sphereHelper = new THREE.Mesh( sphereGeo, menuSphereMat );
 var sphereHelperSolid = new THREE.Mesh( sphereGeo, menuMat );
 
@@ -179,6 +181,11 @@ var sliderBgMat = new THREE.MeshBasicMaterial({
     transparent: true,
     opacity: 0.95,
     side: THREE.DoubleSide
+});
+var debugBtnMat = new THREE.MeshStandardMaterial({ 
+    color: 0x990000,
+    roughness: 0.32,
+    metalness: 0
 });
 
 var liveWrist1Pos, liveCameraPos;
@@ -282,25 +289,25 @@ function tryMenu() {
         if (firstInit && !isMenuBusy && menuMode != 99) { libraryTimer += deltaTime };
         
         if (menuMode == 99 && libraryTimer < libraryTimerHold) { // The library is open, close it
-            console.log("LIBRARY: CLOSE");
+            consoleLog("LIBRARY: CLOSE");
             toggleLibrary('close');
             menuMode = 0;
             justClosedLibrary = true;
         } else if (isMenuOpen && !isMenuActive && menuMode != 99) { // The menu is open: close it now
-            console.log("MENU: Close");
+            consoleLog("MENU: Close");
             isMenuOpen = false;
             menuGroup.visibility = false;
             menuGroup.position.y = -999;
             subMenu(0);
         }
         else if (!isMenuActive && menuMode != 99) { // The menu is closed: open it now
-            console.log("MENU: Open");
+            consoleLog("MENU: Open");
             isMenuOpen = true;
             startPos(menuGroup);
         }
 
         if (libraryTimer >= libraryTimerHold && menuMode != 99 && !justClosedLibrary) { // The button has been held down: open the library
-            console.log("LIBRARY: OPEN");
+            consoleLog("LIBRARY: OPEN");
             toggleLibrary('open');
 
             // Close the menu if it is o
@@ -350,6 +357,7 @@ function createMenuBtns(menu) {
     menu.attach(normalMainBtn);
     normalMainBtn.userData.function = "normals-menu";
     normalMainBtn.translateZ( 0.02 );
+    normalMainBtn.userData.defaultMat = btnMat;
 
     sliderMainBtn = new THREE.Mesh( btnGeo, btnMat );
     menuGroup.add(sliderMainBtn);
@@ -359,6 +367,7 @@ function createMenuBtns(menu) {
     menu.attach(sliderMainBtn);
     sliderMainBtn.userData.function = "slider-menu";
     sliderMainBtn.translateZ( 0.02 );
+    sliderMainBtn.userData.defaultMat = btnMat;
 
     settingsBackBtn = new THREE.Mesh( btnGeo, btnMat );
     menuGroup.add(settingsBackBtn);
@@ -369,6 +378,7 @@ function createMenuBtns(menu) {
     settingsBackBtn.layers.enable( 10 );
     menu.attach(settingsBackBtn);
     settingsBackBtn.userData.function = "back-menu";
+    settingsBackBtn.userData.defaultMat = btnMat;
 
     slidersBackBtn = new THREE.Mesh( btnGeo, btnMat );
     menuGroup.add(slidersBackBtn);
@@ -379,74 +389,113 @@ function createMenuBtns(menu) {
     slidersBackBtn.layers.enable( 10 );
     menu.attach(slidersBackBtn);
     slidersBackBtn.userData.function = "back-menu";
+    slidersBackBtn.userData.defaultMat = btnMat;
 
 
-    // Create grid of normal-texture buttons
-    for (var i = normalOptions.length - 1; i >= 0; i--) {
-        normalBtns[i] = new THREE.Mesh( btnGeo, btnMat );
+// ============================ Create grid of normal-texture buttons ============================
+    // for (var i = normalOptions.length - 1; i >= 0; i--) {
+    //     normalBtns[i] = new THREE.Mesh( btnGeo, btnMat );
 
-        menuGroup.add(normalBtns[i]);
+    //     menuGroup.add(normalBtns[i]);
 
-        normalBtns[i].userData.function = "normal-" + i;
+    //     normalBtns[i].userData.function = "normal-" + i;
 
-        normalBtns[i].position.set( menu.position.x, menu.position.y - 0.03, menu.position.z );
-        normalBtns[i].rotation.set( 1, 0, 0 );
-        normalBtns[i].translateY( -0.035 );
-        normalBtns[i].translateZ( -0.025 );
+    //     normalBtns[i].position.set( menu.position.x, menu.position.y - 0.03, menu.position.z );
+    //     normalBtns[i].rotation.set( 1, 0, 0 );
+    //     normalBtns[i].translateY( -0.035 );
+    //     normalBtns[i].translateZ( -0.025 );
 
-        // First or second half of the total buttons
-        if (i <= (normalOptions.length / 2) - 1) {
-            normalBtns[i].translateX( (distanceBetweenWidth * i) - (distanceBetweenWidth * 3) );
-            normalBtns[i].translateZ( - distanceBetweenHeight );
-        }
-        else {
-            normalBtns[i].translateX( (distanceBetweenWidth * (i - normalOptions.length / 2)) - (distanceBetweenWidth * 3) );
-            normalBtns[i].translateZ( distanceBetweenHeight );
-        }
+    //     // First or second half of the total buttons
+    //     if (i <= (normalOptions.length / 2) - 1) {
+    //         normalBtns[i].translateX( (distanceBetweenWidth * i) - (distanceBetweenWidth * 3) );
+    //         normalBtns[i].translateZ( - distanceBetweenHeight );
+    //     }
+    //     else {
+    //         normalBtns[i].translateX( (distanceBetweenWidth * (i - normalOptions.length / 2)) - (distanceBetweenWidth * 3) );
+    //         normalBtns[i].translateZ( distanceBetweenHeight );
+    //     }
 
-        normalBtns[i].layers.enable( 10 );
-        menu.attach(normalBtns[i]);
-    }
+    //     normalBtns[i].layers.enable( 10 );
+    //     menu.attach(normalBtns[i]);
+    // }
+
+    var debugBtnGeo = new THREE.BoxGeometry( 0.08, 0.005, 0.04 );
+
+    debugText = new Text();
+    debugText.text = "debug";
+    debugText.color = 0xff9999;
+    debugText.fontSize = 0.02;
+    debugText.anchorX = 'center';
+    debugText.anchorY = 'middle';
+
+    debugBtn = new THREE.Mesh( debugBtnGeo, debugBtnMat );
+    debugBtn.userData.function = "debug-toggle";
+    debugBtn.userData.defaultMat = debugBtnMat;
+
+    scene.add(debugBtn);
+    debugBtn.attach(debugText);
+
+    debugText.position.set( debugBtn.position.x, debugBtn.position.y, debugBtn.position.z );
+    debugBtn.position.set( menu.position.x, menu.position.y - 0.03, menu.position.z );
+    debugBtn.rotation.set( 1, 0, 0 );
+    debugBtn.translateY( -0.035 );
+    debugBtn.translateZ( -0.025 );
+    debugText.rotateX( Math.PI / 2 );
+    debugText.translateZ( 0.003 );
+
+    debugBtn.layers.enable( 10 );
+    menu.attach(debugBtn);
+
+    debugText.sync();
 
 
-    // Create sliders for adjusting settings
-    sliderNormalScale = new THREE.Mesh( sliderGeo, btnMat );
-    sliderNormalBg = new THREE.Mesh( sliderBgGeo, sliderBgMat );
-    menuGroup.add( sliderNormalScale );
-    menuGroup.add( sliderNormalBg );
-    sliderNormalScale.attach( sliderNormalBg );
-    sliderNormalScale.position.set( menu.position.x, menu.position.y, menu.position.z );
-    sliderNormalScale.rotation.set( 0, Math.PI / 2, -1.04);
-    sliderNormalScale.translateY( -0.05 );
-    sliderNormalScale.translateX( -0.035 );
-    sliderNormalScale.layers.enable( 10 );
-    menu.attach(sliderNormalScale);
-    sliderNormalScale.userData.function = "slider-nscale";
-    menu.attach(sliderNormalBg)
-    sliderNormalBg.rotateX( Math.PI / 2 );
+// ============================ Create sliders for adjusting settings ============================
+    // sliderNormalScale = new THREE.Mesh( sliderGeo, btnMat );
+    // sliderNormalBg = new THREE.Mesh( sliderBgGeo, sliderBgMat );
+    // menuGroup.add( sliderNormalScale );
+    // menuGroup.add( sliderNormalBg );
+    // sliderNormalScale.attach( sliderNormalBg );
+    // sliderNormalScale.position.set( menu.position.x, menu.position.y, menu.position.z );
+    // sliderNormalScale.rotation.set( 0, Math.PI / 2, -1.04);
+    // sliderNormalScale.translateY( -0.05 );
+    // sliderNormalScale.translateX( -0.035 );
+    // sliderNormalScale.layers.enable( 10 );
+    // menu.attach(sliderNormalScale);
+    // sliderNormalScale.userData.function = "slider-nscale";
+    // menu.attach(sliderNormalBg)
+    // sliderNormalBg.rotateX( Math.PI / 2 );
 
 
-    sliderEmissive = new THREE.Mesh( sliderGeo, btnMat );
-    sliderEmissiveBg = new THREE.Mesh( sliderBgGeo, sliderBgMat );
-    menuGroup.add( sliderEmissive );
-    menuGroup.add( sliderEmissiveBg );
-    sliderEmissive.attach( sliderEmissiveBg );
-    sliderEmissive.position.set( menu.position.x, menu.position.y, menu.position.z );
-    sliderEmissive.rotation.set( 0, Math.PI / 2, -1.04);
-    sliderEmissive.translateY( -0.051 );
-    sliderEmissive.translateX( 0.035 );
-    sliderEmissive.layers.enable( 10 );
-    menu.attach(sliderEmissive);
-    sliderEmissive.userData.function = "slider-intensity";
-    menu.attach(sliderEmissiveBg)
-    sliderEmissiveBg.rotateX( Math.PI / 2 );
-    sliderEmissive.translateZ( -0.2 );
+    // sliderEmissive = new THREE.Mesh( sliderGeo, btnMat );
+    // sliderEmissiveBg = new THREE.Mesh( sliderBgGeo, sliderBgMat );
+    // menuGroup.add( sliderEmissive );
+    // menuGroup.add( sliderEmissiveBg );
+    // sliderEmissive.attach( sliderEmissiveBg );
+    // sliderEmissive.position.set( menu.position.x, menu.position.y, menu.position.z );
+    // sliderEmissive.rotation.set( 0, Math.PI / 2, -1.04);
+    // sliderEmissive.translateY( -0.051 );
+    // sliderEmissive.translateX( 0.035 );
+    // sliderEmissive.layers.enable( 10 );
+    // menu.attach(sliderEmissive);
+    // sliderEmissive.userData.function = "slider-intensity";
+    // menu.attach(sliderEmissiveBg)
+    // sliderEmissiveBg.rotateX( Math.PI / 2 );
+    // sliderEmissive.translateZ( -0.2 );
 
+    var sliderReaderText = new Text();
+    sliderReaderText.text = "Reading Distance";
+    sliderReaderText.color = 0xffffff;
+    sliderReaderText.fontSize = 0.01;
+    sliderReaderText.anchorX = 'center';
+    sliderReaderText.anchorY = 'top';
 
     sliderReaderDistanceMin = new THREE.Mesh( sliderGeo, btnMat );
     sliderReaderDistanceBg = new THREE.Mesh( sliderBgGeo, sliderBgMat );
     menuGroup.add( sliderReaderDistanceMin );
     menuGroup.add( sliderReaderDistanceBg );
+
+    sliderReaderDistanceBg.attach(sliderReaderText);
+
     sliderReaderDistanceMin.attach( sliderReaderDistanceBg );
     sliderReaderDistanceMin.position.set( menu.position.x, menu.position.y + 0.05, menu.position.z );
     sliderReaderDistanceMin.rotation.set( 0, Math.PI / 2, 0);
@@ -455,10 +504,16 @@ function createMenuBtns(menu) {
     sliderReaderDistanceMin.layers.enable( 10 );
     menu.attach(sliderReaderDistanceMin);
     sliderReaderDistanceMin.userData.function = "slider-reader-min";
+    sliderReaderDistanceMin.userData.defaultMat = btnMat;
     menu.attach(sliderReaderDistanceBg)
     sliderReaderDistanceBg.rotateX( Math.PI / 2 );
     sliderReaderDistanceMin.translateZ( -0.2 );
 
+    sliderReaderText.rotateX( Math.PI );
+    sliderReaderText.rotateZ( -Math.PI / 2 );
+    sliderReaderText.translateZ( 0.001 );
+    sliderReaderText.translateY( 0.035 );
+    sliderReaderText.sync();
 
     subMenu(0);
 
@@ -508,24 +563,24 @@ var currentTool2 = 'none';
 
 function btnPress(intersect) {
     intersect.object.material = btnPressMat;
-    setTimeout(() => {intersect.object.material = btnMat;},200);
+    setTimeout(() => {intersect.object.material = intersect.object.userData.defaultMat;},200);
     var funct = intersect.object.userData.function;
 
     // ==================== Button Function Calls ===================
     if (funct == "normals-menu" && menuMode == 0) { // Button for the normals menu
-        console.log("Normal Buttons");
+        consoleLog("MENU: Switch to sub:+");
         subMenu(1);
         isBtnPressed = true; // Consume the button press until the finger is removed
     } else if (funct == "slider-menu" && menuMode == 0) { // Button for the slider test menu
-        console.log("Slider Settings");
+        consoleLog("MENU: Switch to sub:-");
         subMenu(2);
         isBtnPressed = true; // Consume the button press until the finger is removed
     } else if (funct == "back-menu" && menuMode != 0) { // Button for going back to the main menu
-        console.log("Back to Menu");
+        consoleLog("MENU: Back to Menu");
         subMenu(0);
         isBtnPressed = true; // Consume the button press until the finger is removed
     } else if (funct.slice(0,7) == "normal-" && menuMode == 1) { // Button for switching normals
-        console.log("Set Normal: " + funct.slice(7,9));
+        consoleLog("Set Normal: " + funct.slice(7,9));
         menuMat.normalMap = normalOptions[funct.slice(7,9)];
         menuSphereMat.normalMap = normalOptions[funct.slice(7,9)];
         isBtnPressed = true; // Consume the button press until the finger is removed
@@ -540,19 +595,11 @@ function btnPress(intersect) {
         lastSliderPos -= localHitPos.y;
         if (localHitPos.y >= -0.25 && localHitPos.y <= 0.25) {
             intersect.object.translateZ(lastSliderPos);
-            var normalizedResult = norm(localHitPos.y, 0.25, -0.25)
+            var normalizedResult = norm(localHitPos.y, 0.25, -0.25);
             // Check which slider is being used and apply that function
-            if (funct.slice(7,99) == "nscale") {
-                menuMat.normalScale = new THREE.Vector2(normalizedResult*2,normalizedResult*2);
-                menuSphereMat.normalScale = new THREE.Vector2(normalizedResult*2,normalizedResult*2);
-            } else if (funct.slice(7,99) == "intensity") {
-                menuMat.emissiveIntensity = normalizedResult;
-                menuSphereMat.emissiveIntensity = normalizedResult;
-            } else if (funct.slice(7,13) == "reader") {
+            if (funct.slice(7,13) == "reader") {
                 var newRange = normalizedResult * 10 + 0.5;
-                console.log('====================');
                 for (var i = snapDistanceOne.length - 1; i >= 0; i--) {
-                    console.log(i);
                     var thisGroup = snapDistanceOne[i];
                     // Set the curve radius and position of the header
                     if (thisGroup.userData.header != undefined) {
@@ -591,11 +638,22 @@ function btnPress(intersect) {
             currentTool2 = 'none';
         }
         isBtnPressed = true; // Consume the button press until the finger is removed
+    } else if (funct == "debug-toggle") { // Button for swapping between tools
+        if (debugMode) {
+            debugMode = false;
+            debugBtnMat.color.setHex( 0x990000 );
+            debugText.color = 0xff9999;
+        } else {
+            debugMode = true;
+            debugBtnMat.color.setHex( 0x009900 );
+            debugText.color = 0x99ff99;
+        }
+        showDebug();
+        isBtnPressed = true; // Consume the button press until the finger is removed
     }
 }
 
-
-
+ 
 
 
 
@@ -671,6 +729,13 @@ function subMenu(v) {
 
 let toolSelector, toolSelectorCore, toolSelectorTip, toolSelectorTip2, toolSelectorBeam, toolSelectorDot, toolSelectorDotFX;
 
+const toolColorMat = new THREE.MeshBasicMaterial( {
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0,
+    depthWrite: true
+} );
+
 function initTools() {
 
     const tipGeo = new THREE.BoxGeometry( 0.01, 0.01, 0.01 );
@@ -705,9 +770,9 @@ function initTools() {
 
     toolSelector = new THREE.Group();
     toolSelectorCore = new THREE.Group();
-    toolSelectorTip = new THREE.Mesh( tipGeo, colorMat );
-    toolSelectorTip2 = new THREE.Mesh( tipGeo, colorMat );
-    toolSelectorBeam = new THREE.Mesh( beamGeo, colorMat );
+    toolSelectorTip = new THREE.Mesh( tipGeo, toolColorMat );
+    toolSelectorTip2 = new THREE.Mesh( tipGeo, toolColorMat );
+    toolSelectorBeam = new THREE.Mesh( beamGeo, toolColorMat );
     toolSelectorDot = new THREE.Mesh( dotGeo, colorMat );
     toolSelectorDotFX = new THREE.Mesh( dotGeo, fxMat );
 
@@ -738,6 +803,10 @@ function initTools() {
     toolSelectorDot.renderOrder = 99;
     // toolSelectorDotFX.renderOrder = 98;
 
+    toolSelectorBeam.visible = false;
+    toolSelectorTip.visible = false;
+    toolSelectorTip2.visible = false;
+
     for (var i = toolSelectorSmoothSteps - 1; i >= 0; i--) {
         var rotVector = [wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z];
         toolSelectorPrevRotations.push(rotVector);
@@ -748,7 +817,7 @@ function initTools() {
 
 }
 
-var toolSelectorSmoothSteps = 20;
+var toolSelectorSmoothSteps = 25;
 var toolSelectorPrevRotations = [];
 var toolSelectorPrevPositions = [];
 
@@ -812,10 +881,14 @@ var highlightMat = new THREE.MeshBasicMaterial( {
 } );
 
 var textsToReset = [];
+var linesToHide = [];
 var toolSelectorActive = false;
 
-// change this to show/hide the selector beam and tool
-var toolSelectorVisible = false;
+
+var toolSelectorVisible = false; // Change this to show/hide the selector beam and tool
+var toolSelectorTimer = 0; // Current amout of time not pointing at anything
+var toolSelectorTimeout = 3; // How long until the line fades in
+var toolSelectorFading = false;
 
 function tryTools() {
     animateTools();
@@ -825,18 +898,26 @@ function tryTools() {
     let fingersNormalized = 1 - norm(fingersCurDist, fingersMinDist, fingersMaxDist);
     let fingersClamped = clamp(fingersNormalized, 0, 1);
 
-    if (pinkyFingerTip2.position.distanceTo(wrist2.position) < 0.13 
+    if ( pinkyFingerTip2.position.distanceTo(wrist2.position) < 0.13 
     && ringFingerTip2.position.distanceTo(wrist2.position) < 0.13
-    && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13) {
+    && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13
+    ) {
 
         toolSelectorActive = true;
+        toolSelectorTimer += deltaTime;
+        // consoleLog(toolSelectorTimer);
 
         // Animate in the selector core
         if (!tempSelectorTweenedIn && tempSelectorTweenedOut) {
+            consoleLog("...fading in!");
             tempSelectorTweenedOut = false;
 
             toolSelectorTip.visible = toolSelectorVisible;
             toolSelectorTip2.visible = toolSelectorVisible;
+            toolSelectorBeam.visible = toolSelectorVisible;
+
+            toolSelectorBeam.scale.z = 500;
+            toolSelectorBeam.position.z = -0.25;
 
             tempSelectorIntroTween = new TWEEN.Tween( toolSelectorTip.scale )
                     .to( {x: 1, y: 1, z: 1}, 300 )
@@ -859,8 +940,45 @@ function tryTools() {
                     .easing( TWEEN.Easing.Quadratic.Out )
                     .start()
                     ;
-
         }
+
+        // Fade the line if the user hasn't been pointing at anything for awhile
+        if (toolSelectorTimer >= toolSelectorTimeout && !toolSelectorFading && toolColorMat.opacity < 1) {
+            consoleLog("POINTER: Fade in");
+            toolSelectorVisible = true;
+
+            toolSelectorTip.scale.set( 0, 0, 0 );
+            toolSelectorTip2.scale.set( 0, 0, 0 );
+            tempSelectorTweenedOut = true;
+            tempSelectorTweenedIn = false;
+
+            toolSelectorFading = true;
+
+            const toolSelectorFadeInTween = new TWEEN.Tween( toolColorMat )
+            .to( { opacity: 1 }, 1000 )
+            .easing( TWEEN.Easing.Linear.None )
+            .start()
+            .onComplete(() => {
+                toolSelectorFading = false;
+            });
+        } else if (toolSelectorTimer < toolSelectorTimeout && !toolSelectorFading && toolColorMat.opacity > 0) {
+            consoleLog("POINTER: Fade out");
+            toolSelectorFading = true;
+            const toolSelectorFadeOutTween = new TWEEN.Tween( toolColorMat )
+            .to( { opacity: 0 }, 300 )
+            .easing( TWEEN.Easing.Linear.None )
+            .start()
+            .onComplete(() => {
+                toolSelectorBeam.visible = false;
+                toolSelectorFading = false;
+                toolSelectorVisible = false;
+            });
+        }
+
+
+
+
+
 
         toolSelectorTip.getWorldPosition(tempSelectorWorld);
 
@@ -870,7 +988,20 @@ function tryTools() {
                 var thisText = textsToReset[i];
                 thisText.fontSize = thisText.userData.fontSize;
                 thisText.fontWeight = "normal";
-                textsToReset.splice(thisText, 1);
+                textsToReset.splice(i, 1);
+            }
+        }
+
+        // If there are any visible lines, hide them
+        if (linesToHide.length > 0) {
+            for (var i = linesToHide.length - 1; i >= 0; i--) {
+                var thisLine = linesToHide[i];
+                console.log(thisLine.userData.persistent);
+                if (thisLine.userData.persistent == undefined) {
+
+                    thisLine.visible = false;
+                }
+                linesToHide.splice(i, 1);
             }
         }
 
@@ -883,15 +1014,16 @@ function tryTools() {
             var intersects = raycaster.intersectObjects(scene.children);
             var intersect = intersects[0];
 
-            // placeholderArrow(raycaster, 1, 0x65e6ae);
+            placeholderArrow(raycaster, 0.2, 0x65e6ae);
 
             if (intersect) {
 
                 toolSelectorDot.visible = true;
+                toolSelectorTimer = 0;
 
                 let beamScale = tempSelectorWorld.distanceTo(intersect.point) * 1000;
+                // toolSelectorBeam.visible = toolSelectorVisible;
                 toolSelectorBeam.scale.z = beamScale;
-                toolSelectorBeam.visible = toolSelectorVisible;
                 toolSelectorBeam.position.z = -(beamScale/2000);
 
                 toolSelectorDot.position.z = -(beamScale/1000);
@@ -904,7 +1036,14 @@ function tryTools() {
 
                 textsToReset.push(intersect.object);
 
-                // console.log(textsToReset.length);
+                // Show connection lines, if applicable
+                if (intersect.object.userData.lines != undefined) {
+                    const lines = intersect.object.userData.lines;
+                    for (var i = lines.length - 1; i >= 0; i--) {
+                        lines[i].visible = true;
+                        linesToHide.push(lines[i]);
+                    }
+                }
 
             }
 
@@ -933,12 +1072,33 @@ function tryTools() {
                     var tempSource = target.userData.source;
                     findCitation(tempSource, tempTextResult, target);
                     popupMenu(undefined);
+                    consoleLog("POPUP: Find " + tempTextResult, 0x555555);
                 } else if (intersect.object.userData.type == "popup-close") {
                     popupMenu(undefined);
-                } else if (intersect.object.userData.type == "popup-detach") {
+                    consoleLog("POPUP: Close", 0x555555);
+                } else if (intersect.object.userData.type == "popup-detach" || intersect.object.userData.type == "popup-clone") {
+                    var thisfunction = intersect.object.userData.type.slice(6,99);
+
                     var target = intersect.object.userData.target;
-                    target.userData.originMatrix = [ target.position.x, target.position.y, target.position.z, target.rotation.x, target.rotation.y, target.rotation.z ];
+
                     var oldGroup = target.parent;
+
+                    const newPlaceholder = new THREE.Mesh( testGeo, testMat );
+                    oldGroup.attach( newPlaceholder );
+                    newPlaceholder.userData.sequenceOrder = target.userData.sequenceOrder;
+                    oldGroup.userData.textBlock.push( newPlaceholder );
+                    newPlaceholder.position.set( 
+                        target.position.x,
+                        target.position.y,
+                        target.position.z
+                    );
+                    newPlaceholder.rotation.set( 
+                        target.rotation.x,
+                        target.rotation.y,
+                        target.rotation.z
+                    );
+                    target.userData.origin = newPlaceholder;
+
                     var newGroup = new THREE.Group();
                     newGroup.position.set( 
                         oldGroup.position.x,
@@ -951,6 +1111,31 @@ function tryTools() {
                         oldGroup.rotation.z
                     );
                     scene.add(newGroup);
+
+                    if (thisfunction == "clone") {
+                        var newText = new Text();
+                        newText.text = target.text;
+                        newText.fontSize = target.fontSize;
+                        newText.curveRadius = target.curveRadius;
+                        // newText.color = 0x330000;
+                        newText.color = target.color;
+                        scene.add(newText);
+                        oldGroup.attach(newText);
+                        newText.position.set( target.position.x, target.position.y, target.position.z );
+                        newText.rotation.set( target.rotation.x, target.rotation.y, target.rotation.z );
+                        newText.sync();
+                        newText.layers.enable( 3 );
+                        console.log(target.userData);
+                        newText.userData.fontSize = target.userData.fontSize;
+                        newText.userData.origin = target.userData.origin;
+                        newText.userData.sequenceOrder = target.userData.sequenceOrder;
+                        newText.userData.source = target.userData.source;
+                        newText.userData.type = target.userData.type;
+                        newText.userData.isClone = true;
+                        newText.userData.cloneSource = target;
+                        target = newText;
+                    }
+
                     newGroup.attach(target);
                     var tempNewGroupTween = new TWEEN.Tween( newGroup.rotation )
                         .to( {x: oldGroup.rotation.x, y: oldGroup.rotation.y + 0.1, z: oldGroup.rotation.z }, 500 )
@@ -958,18 +1143,47 @@ function tryTools() {
                         .start()
                     target.userData.detachedParent = oldGroup;
                     createHandle(target);
-                    const index = oldGroup.userData.textBlock.indexOf(target);
-                    oldGroup.userData.textBlock.splice(index,1);
+
+                    if (thisfunction == "detach") {
+                        const index = oldGroup.userData.textBlock.indexOf(target);
+                        oldGroup.userData.textBlock.splice(index,1);
+                    }
+
                     var newArray = [];
                     newArray.push(target);
                     newGroup.userData.textBlock = newArray;
                     snapDistanceOne.push(newGroup);
                     popupMenu(undefined);
-                } else if (intersect.object.userData.type == "popup-attach") {
+
+                    if (thisfunction == "detach") {
+                        const missingPiece = target.userData.sequenceOrder;
+                        for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
+                            if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
+                                var thisPiece = oldGroup.userData.textBlock[i];
+                                var tempNewTween = new TWEEN.Tween( thisPiece.position )
+                                .to( {x: thisPiece.position.x, y: thisPiece.position.y + 0.03, z: thisPiece.position.z }, 500 )
+                                .easing( TWEEN.Easing.Quadratic.InOut )
+                                .start()
+                            }
+                        }
+                        consoleLog("POPUP: Detach from location |" + (missingPiece + 1) + "|", 0x555555);
+                    } else if (thisfunction == "clone"){
+                        consoleLog("POPUP: Cloned", 0x555555);
+                    }
+                } else if (intersect.object.userData.type == "popup-attach" || intersect.object.userData.type == "popup-return") {
+                    var thisfunction = intersect.object.userData.type.slice(6,99);
+
                     var target = intersect.object.userData.target;
                     var oldGroup = target.userData.detachedParent;
                     var newGroup = target.parent;
-                    var destination = target.userData.originMatrix;
+                    var destination = [
+                        target.userData.origin.position.x,
+                        target.userData.origin.position.y,
+                        target.userData.origin.position.z,
+                        target.userData.origin.rotation.x,
+                        target.userData.origin.rotation.y,
+                        target.userData.origin.rotation.z
+                    ];
                     oldGroup.attach(target);
                     target.userData.detachedParent = undefined;
                     // Tween to the original position and rotation
@@ -981,27 +1195,100 @@ function tryTools() {
                     .to( {x: destination[3], y: destination[4], z: destination[5]}, 500 )
                     .easing( TWEEN.Easing.Quadratic.InOut )
                     .start()
+                    .onComplete(() => {
+                        if (target.userData.isClone != undefined) {
+                            if (target.userData.lines != undefined) {
+                                let lines = target.userData.lines;
+                                for (var i = lines.length - 1; i >= 0; i--) {
+                                    lines[i].userData.startObj = target.userData.cloneSource;
+                                }
+                            }
+                            target.parent.remove(target);
+                        }
+                    });
                     oldGroup.userData.textBlock.push(target);
                     const index = snapDistanceOne.indexOf(newGroup);
                     snapDistanceOne.splice(index,1);
                     newGroup.parent.remove(newGroup);
                     popupMenu(undefined);
+
+                    if (thisfunction == "attach") {
+                        const missingPiece = target.userData.sequenceOrder;
+                        for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
+                            if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
+                                var thisPiece = oldGroup.userData.textBlock[i];
+                                var tempNewTween = new TWEEN.Tween( thisPiece.position )
+                                .to( {x: thisPiece.position.x, y: thisPiece.position.y - 0.03, z: thisPiece.position.z }, 500 )
+                                .easing( TWEEN.Easing.Quadratic.InOut )
+                                .start()
+                                .onComplete(() => {
+                                    oldGroup.remove(target.userData.origin);
+                                    target.userData.origin = null;
+                                });
+                            }
+                        }
+                        consoleLog("POPUP: Attach to location |" + (missingPiece + 1) + "|", 0x555555);
+                    } else if (thisfunction == "return") {
+                        consoleLog("POPUP: Returned", 0x555555);
+                    }
                 } else if (intersect.object.userData.type == "handle") {
                     startSwipe(intersect.object);
                     popupMenu(undefined);
                 } else if (intersect.object.userData.type == "reference") {
                     popupMenu(intersect.object, "reference");
                 } else if (intersect.object.userData.type == "popup-remove") {
-                    console.log("remove");
-                    popupMenu(undefined);
                     var target = intersect.object.userData.target;
-                    var line = target.userData.line;
-                    var index = animatedConnections.indexOf(line);
-                    animatedConnections.splice(index,1);
-                    console.log(line);
-                    scene.remove(line);
+
+                    if (target.userData.lines != undefined) {
+                        const lines = target.userData.lines;
+                        for (var i = lines.length - 1; i >= 0; i--) {
+                            var line = lines[i];
+                            var index = animatedConnections.indexOf(line);
+                            animatedConnections.splice(index,1);
+                            scene.remove(line);
+                        }
+                    }
+                    
                     scene.remove(target.parent);
+                    popupMenu(undefined);
+                    consoleLog("POPUP: Remove", 0x555555);
+                } else if (intersect.object.userData.type == "popup-connections-show") {
+                    var target = intersect.object.userData.target;
+                    target.userData.persistentLines = true;
+                    // linesToHide = [];
+
+                    if (target.userData.lines != undefined) {
+                        let lines = target.userData.lines;
+                        for (var i = lines.length - 1; i >= 0; i--) {
+                            lines[i].visible = true;
+                            lines[i].userData.persistent = true;
+                        }
+                    }
+
+                    popupMenu(undefined);
+                    consoleLog("POPUP: Show Connections", 0x555555);
+                } else if (intersect.object.userData.type == "popup-connections-hide") {
+                    var target = intersect.object.userData.target;
+                    target.userData.persistentLines = undefined;
+                    if (target.userData.lines != undefined) {
+                        const lines = target.userData.lines;
+                        for (var i = lines.length - 1; i >= 0; i--) {
+                            linesToHide.push(lines[i]);
+                            lines[i].userData.persistent = undefined;
+                        }
+                    }
+                    popupMenu(undefined);
+                    consoleLog("POPUP: Hide Connections", 0x555555);
                 }
+
+
+
+
+
+
+
+
+
 
             } else if (fingersCurDist > 0.02 && tempSelectorActive) {
                 tempSelectorActive = false;
@@ -1009,9 +1296,9 @@ function tryTools() {
             }
 
         } else {
-            toolSelectorBeam.scale.z = 0;
-            toolSelectorBeam.visible = false;
-            toolSelectorBeam.position.z = 0;
+            // toolSelectorBeam.scale.z = 0;
+            // toolSelectorBeam.visible = false;
+            // toolSelectorBeam.position.z = 0;
             toolSelectorDot.position.z = 0;
             toolSelectorDot.visible = false;
             stopSwipe();
@@ -1108,11 +1395,11 @@ function popupMenu(target, variation = "citation") {
     // DETACH / REATTACH popup button
             const popupDetach = new Text();
             scene.add(popupDetach);
-            if (target.userData.detachedParent != undefined) {
+            if (target.userData.detachedParent != undefined && !target.userData.isClone) {
             // ATTACH
                 popupDetach.text = "Reattach to Group";
                 popupDetach.userData.type = "popup-attach";
-            } else {
+            } else if (target.userData.detachedParent == undefined) {
             // DETACH
                 popupDetach.text = "Detach from Group";
                 popupDetach.userData.type = "popup-detach";
@@ -1128,6 +1415,30 @@ function popupMenu(target, variation = "citation") {
             popupDetach.layers.enable( 3 );
             popupDetach.userData.target = target;
             popupItems.push(popupDetach);
+
+    // CLONE / RETURN popup button
+            const popupClone = new Text();
+            scene.add(popupClone);
+            if (target.userData.detachedParent != undefined && target.userData.isClone) {
+            // RETURN
+                popupClone.text = "Return to Group";
+                popupClone.userData.type = "popup-return";
+            } else if (target.userData.detachedParent == undefined) {
+            // CLONE
+                popupClone.text = "Clone from Group";
+                popupClone.userData.type = "popup-clone";
+            }
+            popupClone.fontSize = 0.02;
+            popupClone.userData.fontSize = 0.02;
+            popupClone.color = 0xffffff;
+            popupClone.anchorX = 'left';
+            popupClone.anchorY = 'middle';
+            newPopup.attach(popupClone);
+            popupClone.position.x = -0.11;
+            popupClone.position.y = 0.05;
+            popupClone.layers.enable( 3 );
+            popupClone.userData.target = target;
+            popupItems.push(popupClone);
 
     // FIND IN DOCUMENT popup button
             const popupFind = new Text();
@@ -1145,6 +1456,7 @@ function popupMenu(target, variation = "citation") {
             popupFind.userData.type = "popup-find";
             popupFind.userData.target = target;
             popupItems.push(popupFind);
+
         } else if (variation == "reference") {
     // REMOVE popup button
             const popupRemove = new Text();
@@ -1162,6 +1474,31 @@ function popupMenu(target, variation = "citation") {
             popupRemove.layers.enable( 3 );
             popupRemove.userData.target = target;
             popupItems.push(popupRemove);
+
+    // SHOW / HIDE CONNECTIONS popup button
+            const popupConnections = new Text();
+            scene.add(popupConnections);
+            if (target.userData.persistentLines != undefined) {
+            // HIDE
+                popupConnections.text = "Hide Connections";
+                popupConnections.userData.type = "popup-connections-hide";
+            } else {
+            // SHOW
+                popupConnections.text = "Show Connections";
+                popupConnections.userData.type = "popup-connections-show";
+            }
+            popupConnections.fontSize = 0.02;
+            popupConnections.userData.fontSize = 0.02;
+            popupConnections.color = 0xffffff;
+            popupConnections.anchorX = 'left';
+            popupConnections.anchorY = 'middle';
+            newPopup.attach(popupConnections);
+            popupConnections.position.x = -0.11;
+            popupConnections.position.y = 0.0;
+            popupConnections.layers.enable( 3 );
+            popupConnections.userData.target = target;
+            popupItems.push(popupConnections);
+
         }
 
 // CLOSE popup button
@@ -1313,7 +1650,7 @@ function displayCitation(text, object) {
     var temporaryCitation;
     var temporaryCitationGroup;
     var temporaryCitationLine;
-    console.log(text);
+    consoleLog(text.slice(0,48) + "...", 0xdddddd);
 
     if (temporaryCitation != undefined) {
         temporaryCitation.parent.remove(temporaryCitation);
@@ -1371,7 +1708,25 @@ function displayCitation(text, object) {
 
     temporaryCitationLine.userData.startObj = object;
     temporaryCitationLine.userData.endObj = temporaryCitation;
-    temporaryCitation.userData.line = temporaryCitationLine;
+    // temporaryCitation.userData.line = temporaryCitationLine;
+
+    if (object.userData.lines != undefined) {
+        object.userData.lines.push( temporaryCitationLine );
+    } else {
+        var newArray = [];
+        newArray.push( temporaryCitationLine );
+        object.userData.lines = newArray;
+    }
+
+    if (temporaryCitation.userData.lines != undefined) {
+        temporaryCitation.userData.lines.push( temporaryCitationLine );
+    } else {
+        var newArray = [];
+        newArray.push( temporaryCitationLine );
+        temporaryCitation.userData.lines = newArray;
+    }
+
+    temporaryCitationLine.visible = false;
 
     animatedConnections.push(temporaryCitationLine);
 
@@ -1459,6 +1814,7 @@ function displayTextBlock(head, text, source) {
 
         tempText.userData.source = source;
         tempText.userData.type = "citation";
+        tempText.userData.sequenceOrder = i;
 
         totalPreInstance++;
 
@@ -1599,7 +1955,28 @@ function startPos(mesh) {
 
 
 // NOTES:
+// image-based light??
+// remove three-finger curl?
 // popup menu to change snap distance
+// larger selection zone for each button
+
+
+
+// WIP:
+
+
+// COMPLETE THIS UPDATE:
+// removed test buttons from the menu
+// debug toggle in menu
+// artificial console log in VR (shows in debug mode)
+// slider for reader distance labeled
+// hand swap model to solid
+// debug mode shows hand joints
+// close gap in citation when detaching & open gap when reattaching
+// selector laser fades in if it hasn't been pointing at a menu for awhile, and fades out when it has
+// hide individual lines (except when pointing at the connected objects)
+// popup menu item for references to show/hide lines persistently
+// add 'clone' alongside detach
 
 
 
@@ -1612,6 +1989,10 @@ function createHandle(object, useParentY = false) {
     const tempBox = new THREE.Box3().setFromObject(object.parent);
     tempBox.getSize(tempSize);
     var height = tempSize.y;
+
+    if (height <= 0.00001 ) {
+        height = 0.027;
+    }
 
     const boundingGeo = new THREE.PlaneGeometry( width, height );
     // const boundingWire = new THREE.EdgesGeometry( boundingGeo, 90 );
@@ -1701,6 +2082,11 @@ let controls;
 let controller1enabled = false;
 let controller2enabled = false;
 
+const handModels = {
+    left: null,
+    right: null
+};
+
 let velocityObjects = [];
 let rotationObjects = [];
 
@@ -1729,10 +2115,23 @@ function init() {
     scene.add( controllerGrip1 );
     
     hand1 = renderer.xr.getHand( 0 );
-    hand1.addEventListener( 'pinchstart', onPinchStartLeft );
-    hand1.addEventListener( 'pinchend', onPinchEndLeft );
-    hand1.add( handModelFactory.createHandModel( hand1 ) );
     scene.add( hand1 );
+
+    handModels.left = [
+        handModelFactory.createHandModel( hand1, 'mesh' ),
+        handModelFactory.createHandModel( hand1, 'boxes' )
+        // handModelFactory.createHandModel( hand1, 'spheres' )
+    ];
+
+    for ( let i = 0; i < 2; i ++) {
+        const model = handModels.left[ i ];
+        model.visible = i == 0;
+        hand1.add( model );
+    }
+
+    // hand1.addEventListener( 'pinchstart', onPinchStartLeft );
+    // hand1.addEventListener( 'pinchend', onPinchEndLeft );
+    
     
     // Hand 2
     controllerGrip2 = renderer.xr.getControllerGrip( 1 );
@@ -1740,10 +2139,22 @@ function init() {
     scene.add( controllerGrip2 );
 
     hand2 = renderer.xr.getHand( 1 );
-    hand2.addEventListener( 'pinchstart', onPinchStartRight );
-    hand2.addEventListener( 'pinchend', onPinchEndRight );
-    hand2.add( handModelFactory.createHandModel( hand2 ) );
     scene.add( hand2 );
+    
+    handModels.right = [
+        handModelFactory.createHandModel( hand2, 'mesh' ),
+        handModelFactory.createHandModel( hand2, 'boxes' )
+        // handModelFactory.createHandModel( hand2, 'spheres' )
+    ];
+
+    for ( let i = 0; i < 2; i ++) {
+        const model = handModels.right[ i ];
+        model.visible = i == 0;
+        hand2.add( model );
+    }
+
+    // hand2.addEventListener( 'pinchstart', onPinchStartRight );
+    // hand2.addEventListener( 'pinchend', onPinchEndRight );
 
     // Lines drawn from hands
     const lineGeometry = new THREE.BufferGeometry().setFromPoints( [ new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, - 1 ) ] );
@@ -2046,10 +2457,12 @@ function mapDistanceToScale(distance) {
 }
 
 function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77) {
-    // Draw a placeholder arrow to visualize the raycast
-    const arrowTest = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, length, color);
-    scene.add(arrowTest);
-    setTimeout(() => {scene.remove(arrowTest);},200);
+    if (debugMode) {
+        // Draw a placeholder arrow to visualize the raycast
+        const arrowTest = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, length, color);
+        scene.add(arrowTest);
+        setTimeout(() => {scene.remove(arrowTest);},200);
+    }
 }
 
 function norm(value, min, max) {
@@ -2075,30 +2488,7 @@ function clamp(value, min, max) {
 
 
 
-//  PLACEHOLDER CENTER BEAM =================================
-const showPlaceholder = false;
-const testGeo = new THREE.BoxGeometry( 0.02, 0.02, 0.02 );
-const testMat = new THREE.MeshBasicMaterial( {
-    color: Math.random() * 0xffffff,
-    transparent: true,
-    opacity: 0.8
-} );
-const testCube = new THREE.Mesh( testGeo, testMat );
-testCube.geometry.computeBoundingSphere();
 
-testCube.position.set( 0, 0, 0 );
-// spawn.userData.grabbable = "true";
-// testCube.layers.enable( 1 );
-
-const testPillarGeo = new THREE.CylinderGeometry( 0.005, 0.005, 1.5, 4);
-const testPillar = new THREE.Mesh( testPillarGeo, testMat );
-if (showPlaceholder) {
-    scene.add( testCube );
-    scene.add( testPillar );
-    testPillar.position.set( 0, -0.75, 0 );
-    testPillar.visibility = false;
-}
-// =========================================================
 
 
 
@@ -2500,313 +2890,313 @@ function initHandNormals() {
 
 
 
-var pointObject, otherPointObject;
-var breakPoint, breakOtherPoint = false;
-var visiblePoseLine, visibleOtherPoseLine;
-var remoteGrabbed, remoteOtherGrabbed = false;
-var remoteIndexCurlStart, remoteOtherIndexCurlStart = 0;
-var remoteObjAccel, remoteOtherObjAccel = undefined;
-var remoteCurlStart, remoteOtherCurlStart = false;
-var remoteSpecialGrip, remoteOtherSpecialGrip = false;
+// var pointObject, otherPointObject;
+// var breakPoint, breakOtherPoint = false;
+// var visiblePoseLine, visibleOtherPoseLine;
+// var remoteGrabbed, remoteOtherGrabbed = false;
+// var remoteIndexCurlStart, remoteOtherIndexCurlStart = 0;
+// var remoteObjAccel, remoteOtherObjAccel = undefined;
+// var remoteCurlStart, remoteOtherCurlStart = false;
+// var remoteSpecialGrip, remoteOtherSpecialGrip = false;
 
-function tryRemoteGrab() {
-    // LEFT hand (or controller1)
-    // Check if the pose is pointing
-    if ( lHeldObj == undefined
-    && pinkyFingerTip1.position.distanceTo(wrist1.position) < 0.13 
-    && ringFingerTip1.position.distanceTo(wrist1.position) < 0.13
-    && middleFingerTip1.position.distanceTo(wrist1.position) < 0.13
-    ) {
-        // toggle line visibility
-        if (visiblePoseLine) {
-            line1.visible = true;
-        }
-        else {
-            line1.visible = false;
-        }
+// function tryRemoteGrab() {
+//     // LEFT hand (or controller1)
+//     // Check if the pose is pointing
+//     if ( lHeldObj == undefined
+//     && pinkyFingerTip1.position.distanceTo(wrist1.position) < 0.13 
+//     && ringFingerTip1.position.distanceTo(wrist1.position) < 0.13
+//     && middleFingerTip1.position.distanceTo(wrist1.position) < 0.13
+//     ) {
+//         // toggle line visibility
+//         if (visiblePoseLine) {
+//             line1.visible = true;
+//         }
+//         else {
+//             line1.visible = false;
+//         }
 
-        // Check if the thumb is touching the middle finger
-        if (thumbTip1.position.distanceTo(middleDistal1.position) < 0.035 ) {
-            line1.material = lineMaterialSelect;
+//         // Check if the thumb is touching the middle finger
+//         if (thumbTip1.position.distanceTo(middleDistal1.position) < 0.035 ) {
+//             line1.material = lineMaterialSelect;
 
-            // raycast for objects being pointed at
-            var raycaster = new THREE.Raycaster();
-            raycaster.layers.set( 1 );
-            var indexPointForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexKnuckle1.quaternion);
-            raycaster.set(indexKnuckle1.getWorldPosition(new THREE.Vector3), indexPointForward);
-            var intersects = raycaster.intersectObjects(scene.children);
-            var intersect = intersects[0];
+//             // raycast for objects being pointed at
+//             var raycaster = new THREE.Raycaster();
+//             raycaster.layers.set( 1 );
+//             var indexPointForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexKnuckle1.quaternion);
+//             raycaster.set(indexKnuckle1.getWorldPosition(new THREE.Vector3), indexPointForward);
+//             var intersects = raycaster.intersectObjects(scene.children);
+//             var intersect = intersects[0];
 
-            if (intersect && controller1.userData.selected == undefined && !remoteGrabbed) {
-                pointObject = intersect.object;
-                controller1.userData.selected = pointObject;
-                wrist1.attach(pointObject);
-                visiblePoseLine = false;
-                remoteGrabbed = true;
-                // If the other hand is holding this, clear it
-                if (rHeldObj == pointObject) {
-                    rHeldObj = undefined;
-                    controller2.userData.selected = undefined;
-                }
+//             if (intersect && controller1.userData.selected == undefined && !remoteGrabbed) {
+//                 pointObject = intersect.object;
+//                 controller1.userData.selected = pointObject;
+//                 wrist1.attach(pointObject);
+//                 visiblePoseLine = false;
+//                 remoteGrabbed = true;
+//                 // If the other hand is holding this, clear it
+//                 if (rHeldObj == pointObject) {
+//                     rHeldObj = undefined;
+//                     controller2.userData.selected = undefined;
+//                 }
 
-            }
-            else if (controller1.userData.selected != undefined && remoteGrabbed) {
+//             }
+//             else if (controller1.userData.selected != undefined && remoteGrabbed) {
 
-                // If the index curl hasn't been set yet, do so.
-                if (remoteIndexCurlStart == 0) {
-                    // remoteIndexCurlStart = indexFingerTip1.position.distanceTo(thumbTip1.position);
-                    remoteIndexCurlStart = 0.09;
-                }
+//                 // If the index curl hasn't been set yet, do so.
+//                 if (remoteIndexCurlStart == 0) {
+//                     // remoteIndexCurlStart = indexFingerTip1.position.distanceTo(thumbTip1.position);
+//                     remoteIndexCurlStart = 0.09;
+//                 }
 
-                var indexThumbDist = indexFingerTip1.position.distanceTo(thumbTip1.position);
-                var remotePush = false;
+//                 var indexThumbDist = indexFingerTip1.position.distanceTo(thumbTip1.position);
+//                 var remotePush = false;
 
-                if (indexThumbDist <= (remoteIndexCurlStart / 2) + 0.02) {
-                    // Move object closer
-                    remoteObjAccel = (((remoteIndexCurlStart / 2) + 0.02) - indexThumbDist) * 2;
-                    remoteCurlStart = true;
-                }
-                else if (remoteCurlStart) {
-                    // Move object away
-                    remoteObjAccel = (((remoteIndexCurlStart / 2) + 0.02) - indexThumbDist) * 2;
-                    remotePush = true;
-                }
+//                 if (indexThumbDist <= (remoteIndexCurlStart / 2) + 0.02) {
+//                     // Move object closer
+//                     remoteObjAccel = (((remoteIndexCurlStart / 2) + 0.02) - indexThumbDist) * 2;
+//                     remoteCurlStart = true;
+//                 }
+//                 else if (remoteCurlStart) {
+//                     // Move object away
+//                     remoteObjAccel = (((remoteIndexCurlStart / 2) + 0.02) - indexThumbDist) * 2;
+//                     remotePush = true;
+//                 }
 
-                if (remoteObjAccel != undefined) {
-                    scene.attach(pointObject);
-                    // Check if the object is being pushed or pulled
-                    if (remotePush && camera.position.distanceTo(pointObject.position) <= 7) {       
+//                 if (remoteObjAccel != undefined) {
+//                     scene.attach(pointObject);
+//                     // Check if the object is being pushed or pulled
+//                     if (remotePush && camera.position.distanceTo(pointObject.position) <= 7) {       
 
-                        // Calculate the direction vector from the wrist to the hand
-                        var direction = new THREE.Vector3().subVectors(wrist1.position, indexKnuckle1.position);
+//                         // Calculate the direction vector from the wrist to the hand
+//                         var direction = new THREE.Vector3().subVectors(wrist1.position, indexKnuckle1.position);
 
-                        // Normalize the direction vector
-                        direction.normalize();
+//                         // Normalize the direction vector
+//                         direction.normalize();
 
-                        // Move the object relative to the hand
-                        pointObject.position.add(direction.multiplyScalar(remoteObjAccel));
+//                         // Move the object relative to the hand
+//                         pointObject.position.add(direction.multiplyScalar(remoteObjAccel));
 
-                        wrist1.attach(pointObject);
-                    }
-                    else if (!remotePush && Math.abs(thumbTip1.position.distanceTo(pointObject.position)) >= .05) {
+//                         wrist1.attach(pointObject);
+//                     }
+//                     else if (!remotePush && Math.abs(thumbTip1.position.distanceTo(pointObject.position)) >= .05) {
 
-                        // Calculate the direction vector from the hand to the object
-                        var direction = new THREE.Vector3().subVectors(thumbTip1.position, pointObject.position);
+//                         // Calculate the direction vector from the hand to the object
+//                         var direction = new THREE.Vector3().subVectors(thumbTip1.position, pointObject.position);
 
-                        // Normalize the direction vector
-                        direction.normalize();
+//                         // Normalize the direction vector
+//                         direction.normalize();
 
-                        // If moving the object would result in it being too close to the hand next iteration
-                        // then snap to the hand position now.
-                        if (Math.abs(thumbTip1.position.distanceTo(pointObject.position)) <= remoteObjAccel) {
-                            pointObject.position.set(thumbTip1.position.x, thumbTip1.position.y, thumbTip1.position.z);
-                        }
-                        else {
-                            // Move the object relative to the hand
-                            pointObject.position.add(direction.multiplyScalar(remoteObjAccel));
-                        }
-                        wrist1.attach(pointObject);
-                    }
-                    else {
-                        wrist1.attach(pointObject);
-                    }
-                }
-            }
-        }
-        else {
-            breakPoint = true;
-        }
-    }
-    else {
-        line1.visible = false;
-        breakPoint = true;
+//                         // If moving the object would result in it being too close to the hand next iteration
+//                         // then snap to the hand position now.
+//                         if (Math.abs(thumbTip1.position.distanceTo(pointObject.position)) <= remoteObjAccel) {
+//                             pointObject.position.set(thumbTip1.position.x, thumbTip1.position.y, thumbTip1.position.z);
+//                         }
+//                         else {
+//                             // Move the object relative to the hand
+//                             pointObject.position.add(direction.multiplyScalar(remoteObjAccel));
+//                         }
+//                         wrist1.attach(pointObject);
+//                     }
+//                     else {
+//                         wrist1.attach(pointObject);
+//                     }
+//                 }
+//             }
+//         }
+//         else {
+//             breakPoint = true;
+//         }
+//     }
+//     else {
+//         line1.visible = false;
+//         breakPoint = true;
 
-        // Drop the object if the hand was pinching it
-        // if (lHeldObj != undefined && remoteSpecialGrip) {
-        //     scene.attach( lHeldObj );
-        //     // Apply the throw velocity to the grabbed object
-        //     lHeldObj.userData.velocity = velocityL;
-        //     velocityObjects.push( lHeldObj );
+//         // Drop the object if the hand was pinching it
+//         // if (lHeldObj != undefined && remoteSpecialGrip) {
+//         //     scene.attach( lHeldObj );
+//         //     // Apply the throw velocity to the grabbed object
+//         //     lHeldObj.userData.velocity = velocityL;
+//         //     velocityObjects.push( lHeldObj );
 
-        //     lHeldObj = undefined;
-        //     remoteSpecialGrip = false;
-        // }
-    }
+//         //     lHeldObj = undefined;
+//         //     remoteSpecialGrip = false;
+//         // }
+//     }
 
-    if (breakPoint) {
-        line1.scale.z = 2;
-        line1.material = lineMaterial;
-        visiblePoseLine = true;
-        remoteGrabbed = false;
-        remoteIndexCurlStart = 0;
-        remoteObjAccel = undefined;
-        remoteCurlStart = false;
+//     if (breakPoint) {
+//         line1.scale.z = 2;
+//         line1.material = lineMaterial;
+//         visiblePoseLine = true;
+//         remoteGrabbed = false;
+//         remoteIndexCurlStart = 0;
+//         remoteObjAccel = undefined;
+//         remoteCurlStart = false;
 
-        if (pointObject && controller1.userData.selected == pointObject) {
-            // as long as a hand isn't holding this, drop the object
-            if (rHeldObj != pointObject && pointObject != otherPointObject && lHeldObj != pointObject) {
-                scene.attach( pointObject );
-                // Apply the throw velocity to the grabbed object
-                pointObject.userData.velocity = velocityL;
-                velocityObjects.push( pointObject );
-                rotationObjects.push( pointObject );
-            }
-            controller1.userData.selected = undefined;
-            pointObject = undefined;
-        }        
-        breakPoint = false;
-    }
-
-
-// ============================================================= WHEN TAKEN BY OTHER REMOTE GRAB, DOESN'T DISENGAGE
+//         if (pointObject && controller1.userData.selected == pointObject) {
+//             // as long as a hand isn't holding this, drop the object
+//             if (rHeldObj != pointObject && pointObject != otherPointObject && lHeldObj != pointObject) {
+//                 scene.attach( pointObject );
+//                 // Apply the throw velocity to the grabbed object
+//                 pointObject.userData.velocity = velocityL;
+//                 velocityObjects.push( pointObject );
+//                 rotationObjects.push( pointObject );
+//             }
+//             controller1.userData.selected = undefined;
+//             pointObject = undefined;
+//         }        
+//         breakPoint = false;
+//     }
 
 
-    // RIGHT hand (or controller2)
-    // Check if the pose is pointing
-    if (pinkyFingerTip2.position.distanceTo(wrist2.position) < 0.13 
-    && ringFingerTip2.position.distanceTo(wrist2.position) < 0.13
-    && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13
-    ) {
-        // toggle line visibility
-        if (visibleOtherPoseLine) {
-            line2.visible = true;
-        }
-        else {
-            line2.visible = false;
-        }
+// // ============================================================= WHEN TAKEN BY OTHER REMOTE GRAB, DOESN'T DISENGAGE
 
-        // Check if the thumb is touching the middle finger
-        if (thumbTip2.position.distanceTo(middleDistal2.position) < 0.035 ) {
-            line2.material = lineMaterialSelect;
 
-            // raycast for objects being pointed at
-            var raycaster = new THREE.Raycaster();
-            raycaster.layers.set( 1 );
-            var indexPointForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexKnuckle2.quaternion);
-            raycaster.set(indexKnuckle2.getWorldPosition(new THREE.Vector3), indexPointForward);
-            var intersects = raycaster.intersectObjects(scene.children);
-            var intersect = intersects[0];
+//     // RIGHT hand (or controller2)
+//     // Check if the pose is pointing
+//     if (pinkyFingerTip2.position.distanceTo(wrist2.position) < 0.13 
+//     && ringFingerTip2.position.distanceTo(wrist2.position) < 0.13
+//     && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13
+//     ) {
+//         // toggle line visibility
+//         if (visibleOtherPoseLine) {
+//             line2.visible = true;
+//         }
+//         else {
+//             line2.visible = false;
+//         }
 
-            if (intersect && controller2.userData.selected == undefined && !remoteOtherGrabbed) {
-                otherPointObject = intersect.object;
-                controller2.userData.selected = otherPointObject;
-                wrist2.attach(otherPointObject);
-                visibleOtherPoseLine = false;
-                remoteOtherGrabbed = true;
-                // If the other hand is holding this, clear it
-                if (lHeldObj == otherPointObject) {
-                    lHeldObj = undefined;
-                    controller1.userData.selected = undefined;
-                }
-            }
-            else if (controller2.userData.selected != undefined && remoteOtherGrabbed) {
+//         // Check if the thumb is touching the middle finger
+//         if (thumbTip2.position.distanceTo(middleDistal2.position) < 0.035 ) {
+//             line2.material = lineMaterialSelect;
 
-                // If the index curl hasn't been set yet, do so.
-                if (remoteOtherIndexCurlStart == 0) {
-                    // remoteOtherIndexCurlStart = indexFingerTip2.position.distanceTo(thumbTip2.position);
-                    remoteOtherIndexCurlStart = 0.09;
-                }
+//             // raycast for objects being pointed at
+//             var raycaster = new THREE.Raycaster();
+//             raycaster.layers.set( 1 );
+//             var indexPointForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexKnuckle2.quaternion);
+//             raycaster.set(indexKnuckle2.getWorldPosition(new THREE.Vector3), indexPointForward);
+//             var intersects = raycaster.intersectObjects(scene.children);
+//             var intersect = intersects[0];
 
-                var indexOtherThumbDist = indexFingerTip2.position.distanceTo(thumbTip2.position);
-                var remoteOtherPush = false;
+//             if (intersect && controller2.userData.selected == undefined && !remoteOtherGrabbed) {
+//                 otherPointObject = intersect.object;
+//                 controller2.userData.selected = otherPointObject;
+//                 wrist2.attach(otherPointObject);
+//                 visibleOtherPoseLine = false;
+//                 remoteOtherGrabbed = true;
+//                 // If the other hand is holding this, clear it
+//                 if (lHeldObj == otherPointObject) {
+//                     lHeldObj = undefined;
+//                     controller1.userData.selected = undefined;
+//                 }
+//             }
+//             else if (controller2.userData.selected != undefined && remoteOtherGrabbed) {
 
-                if (indexOtherThumbDist <= (remoteOtherIndexCurlStart / 2) + 0.02) {
-                    // Move object closer
-                    remoteOtherObjAccel = (((remoteOtherIndexCurlStart / 2) + 0.02) - indexOtherThumbDist) * 2;
-                    remoteOtherCurlStart = true;
-                }
-                else if (remoteOtherCurlStart) {
-                    // Move object away
-                    remoteOtherObjAccel = (((remoteOtherIndexCurlStart / 2) + 0.02) - indexOtherThumbDist) * 2;
-                    remoteOtherPush = true;
-                }
+//                 // If the index curl hasn't been set yet, do so.
+//                 if (remoteOtherIndexCurlStart == 0) {
+//                     // remoteOtherIndexCurlStart = indexFingerTip2.position.distanceTo(thumbTip2.position);
+//                     remoteOtherIndexCurlStart = 0.09;
+//                 }
 
-                if (remoteOtherObjAccel != undefined) {
-                    scene.attach(otherPointObject);
-                    // Check if the object is being pushed or pulled
-                    if (remoteOtherPush && camera.position.distanceTo(otherPointObject.position) <= 7) {       
+//                 var indexOtherThumbDist = indexFingerTip2.position.distanceTo(thumbTip2.position);
+//                 var remoteOtherPush = false;
 
-                        // Calculate the direction vector from the wrist to the hand
-                        var direction = new THREE.Vector3().subVectors(wrist2.position, indexKnuckle2.position);
+//                 if (indexOtherThumbDist <= (remoteOtherIndexCurlStart / 2) + 0.02) {
+//                     // Move object closer
+//                     remoteOtherObjAccel = (((remoteOtherIndexCurlStart / 2) + 0.02) - indexOtherThumbDist) * 2;
+//                     remoteOtherCurlStart = true;
+//                 }
+//                 else if (remoteOtherCurlStart) {
+//                     // Move object away
+//                     remoteOtherObjAccel = (((remoteOtherIndexCurlStart / 2) + 0.02) - indexOtherThumbDist) * 2;
+//                     remoteOtherPush = true;
+//                 }
 
-                        // Normalize the direction vector
-                        direction.normalize();
+//                 if (remoteOtherObjAccel != undefined) {
+//                     scene.attach(otherPointObject);
+//                     // Check if the object is being pushed or pulled
+//                     if (remoteOtherPush && camera.position.distanceTo(otherPointObject.position) <= 7) {       
 
-                        // Move the object relative to the hand
-                        otherPointObject.position.add(direction.multiplyScalar(remoteOtherObjAccel));
+//                         // Calculate the direction vector from the wrist to the hand
+//                         var direction = new THREE.Vector3().subVectors(wrist2.position, indexKnuckle2.position);
 
-                        wrist2.attach(otherPointObject);
-                    }
-                    else if (!remoteOtherPush && Math.abs(thumbTip2.position.distanceTo(otherPointObject.position)) >= .05) {
+//                         // Normalize the direction vector
+//                         direction.normalize();
 
-                        // Calculate the direction vector from the hand to the object
-                        var direction = new THREE.Vector3().subVectors(thumbTip2.position, otherPointObject.position);
+//                         // Move the object relative to the hand
+//                         otherPointObject.position.add(direction.multiplyScalar(remoteOtherObjAccel));
 
-                        // Normalize the direction vector
-                        direction.normalize();
+//                         wrist2.attach(otherPointObject);
+//                     }
+//                     else if (!remoteOtherPush && Math.abs(thumbTip2.position.distanceTo(otherPointObject.position)) >= .05) {
 
-                        // If moving the object would result in it being too close to the hand next iteration
-                        // then snap to the hand position now.
-                        if (Math.abs(thumbTip2.position.distanceTo(otherPointObject.position)) <= remoteOtherObjAccel) {
-                            otherPointObject.position.set(thumbTip2.position.x, thumbTip2.position.y, thumbTip2.position.z);
-                        }
-                        else {
-                            // Move the object relative to the hand
-                            otherPointObject.position.add(direction.multiplyScalar(remoteOtherObjAccel));
-                        }
-                        wrist2.attach(otherPointObject);
-                    }
-                    else {
-                        wrist2.attach(otherPointObject);
-                    }
-                }
-            }
-        }
-        else {
-            breakOtherPoint = true;
-        }
-    }
-    else {
-        line2.visible = false;
-        breakOtherPoint = true;
+//                         // Calculate the direction vector from the hand to the object
+//                         var direction = new THREE.Vector3().subVectors(thumbTip2.position, otherPointObject.position);
 
-        // Drop the object if the hand was pinching it
-        // if (rHeldObj != undefined && remoteOtherSpecialGrip) {
-        //     scene.attach( rHeldObj );
-        //     // Apply the throw velocity to the grabbed object
-        //     rHeldObj.userData.velocity = velocityR;
-        //     velocityObjects.push( rHeldObj );
+//                         // Normalize the direction vector
+//                         direction.normalize();
 
-        //     rHeldObj = undefined;
-        //     remoteOtherSpecialGrip = false;
-        // }
-    }
+//                         // If moving the object would result in it being too close to the hand next iteration
+//                         // then snap to the hand position now.
+//                         if (Math.abs(thumbTip2.position.distanceTo(otherPointObject.position)) <= remoteOtherObjAccel) {
+//                             otherPointObject.position.set(thumbTip2.position.x, thumbTip2.position.y, thumbTip2.position.z);
+//                         }
+//                         else {
+//                             // Move the object relative to the hand
+//                             otherPointObject.position.add(direction.multiplyScalar(remoteOtherObjAccel));
+//                         }
+//                         wrist2.attach(otherPointObject);
+//                     }
+//                     else {
+//                         wrist2.attach(otherPointObject);
+//                     }
+//                 }
+//             }
+//         }
+//         else {
+//             breakOtherPoint = true;
+//         }
+//     }
+//     else {
+//         line2.visible = false;
+//         breakOtherPoint = true;
 
-    if (breakOtherPoint) {
-        line2.scale.z = 2;
-        line2.material = lineMaterial;
-        visibleOtherPoseLine = true;
-        remoteOtherGrabbed = false;
-        remoteOtherIndexCurlStart = 0;
-        remoteOtherObjAccel = undefined;
-        remoteOtherCurlStart = false;
+//         // Drop the object if the hand was pinching it
+//         // if (rHeldObj != undefined && remoteOtherSpecialGrip) {
+//         //     scene.attach( rHeldObj );
+//         //     // Apply the throw velocity to the grabbed object
+//         //     rHeldObj.userData.velocity = velocityR;
+//         //     velocityObjects.push( rHeldObj );
 
-        if (otherPointObject && controller2.userData.selected == otherPointObject) {
-            // as long as a hand isn't holding this, drop the object
-            if (lHeldObj != otherPointObject && pointObject != otherPointObject && rHeldObj != otherPointObject) {
-                scene.attach( otherPointObject );
-                // Apply the throw velocity to the grabbed object
-                otherPointObject.userData.velocity = velocityR;
-                velocityObjects.push( otherPointObject );
-                rotationObjects.push( otherPointObject );
-            }
-            controller2.userData.selected = undefined;
-            otherPointObject = undefined;
-        }        
-        breakOtherPoint = false;
-    }
+//         //     rHeldObj = undefined;
+//         //     remoteOtherSpecialGrip = false;
+//         // }
+//     }
 
-}
+//     if (breakOtherPoint) {
+//         line2.scale.z = 2;
+//         line2.material = lineMaterial;
+//         visibleOtherPoseLine = true;
+//         remoteOtherGrabbed = false;
+//         remoteOtherIndexCurlStart = 0;
+//         remoteOtherObjAccel = undefined;
+//         remoteOtherCurlStart = false;
+
+//         if (otherPointObject && controller2.userData.selected == otherPointObject) {
+//             // as long as a hand isn't holding this, drop the object
+//             if (lHeldObj != otherPointObject && pointObject != otherPointObject && rHeldObj != otherPointObject) {
+//                 scene.attach( otherPointObject );
+//                 // Apply the throw velocity to the grabbed object
+//                 otherPointObject.userData.velocity = velocityR;
+//                 velocityObjects.push( otherPointObject );
+//                 rotationObjects.push( otherPointObject );
+//             }
+//             controller2.userData.selected = undefined;
+//             otherPointObject = undefined;
+//         }        
+//         breakOtherPoint = false;
+//     }
+
+// }
 
 
 
@@ -2832,8 +3222,6 @@ function repositionWorld() {
     renderer.xr.setReferenceSpace( teleportSpaceOffset );
 }
 
-
-
 // repositionWorld();
 
 var recenterTimer = 0.0;
@@ -2851,36 +3239,112 @@ function tryRecenter() {
     // console.log(camera.position.distanceTo(testCube.position));
 
     if( recenterTimer >= recenterThreshold ) {
-        console.log("RECENTERING");
+        consoleLog("RECENTERING");
         repositionWorld();
         setToolPositions();
         recenterTimer = 0;
     }
 }
 
+//  PLACEHOLDER CENTER BEAM =================================
+const testGeo = new THREE.BoxGeometry( 0.02, 0.02, 0.02 );
+const testMat = new THREE.MeshBasicMaterial( {
+    color: Math.random() * 0xffffff,
+    transparent: true,
+    opacity: 0.8
+} );
+const testCube = new THREE.Mesh( testGeo, testMat );
+testCube.geometry.computeBoundingSphere();
 
-// vr-button
-// Overwrite window.requestAnimationFrame so it runs in XR
-// viewVR.addEventListener('click', e=>{
-//     var optionalFeatures= [ 'local-floor', 'bounded-floor', 'hand-tracking'];
-//     const sessionParams = { optionalFeatures };
-//     navigator.xr.requestSession( 'immersive-vr', sessionParams )
-//     .then( session => {
-//         this.session = session;
-//         this.renderer.xr.setSession( session );
-//         window.oldRequestAnimationFrame = window.requestAnimationFrame;
-//         window.requestAnimationFrame = session.requestAnimationFrame;
-//     });
-// });
+testCube.position.set( 0, 0, 0 );
+// spawn.userData.grabbable = "true";
+// testCube.layers.enable( 1 );
+
+const testPillarGeo = new THREE.CylinderGeometry( 0.005, 0.005, 1.5, 4);
+const testPillar = new THREE.Mesh( testPillarGeo, testMat );
+scene.add( testCube );
+scene.add( testPillar );
+testPillar.position.set( 0, -0.75, 0 );
+testMat.visible = false;
+// =========================================================
+
+function showDebug() {
+    if (debugMode) {
+        consoleLog("Debug Mode Enabled", 0x44bb44);
+        floorAxis.visible = true;
+        debugLogGroup.visible = true;
+        handModels.left[ 0 ].visible = false;
+        handModels.left[ 1 ].visible = true;
+        handModels.right[ 0 ].visible = false;
+        handModels.right[ 1 ].visible = true;
+        testMat.visible = true;
+    } else {
+        consoleLog("Debug Mode Disabled", 0xbb4444);
+        floorAxis.visible = false;
+        testPillar.visible = false;
+        testCube.visible = false;
+        debugLogGroup.visible = false;
+        handModels.left[ 1 ].visible = false;
+        handModels.left[ 0 ].visible = true;
+        handModels.right[ 1 ].visible = false;
+        handModels.right[ 0 ].visible = true;
+        testMat.visible = false;
+    }
+}
+
+const debugLogGroup = new THREE.Group();
+const debugLogLine1 = new Text();
+const debugLogLine2 = new Text();
+const debugLogLine3 = new Text();
+const debugLogLine4 = new Text();
+const debugLogLine5 = new Text();
+const debugLogLine6 = new Text();
+const debugLogLine7 = new Text();
+const debugLogLine8 = new Text();
+const debugLogLine9 = new Text();
+
+const debugLogLines = [debugLogLine1,debugLogLine2,debugLogLine3,debugLogLine4,debugLogLine5,debugLogLine6,debugLogLine7,debugLogLine8,debugLogLine9];
+
+function initconsoleLog() {
+    scene.add(debugLogGroup);
+    for (var i = debugLogLines.length - 1; i >= 0; i--) {
+        debugLogLines[i].text = "";
+        debugLogLines[i].color = 0xffffff;
+        debugLogLines[i].fontSize = 0.02;
+        debugLogLines[i].anchorX = 'right';
+        debugLogLines[i].anchorY = 'bottom';
+        debugLogGroup.add(debugLogLines[i]);
+        debugLogLines[i].translateY( 0.03 * (i + 1) );
+        debugLogLines[i].rotateY( Math.PI );
+        debugLogLines[i].sync();
+    }
+    debugLogGroup.visible = false;
+}
 
 
+function consoleLog(argument, color = 0xffffff) {
+    var argument = argument.toString();
+    console.log(">> " + argument);
+
+    for (var i = debugLogLines.length - 1; i >= 1; i--) {
+        debugLogLines[i].text = debugLogLines[i-1].text;
+        debugLogLines[i].color = debugLogLines[i-1].color;
+    }
+
+    debugLogLine1.text = argument;
+    debugLogLine1.color = color;
+}
 
 
-
-
-
-
-
+function animateconsoleLog() {
+    if (debugMode) {
+        debugLogGroup.position.set( wrist1.position.x, wrist1.position.y, wrist1.position.z );
+        var newRot = new THREE.Quaternion().setFromRotationMatrix(
+            new THREE.Matrix4().lookAt( debugLogGroup.position, camera.position, _yforward ) 
+        );
+        debugLogGroup.quaternion.copy( newRot );
+    }
+}
 
 
 
@@ -2995,9 +3459,9 @@ if ( WebGL.isWebGLAvailable() ) {
                 repositionWorld();
                 initMenu();
                 initTools();
+                initconsoleLog();
                 loadTextBlock(currentURL);
 
-                testPillar.visible = true;
             } else if (firstInit && !secondInit && indexFingerTip2.position.distanceTo(wrist2.position) > 0.1 && indexFingerTip1.position.distanceTo(wrist1.position)){
                 // This runs once after the hands have properly loaded
                 secondInit = true;
@@ -3014,6 +3478,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryTools();
 
                 animateCitationLines();
+                animateconsoleLog();
             }
 
         };
