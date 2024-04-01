@@ -156,3 +156,8 @@
   position: fixed;
   right: 0;
 }
+
+#fileupload {
+  position: fixed;
+  bottom: 0;
+}

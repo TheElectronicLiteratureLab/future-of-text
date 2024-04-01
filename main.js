@@ -12,6 +12,10 @@ import TWEEN from '@tweenjs/tween.js';
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
+// Set up the default workspace
+var workspace = new THREE.Group();
+scene.add(workspace);
+
 // Create a timer to track delta time
 const timer = new Timer();
 var deltaTime;
@@ -79,6 +83,7 @@ const _zbackward = new THREE.Vector3( 0, 0, -1 );
 const _zforward = new THREE.Vector3( 0, 0, 1 );
 
 var debugMode = false;
+const readerStartDistance = 3;
 
 
 
@@ -131,6 +136,8 @@ var sliderNormalScale, sliderEmissive, sliderReaderDistanceMin;
 var sliderNormalBg, sliderEmissiveBg, sliderReaderDistanceBg;
 
 var debugBtn, debugText;
+
+var exportBtn, exportText;
 
 // =========================================================================================
 
@@ -419,6 +426,7 @@ function createMenuBtns(menu) {
     //     menu.attach(normalBtns[i]);
     // }
 
+// DEBUG BUTTON
     var debugBtnGeo = new THREE.BoxGeometry( 0.08, 0.005, 0.04 );
 
     debugText = new Text();
@@ -447,6 +455,38 @@ function createMenuBtns(menu) {
     menu.attach(debugBtn);
 
     debugText.sync();
+
+
+
+// EXPORT SCENE DATA BUTTON
+
+    exportText = new Text();
+    exportText.text = "export";
+    exportText.color = 0xff9999;
+    exportText.fontSize = 0.02;
+    exportText.anchorX = 'center';
+    exportText.anchorY = 'middle';
+
+    exportBtn = new THREE.Mesh( debugBtnGeo, debugBtnMat );
+    exportBtn.userData.function = "export";
+    exportBtn.userData.defaultMat = debugBtnMat;
+
+    scene.add(exportBtn);
+    exportBtn.attach(exportText);
+
+    exportText.position.set( exportBtn.position.x, exportBtn.position.y, exportBtn.position.z );
+    exportBtn.position.set( menu.position.x, menu.position.y - 0.03, menu.position.z );
+    exportBtn.rotation.set( 0, Math.PI / 2, -1.04 );
+    exportBtn.translateY( -0.05 );
+    exportBtn.translateX( -0.035 );
+    exportBtn.rotateY( -Math.PI / 2 );
+    exportText.rotateX( Math.PI / 2 );
+    exportText.translateZ( 0.003 );
+
+    exportBtn.layers.enable( 10 );
+    menu.attach(exportBtn);
+
+    exportText.sync();
 
 
 // ============================ Create sliders for adjusting settings ============================
@@ -555,6 +595,12 @@ function tryBtns() {
 
 }
 
+// const dummyButton = new THREE.Object3D();
+// dummyButton.material = menuMat;
+// dummyButton.userData.defaultMat = menuMat;
+// dummyButton.userData.function = "slider-reader";
+
+
 var lastSliderPos;
 var hasTouchedSlider = false;
 var libraryTimer = 0;
@@ -638,7 +684,7 @@ function btnPress(intersect) {
             currentTool2 = 'none';
         }
         isBtnPressed = true; // Consume the button press until the finger is removed
-    } else if (funct == "debug-toggle") { // Button for swapping between tools
+    } else if (funct == "debug-toggle" && menuMode == 1) { // Button for swapping between tools
         if (debugMode) {
             debugMode = false;
             debugBtnMat.color.setHex( 0x990000 );
@@ -650,6 +696,9 @@ function btnPress(intersect) {
         }
         showDebug();
         isBtnPressed = true; // Consume the button press until the finger is removed
+    } else if (funct == "export" && menuMode == 2) { // Button for exporting workspace data
+        saveWorkspace();
+        isBtnPressed = true; // Consume the button press until the finger is removed
     }
 }
 
@@ -657,7 +706,18 @@ function btnPress(intersect) {
 
 
 
+function download(file) {
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(file)
 
+    link.href = url
+    link.download = file.name
+    document.body.appendChild(link)
+    link.click()
+
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+}
 
 
 function subMenu(v) {
@@ -808,8 +868,9 @@ function initTools() {
     toolSelectorTip2.visible = false;
 
     for (var i = toolSelectorSmoothSteps - 1; i >= 0; i--) {
-        var rotVector = [wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z];
-        toolSelectorPrevRotations.push(rotVector);
+        // var rotVector = [wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z];
+        var rotQuat = [wrist2.quaternion.x, wrist2.quaternion.y, wrist2.quaternion.z, wrist2.quaternion.w];
+        toolSelectorPrevRotations.push(rotQuat);
 
         var posVector = [wrist2.position.x, wrist2.position.y, wrist2.position.z];
         toolSelectorPrevPositions.push(posVector);
@@ -823,14 +884,15 @@ var toolSelectorPrevPositions = [];
 
 function setToolPositions() {
 
-    var runningRotVector = [0.0,0.0,0.0];
+    var runningRotQuaternion = [0.0,0.0,0.0,0.0];
     var runningPosVector = [0.0,0.0,0.0];
 
     for (var i = toolSelectorSmoothSteps - 1; i >= 0; i--) {
-        var rotVector = toolSelectorPrevRotations[i];
-        runningRotVector[0] += rotVector[0];
-        runningRotVector[1] += rotVector[1];
-        runningRotVector[2] += rotVector[2];
+        var rotQuaternion = toolSelectorPrevRotations[i];
+        runningRotQuaternion[0] += rotQuaternion[0];
+        runningRotQuaternion[1] += rotQuaternion[1];
+        runningRotQuaternion[2] += rotQuaternion[2];
+        runningRotQuaternion[3] += rotQuaternion[3];
 
         var posVector = toolSelectorPrevPositions[i];
         runningPosVector[0] += posVector[0];
@@ -839,7 +901,7 @@ function setToolPositions() {
     }
 
     // add the current wrist position & rotation to the end of the arrays
-    toolSelectorPrevRotations.push([wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z]);
+    toolSelectorPrevRotations.push([wrist2.quaternion.x, wrist2.quaternion.y, wrist2.quaternion.z, wrist2.quaternion.w]);
     toolSelectorPrevPositions.push([wrist2.position.x, wrist2.position.y, wrist2.position.z]);
     // remove the first elements of the arrays
     toolSelectorPrevRotations.shift();
@@ -847,7 +909,7 @@ function setToolPositions() {
 
     // Move the tool to 'chase' the destination average (reduce jitter)
     toolSelector.position.set( runningPosVector[0] / toolSelectorSmoothSteps, runningPosVector[1] / toolSelectorSmoothSteps, runningPosVector[2] / toolSelectorSmoothSteps );
-    toolSelector.rotation.set( runningRotVector[0] / toolSelectorSmoothSteps, runningRotVector[1] / toolSelectorSmoothSteps, runningRotVector[2] / toolSelectorSmoothSteps );
+    toolSelector.quaternion.set( runningRotQuaternion[0] / toolSelectorSmoothSteps, runningRotQuaternion[1] / toolSelectorSmoothSteps, runningRotQuaternion[2] / toolSelectorSmoothSteps, runningRotQuaternion[3] / toolSelectorSmoothSteps );
 
 
 
@@ -890,7 +952,7 @@ var toolSelectorTimer = 0; // Current amout of time not pointing at anything
 var toolSelectorTimeout = 3; // How long until the line fades in
 var toolSelectorFading = false;
 
-function tryTools() {
+function tryPointer() {
     animateTools();
     let fingersMaxDist = 0.09;
     let fingersMinDist = 0.07;
@@ -996,9 +1058,7 @@ function tryTools() {
         if (linesToHide.length > 0) {
             for (var i = linesToHide.length - 1; i >= 0; i--) {
                 var thisLine = linesToHide[i];
-                console.log(thisLine.userData.persistent);
                 if (thisLine.userData.persistent == undefined) {
-
                     thisLine.visible = false;
                 }
                 linesToHide.splice(i, 1);
@@ -1039,6 +1099,7 @@ function tryTools() {
                 // Show connection lines, if applicable
                 if (intersect.object.userData.lines != undefined) {
                     const lines = intersect.object.userData.lines;
+                    // console.log(lines);
                     for (var i = lines.length - 1; i >= 0; i--) {
                         lines[i].visible = true;
                         linesToHide.push(lines[i]);
@@ -1048,7 +1109,7 @@ function tryTools() {
             }
 
             // Selection function - user has clamped their fingers together while pointing
-            if (intersect && fingersCurDist <= 0.01 && !tempSelectorActive) {
+            if (intersect && fingersCurDist <= 0.008 && !tempSelectorActive) {
                 tempSelectorActive = true;
 
                 // Tween the selector dot
@@ -1110,27 +1171,29 @@ function tryTools() {
                         oldGroup.rotation.y,
                         oldGroup.rotation.z
                     );
-                    scene.add(newGroup);
+                    workspace.add(newGroup);
 
                     if (thisfunction == "clone") {
                         var newText = new Text();
                         newText.text = target.text;
                         newText.fontSize = target.fontSize;
                         newText.curveRadius = target.curveRadius;
-                        // newText.color = 0x330000;
                         newText.color = target.color;
-                        scene.add(newText);
+                        newText.outlineWidth = target.outlineWidth;
+                        newText.outlineColor = target.outlineColor;
+                        workspace.add(newText);
                         oldGroup.attach(newText);
                         newText.position.set( target.position.x, target.position.y, target.position.z );
                         newText.rotation.set( target.rotation.x, target.rotation.y, target.rotation.z );
                         newText.sync();
                         newText.layers.enable( 3 );
-                        console.log(target.userData);
-                        newText.userData.fontSize = target.userData.fontSize;
-                        newText.userData.origin = target.userData.origin;
-                        newText.userData.sequenceOrder = target.userData.sequenceOrder;
-                        newText.userData.source = target.userData.source;
-                        newText.userData.type = target.userData.type;
+                        newText.userData.layers = 3;
+                        
+                        for (i in target.userData) {
+                            newText.userData[i] = target.userData[i];
+                            consoleLog("Cloned data: " + i, 0x65e6ae);
+                        }
+
                         newText.userData.isClone = true;
                         newText.userData.cloneSource = target;
                         target = newText;
@@ -1160,6 +1223,7 @@ function tryTools() {
                         for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
                             if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
                                 var thisPiece = oldGroup.userData.textBlock[i];
+                                // console.log(thisPiece);
                                 var tempNewTween = new TWEEN.Tween( thisPiece.position )
                                 .to( {x: thisPiece.position.x, y: thisPiece.position.y + 0.03, z: thisPiece.position.z }, 500 )
                                 .easing( TWEEN.Easing.Quadratic.InOut )
@@ -1200,7 +1264,7 @@ function tryTools() {
                             if (target.userData.lines != undefined) {
                                 let lines = target.userData.lines;
                                 for (var i = lines.length - 1; i >= 0; i--) {
-                                    lines[i].userData.startObj = target.userData.cloneSource;
+                                    lines[i].userData.startObj = target.userData.cloneSource.uuid;
                                 }
                             }
                             target.parent.remove(target);
@@ -1279,6 +1343,22 @@ function tryTools() {
                     }
                     popupMenu(undefined);
                     consoleLog("POPUP: Hide Connections", 0x555555);
+                } else if (intersect.object.userData.type == "popup-mark") {
+                    var target = intersect.object.userData.target;
+                    popupMenu(target, "markup");
+                } else if (intersect.object.userData.type == "popup-color") {
+                    var target = intersect.object.userData.target;
+                    var color = intersect.object.userData.color;
+                    target.outlineWidth = 0.01;
+                    // target.outlineOpacity = 0.7;
+                    target.outlineColor = color;
+                    // target.color = color;
+                    popupMenu(undefined);
+                } else if (intersect.object.userData.type == "popup-unmark") {
+                    var target = intersect.object.userData.target;
+                    target.userData.hasMarkup = undefined;
+                    target.outlineWidth = 0;
+                    popupMenu(undefined);
                 }
 
 
@@ -1391,7 +1471,7 @@ function popupMenu(target, variation = "citation") {
         popupHead.position.y = 0.185;
         popupItems.push(popupHead);
 
-        if (variation == "citation") {
+        if (variation == "citation") {  //======================================================
     // DETACH / REATTACH popup button
             const popupDetach = new Text();
             scene.add(popupDetach);
@@ -1457,7 +1537,31 @@ function popupMenu(target, variation = "citation") {
             popupFind.userData.target = target;
             popupItems.push(popupFind);
 
-        } else if (variation == "reference") {
+    // MARK THIS TEXT popup button
+            const popupMark = new Text();
+            scene.add(popupMark);
+            if (target.userData.hasMarkup != undefined) {
+            // REMOVE COLOR
+            popupMark.text = "Unmark this Text";
+            popupMark.userData.type = "popup-unmark";
+            } else {
+            // ADD COLOR
+            popupMark.text = "Mark this Text";
+            popupMark.userData.type = "popup-mark";
+            }
+            popupMark.fontSize = 0.02;
+            popupMark.userData.fontSize = 0.02;
+            popupMark.color = 0xffffff;
+            popupMark.anchorX = 'left';
+            popupMark.anchorY = 'middle';
+            newPopup.attach(popupMark);
+            popupMark.position.x = -0.11;
+            popupMark.position.y = -0.05;
+            popupMark.layers.enable( 3 );
+            popupMark.userData.target = target;
+            popupItems.push(popupMark);
+
+        } else if (variation == "reference") { //======================================================
     // REMOVE popup button
             const popupRemove = new Text();
             scene.add(popupRemove);
@@ -1499,6 +1603,36 @@ function popupMenu(target, variation = "citation") {
             popupConnections.userData.target = target;
             popupItems.push(popupConnections);
 
+        } else if (variation == "markup") { //======================================================
+            const popupColors = [0xE6DE54, 0x4FE362, 0x55BBE6, 0xE08DE5, 0xE6556F];
+
+    // COLOR / REMOVE HIGHLIGHTS popup buttons
+            for (var i = popupColors.length - 1; i >= 0; i--) {
+                var popupColor = new Text();
+                scene.add(popupColor);
+                popupColor.text = "Highlight Text";
+                popupColor.fontSize = 0.02;
+                popupColor.userData.fontSize = 0.02;
+                popupColor.anchorX = 'left';
+                popupColor.anchorY = 'middle';
+                newPopup.attach(popupColor);
+                popupColor.position.x = -0.11;
+                popupColor.layers.enable( 3 );
+                popupColor.userData.target = target;
+                popupColor.userData.color = popupColors[i];
+                target.userData.hasMarkup = true;
+                popupColor.userData.type = "popup-color";
+                popupColor.color = popupColors[i];
+                popupColor.position.y = 0.1 - (0.05 * i);
+
+                popupItems.push(popupColor);
+            }
+            
+            
+
+            
+
+
         }
 
 // CLOSE popup button
@@ -1512,7 +1646,7 @@ function popupMenu(target, variation = "citation") {
         popupClose.anchorY = 'middle';
         newPopup.attach(popupClose);
         popupClose.position.x = -0.11;
-        popupClose.position.y = -0.1;
+        popupClose.position.y = -0.173;
         popupClose.layers.enable( 3 );
         popupClose.userData.type = "popup-close";
         popupItems.push(popupClose);
@@ -1645,6 +1779,7 @@ function findCitation(url, num, object) {
 
 
 var animatedConnections = [];
+var lineArray = [];
 
 function displayCitation(text, object) {
     var temporaryCitation;
@@ -1665,20 +1800,29 @@ function displayCitation(text, object) {
     temporaryCitationGroup = new THREE.Group();
     temporaryCitation = new Text();
     temporaryCitation.text = text;
+    // temporaryCitation.userData.text = text;
     temporaryCitation.fontSize = 0.015;
-    temporaryCitation.userData.fontSize = 0.015;
     temporaryCitation.color = 0x000000;
     temporaryCitation.anchorX = 'left';
     temporaryCitation.anchorY = 'top';
     temporaryCitation.maxWidth = 1;
     temporaryCitation.curveRadius = distanceModifier;
 
+    temporaryCitation.userData.text = temporaryCitation.text;
+    temporaryCitation.userData.fontSize = temporaryCitation.fontSize;
+    temporaryCitation.userData.color = temporaryCitation.color;
+    temporaryCitation.userData.anchorX = temporaryCitation.anchorX;
+    temporaryCitation.userData.anchorY = temporaryCitation.anchorY;
+    temporaryCitation.userData.curveRadius = temporaryCitation.curveRadius;
+    temporaryCitation.userData.maxWidth = temporaryCitation.maxWidth;
+
     temporaryCitationGroup.add(temporaryCitation);
-    scene.add(temporaryCitationGroup);
+    workspace.add(temporaryCitationGroup);
 
 // Either or for these, grouped to move with the parent, otherwise enable layers 3
     // object.parent.attach(temporaryCitationGroup);
     temporaryCitation.layers.enable( 3 );
+    temporaryCitation.userData.layers = 3;
 
     temporaryCitationGroup.position.set( object.parent.position.x, object.parent.position.y, object.parent.position.z );
     temporaryCitation.position.set( object.position.x, object.position.y, object.position.z );
@@ -1704,11 +1848,12 @@ function displayCitation(text, object) {
     const lineMat = new THREE.MeshBasicMaterial( { color: 0x000000 } );
     temporaryCitationLine = new THREE.Mesh( lineGeo, lineMat );
 
-    scene.add(temporaryCitationLine);
+    workspace.add(temporaryCitationLine);
+    lineArray.push(temporaryCitationLine);
+    workspace.userData.lineArray = lineArray;
 
-    temporaryCitationLine.userData.startObj = object;
-    temporaryCitationLine.userData.endObj = temporaryCitation;
-    // temporaryCitation.userData.line = temporaryCitationLine;
+    temporaryCitationLine.userData.startObj = object.uuid;
+    temporaryCitationLine.userData.endObj = temporaryCitation.uuid;
 
     if (object.userData.lines != undefined) {
         object.userData.lines.push( temporaryCitationLine );
@@ -1739,31 +1884,51 @@ function animateCitationLines() {
     
     if (animatedConnections.length > 0) {
         for (var i = animatedConnections.length - 1; i >= 0; i--) {
-        
+
             var thisLine = animatedConnections[i];
-            var startObj = thisLine.userData.startObj;
-            var endObj = thisLine.userData.endObj;
 
-            endObj.getWorldPosition(temporaryCitationWorldPos);
-            startObj.getWorldPosition(temporaryCitationBlockWorldPos);
+            if (thisLine.userData.startObjRef == undefined) {
+                var newstart = workspace.getObjectByProperty('uuid', thisLine.userData.startObj);
+                if (newstart != undefined) {
+                    thisLine.userData.startObjRef = newstart;
+                }
+                // consoleLog("start object found from uuid: " + thisLine.userData.startObjRef);
+            }
+            if (thisLine.userData.endObjRef == undefined) {
+                var newend = workspace.getObjectByProperty('uuid', thisLine.userData.endObj);
+                if (newend != undefined) {
+                    thisLine.userData.endObjRef = newend;
+                }
+                // consoleLog("end object found from uuid: " + thisLine.userData.endObjRef);
+            }
 
-            thisLine.position.set(
-                temporaryCitationBlockWorldPos.x,
-                temporaryCitationBlockWorldPos.y,
-                temporaryCitationBlockWorldPos.z 
-            );
+            if (thisLine.userData.startObjRef != undefined && thisLine.userData.endObjRef != undefined) {
 
-            var lineLength = thisLine.position.distanceTo(temporaryCitationWorldPos);
+                var startObj = thisLine.userData.startObjRef;
+                var endObj = thisLine.userData.endObjRef;
 
-            thisLine.scale.z = lineLength;
+                endObj.getWorldPosition(temporaryCitationWorldPos);
+                startObj.getWorldPosition(temporaryCitationBlockWorldPos);
 
-            var newRot = new THREE.Quaternion().setFromRotationMatrix(
-                new THREE.Matrix4().lookAt( thisLine.position, temporaryCitationWorldPos, _ybackward ) 
-            );
+                thisLine.position.set(
+                    temporaryCitationBlockWorldPos.x,
+                    temporaryCitationBlockWorldPos.y,
+                    temporaryCitationBlockWorldPos.z 
+                );
 
-            thisLine.quaternion.copy( newRot );
+                var lineLength = thisLine.position.distanceTo(temporaryCitationWorldPos);
 
-            thisLine.translateZ(-lineLength/2);
+                thisLine.scale.z = lineLength;
+
+                var newRot = new THREE.Quaternion().setFromRotationMatrix(
+                    new THREE.Matrix4().lookAt( thisLine.position, temporaryCitationWorldPos, _ybackward ) 
+                );
+
+                thisLine.quaternion.copy( newRot );
+
+                thisLine.translateZ(-lineLength/2);
+
+            }
 
         }
 
@@ -1782,7 +1947,7 @@ function displayTextBlock(head, text, source) {
     const textGroup = new THREE.Group();
 
     textGroup.add(headText)
-    scene.add(textGroup);
+    workspace.add(textGroup);
 
     let textOffset = -0.03;
     let totalTextOffset = textOffset;
@@ -1794,16 +1959,26 @@ function displayTextBlock(head, text, source) {
         let tempText = new Text();
         textGroup.add(tempText);
         tempText.layers.enable( 3 );
+        tempText.userData.layers = 3;
 
-        tempText.position.set( 0, 0.0, -1.0 );
+        tempText.position.set( 0, 0.0, -readerStartDistance );
 
         tempText.text = text[i];
         tempText.fontSize = 0.02;
-        tempText.userData.fontSize = 0.02;
         tempText.color = 0x000000;
         tempText.anchorX = 'left';
         tempText.anchorY = 'top';
-        tempText.curveRadius = 1;
+        tempText.curveRadius = readerStartDistance;
+        
+        // tempText.maxWidth = 2;
+
+        tempText.userData.text = tempText.text;
+        tempText.userData.fontSize = tempText.fontSize;
+        tempText.userData.color = tempText.color;
+        tempText.userData.anchorX = tempText.anchorX;
+        tempText.userData.anchorY = tempText.anchorY;
+        tempText.userData.curveRadius = tempText.curveRadius;
+        
 
         tempText.position.y = totalTextOffset;
         totalTextOffset += textOffset;
@@ -1833,8 +2008,16 @@ function displayTextBlock(head, text, source) {
     headText.color = 0x000000;
     headText.anchorX = 'left';
     headText.anchorY = 'bottom';
-    headText.curveRadius = 1;
-    headText.position.set( 0, 0.0, -1.0 );
+    headText.curveRadius = readerStartDistance;
+    headText.position.set( 0, 0.0, -readerStartDistance );
+
+    headText.userData.text = headText.text;
+    headText.userData.fontSize = headText.fontSize;
+    headText.userData.color = headText.color;
+    headText.userData.anchorX = headText.anchorX;
+    headText.userData.anchorY = headText.anchorY;
+    headText.userData.curveRadius = headText.curveRadius;
+    headText.name = "header";
 
     // textGroup.userData.constrainMin = new THREE.Vector3(0, -0.15, 0);
     // textGroup.userData.constrainMax = new THREE.Vector3(0, 2.5, 0);
@@ -1949,34 +2132,39 @@ function startPos(mesh) {
 
 
 
-
-
-
-
+// BUGS:
+// Lines use circular references and break json exports - fix and re-enable
 
 // NOTES:
 // image-based light??
 // remove three-finger curl?
 // popup menu to change snap distance
 // larger selection zone for each button
-
-
+// tags and sticky notes for document content
+// pass info to llm (chatgpt or claude) and return
+// handle is thin, then grows when pointed at
+// word wrap for citation block
 
 // WIP:
-
+// create workspace group for all modular items (not including user stuff like menu, hands, etc)
+// export workspace data & import workspace data (include spacial information and all userdata)
 
 // COMPLETE THIS UPDATE:
-// removed test buttons from the menu
-// debug toggle in menu
-// artificial console log in VR (shows in debug mode)
-// slider for reader distance labeled
-// hand swap model to solid
-// debug mode shows hand joints
-// close gap in citation when detaching & open gap when reattaching
-// selector laser fades in if it hasn't been pointing at a menu for awhile, and fades out when it has
-// hide individual lines (except when pointing at the connected objects)
-// popup menu item for references to show/hide lines persistently
-// add 'clone' alongside detach
+// clone is now more robust with copying userdata
+// popup menu - highlight bits of text to "mark"
+// finger selection pinch now requires a tighter pinch to trigger
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2005,9 +2193,10 @@ function createHandle(object, useParentY = false) {
     });
     const boundingMesh = new THREE.Mesh( boundingGeo, boundingMat );
 
-    scene.add( boundingMesh );
+    workspace.add( boundingMesh );
     object.parent.attach( boundingMesh );
     boundingMesh.layers.enable( 3 );
+    boundingMesh.userData.layers = 3;
     boundingMesh.userData.type = "handle";
     object.parent.userData.handle = boundingMesh;
 
@@ -2461,7 +2650,7 @@ function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77) {
         // Draw a placeholder arrow to visualize the raycast
         const arrowTest = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, length, color);
         scene.add(arrowTest);
-        setTimeout(() => {scene.remove(arrowTest);},200);
+        setTimeout(() => {scene.remove(arrowTest);},100);
     }
 }
 
@@ -2652,13 +2841,13 @@ var rSwipeObj = undefined;
 
 
 function startSwipe(object) {
-    // console.log("==== swipe started on " + object + " ====");
+    consoleLog("==== drag started on " + object + " ====", 0x5500aa);
     rSwipeObj = object.parent;
 }
 
 
 function stopSwipe() {
-    // console.log("==== swipe stopped ====");
+    // consoleLog("==== drag stopped ====");
     rSwipeObj = undefined;
 }
 
@@ -2678,9 +2867,14 @@ function stopSwipe() {
 
 var toolSelectorDotWorld = new THREE.Vector3();
 var curObjDir = new THREE.Vector3();
+var swipeInverter = 1;
 
 function trySwipe() {
     if ( rSwipeObj != undefined ) {
+
+        if (rSwipeObj.userData.swipeInverter != undefined) {
+            swipeInverter = rSwipeObj.userData.swipeInverter;
+        }
 
         toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
 
@@ -2708,7 +2902,8 @@ function trySwipe() {
         var rotation = angle - offsetAngle;
 
         if (rotation) {
-            rSwipeObj.rotation.y += rotation;
+            rSwipeObj.rotation.y += rotation * swipeInverter;
+            rSwipeObj.userData.swipeRot = rSwipeObj.rotation.y;
         }
 
         offsetAngle = angle;
@@ -2721,108 +2916,7 @@ function trySwipe() {
 }
 
 
-// function trySwipe() {
-//     if ( rHeldObj == undefined && currentTool2 == 'none'
-//     && pinkyFingerTip2.position.distanceTo(wrist2.position) > 0.15 
-//     && ringFingerTip2.position.distanceTo(wrist2.position) > 0.15
-//     && middleFingerTip2.position.distanceTo(wrist2.position) > 0.15
-//     && indexFingerTip2.position.distanceTo(wrist2.position) > 0.15
-//     ) {
-    
-//         // get the orientation of the palm
-//         palm2NormalX.getWorldPosition(wrist2NormalXVector);
-//         palm2NormalZ.getWorldPosition(wrist2NormalZVector);
-//         wrist2Roll = Math.abs(wrist2.position.y - wrist2NormalXVector.y);
-//         wrist2Pitch = Math.abs(wrist2.position.y - wrist2NormalZVector.y);
 
-//         // console.log("World Direction: " + wrist2Pitch);
-
-//         // Modify the ray length based on the palm pitch
-//         var swipeRayLength = swipeRayLengthBase;
-//         // 0 (flat) - 0.3 (vertical)
-
-//         // raycast for objects being pointed at
-//         var raycaster = new THREE.Raycaster();
-//         raycaster.layers.set( 3 );
-//         var forward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(wrist2.quaternion);
-//         raycaster.set(wrist2.getWorldPosition(new THREE.Vector3), forward);
-//         var intersects = raycaster.intersectObjects(scene.children);
-//         var intersect = intersects[0];
-//         var yMin = -99;
-//         var yMax = 99;
-
-//         // placeholder arrow
-//         // placeholderArrow(raycaster, swipeRayLength, 0xd310ff);
-
-//         // Check if the object has userdata that would constrain its movement
-//         if (intersect && intersect.object.parent.userData.constrainMin && intersect.object.parent.userData.constrainMax) {
-//             yMin = intersect.object.parent.userData.constrainMin.y;
-//             yMax = intersect.object.parent.userData.constrainMax.y;
-//         }
-
-//         // Check if the hand is gesturing vertically or horizontally
-//         // roll is large & pitch is small = horizontal
-//         // roll is large & pitch is large = nothing
-//         // roll is small & pitch is large = vertical
-//         // roll is small & pitch is small = vertical
-//         if (wrist2Roll < 0.23) { // VERTICAL
-
-//             offsetAngle = undefined;
-
-//             if (intersect && intersect.distance <= swipeRayLength) {
-
-//                 if (!offsetPositionY) {
-//                     offsetPositionY = intersect.point.y;
-//                 }
-
-//                 var movement = intersect.point.y - offsetPositionY;
-
-//                 if (movement && intersect.object.parent.position.y + movement >= yMin && intersect.object.parent.position.y + movement <= yMax) {
-//                     intersect.object.parent.position.y += movement;
-//                     // console.log(intersect.object.parent.position.y);
-//                 }
-
-//                 offsetPositionY = intersect.point.y;
-
-//             }
-//             else if (offsetPositionY) {
-//                 offsetPositionY = undefined;
-//             }
-
-//         } else if (wrist2Pitch < 0.2) { // HORIZONTAL
-
-//             offsetPositionY = undefined;
-
-//             if (intersect && intersect.distance <= swipeRayLength) {
-
-//                 var curObjDir = new THREE.Vector3();
-//                 curObjDir.subVectors(intersect.point, intersect.object.parent.position).normalize();
-//                 var angle = Math.atan2(curObjDir.x, curObjDir.z);
-
-//                 if (!offsetAngle) {
-//                     offsetAngle = angle;
-//                 }
-
-//                 var movement = angle - offsetAngle;
-
-//                 if (movement) {
-//                     intersect.object.parent.rotation.y += movement;
-//                     // console.log(movement + ' | ' + angle + ' | ' + offsetAngle);
-//                 }
-
-//                 offsetAngle = angle;
-
-//             }
-//             else if (offsetAngle) {
-//                 offsetAngle = undefined;
-//             }
-//         }
-//     }
-//     else if (offsetPositionY || offsetAngle) {
-//         offsetPositionY = undefined;
-//         offsetAngle = undefined;
-//     }
-// }
 
 
 
@@ -2890,313 +2984,7 @@ function initHandNormals() {
 
 
 
-// var pointObject, otherPointObject;
-// var breakPoint, breakOtherPoint = false;
-// var visiblePoseLine, visibleOtherPoseLine;
-// var remoteGrabbed, remoteOtherGrabbed = false;
-// var remoteIndexCurlStart, remoteOtherIndexCurlStart = 0;
-// var remoteObjAccel, remoteOtherObjAccel = undefined;
-// var remoteCurlStart, remoteOtherCurlStart = false;
-// var remoteSpecialGrip, remoteOtherSpecialGrip = false;
 
-// function tryRemoteGrab() {
-//     // LEFT hand (or controller1)
-//     // Check if the pose is pointing
-//     if ( lHeldObj == undefined
-//     && pinkyFingerTip1.position.distanceTo(wrist1.position) < 0.13 
-//     && ringFingerTip1.position.distanceTo(wrist1.position) < 0.13
-//     && middleFingerTip1.position.distanceTo(wrist1.position) < 0.13
-//     ) {
-//         // toggle line visibility
-//         if (visiblePoseLine) {
-//             line1.visible = true;
-//         }
-//         else {
-//             line1.visible = false;
-//         }
-
-//         // Check if the thumb is touching the middle finger
-//         if (thumbTip1.position.distanceTo(middleDistal1.position) < 0.035 ) {
-//             line1.material = lineMaterialSelect;
-
-//             // raycast for objects being pointed at
-//             var raycaster = new THREE.Raycaster();
-//             raycaster.layers.set( 1 );
-//             var indexPointForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexKnuckle1.quaternion);
-//             raycaster.set(indexKnuckle1.getWorldPosition(new THREE.Vector3), indexPointForward);
-//             var intersects = raycaster.intersectObjects(scene.children);
-//             var intersect = intersects[0];
-
-//             if (intersect && controller1.userData.selected == undefined && !remoteGrabbed) {
-//                 pointObject = intersect.object;
-//                 controller1.userData.selected = pointObject;
-//                 wrist1.attach(pointObject);
-//                 visiblePoseLine = false;
-//                 remoteGrabbed = true;
-//                 // If the other hand is holding this, clear it
-//                 if (rHeldObj == pointObject) {
-//                     rHeldObj = undefined;
-//                     controller2.userData.selected = undefined;
-//                 }
-
-//             }
-//             else if (controller1.userData.selected != undefined && remoteGrabbed) {
-
-//                 // If the index curl hasn't been set yet, do so.
-//                 if (remoteIndexCurlStart == 0) {
-//                     // remoteIndexCurlStart = indexFingerTip1.position.distanceTo(thumbTip1.position);
-//                     remoteIndexCurlStart = 0.09;
-//                 }
-
-//                 var indexThumbDist = indexFingerTip1.position.distanceTo(thumbTip1.position);
-//                 var remotePush = false;
-
-//                 if (indexThumbDist <= (remoteIndexCurlStart / 2) + 0.02) {
-//                     // Move object closer
-//                     remoteObjAccel = (((remoteIndexCurlStart / 2) + 0.02) - indexThumbDist) * 2;
-//                     remoteCurlStart = true;
-//                 }
-//                 else if (remoteCurlStart) {
-//                     // Move object away
-//                     remoteObjAccel = (((remoteIndexCurlStart / 2) + 0.02) - indexThumbDist) * 2;
-//                     remotePush = true;
-//                 }
-
-//                 if (remoteObjAccel != undefined) {
-//                     scene.attach(pointObject);
-//                     // Check if the object is being pushed or pulled
-//                     if (remotePush && camera.position.distanceTo(pointObject.position) <= 7) {       
-
-//                         // Calculate the direction vector from the wrist to the hand
-//                         var direction = new THREE.Vector3().subVectors(wrist1.position, indexKnuckle1.position);
-
-//                         // Normalize the direction vector
-//                         direction.normalize();
-
-//                         // Move the object relative to the hand
-//                         pointObject.position.add(direction.multiplyScalar(remoteObjAccel));
-
-//                         wrist1.attach(pointObject);
-//                     }
-//                     else if (!remotePush && Math.abs(thumbTip1.position.distanceTo(pointObject.position)) >= .05) {
-
-//                         // Calculate the direction vector from the hand to the object
-//                         var direction = new THREE.Vector3().subVectors(thumbTip1.position, pointObject.position);
-
-//                         // Normalize the direction vector
-//                         direction.normalize();
-
-//                         // If moving the object would result in it being too close to the hand next iteration
-//                         // then snap to the hand position now.
-//                         if (Math.abs(thumbTip1.position.distanceTo(pointObject.position)) <= remoteObjAccel) {
-//                             pointObject.position.set(thumbTip1.position.x, thumbTip1.position.y, thumbTip1.position.z);
-//                         }
-//                         else {
-//                             // Move the object relative to the hand
-//                             pointObject.position.add(direction.multiplyScalar(remoteObjAccel));
-//                         }
-//                         wrist1.attach(pointObject);
-//                     }
-//                     else {
-//                         wrist1.attach(pointObject);
-//                     }
-//                 }
-//             }
-//         }
-//         else {
-//             breakPoint = true;
-//         }
-//     }
-//     else {
-//         line1.visible = false;
-//         breakPoint = true;
-
-//         // Drop the object if the hand was pinching it
-//         // if (lHeldObj != undefined && remoteSpecialGrip) {
-//         //     scene.attach( lHeldObj );
-//         //     // Apply the throw velocity to the grabbed object
-//         //     lHeldObj.userData.velocity = velocityL;
-//         //     velocityObjects.push( lHeldObj );
-
-//         //     lHeldObj = undefined;
-//         //     remoteSpecialGrip = false;
-//         // }
-//     }
-
-//     if (breakPoint) {
-//         line1.scale.z = 2;
-//         line1.material = lineMaterial;
-//         visiblePoseLine = true;
-//         remoteGrabbed = false;
-//         remoteIndexCurlStart = 0;
-//         remoteObjAccel = undefined;
-//         remoteCurlStart = false;
-
-//         if (pointObject && controller1.userData.selected == pointObject) {
-//             // as long as a hand isn't holding this, drop the object
-//             if (rHeldObj != pointObject && pointObject != otherPointObject && lHeldObj != pointObject) {
-//                 scene.attach( pointObject );
-//                 // Apply the throw velocity to the grabbed object
-//                 pointObject.userData.velocity = velocityL;
-//                 velocityObjects.push( pointObject );
-//                 rotationObjects.push( pointObject );
-//             }
-//             controller1.userData.selected = undefined;
-//             pointObject = undefined;
-//         }        
-//         breakPoint = false;
-//     }
-
-
-// // ============================================================= WHEN TAKEN BY OTHER REMOTE GRAB, DOESN'T DISENGAGE
-
-
-//     // RIGHT hand (or controller2)
-//     // Check if the pose is pointing
-//     if (pinkyFingerTip2.position.distanceTo(wrist2.position) < 0.13 
-//     && ringFingerTip2.position.distanceTo(wrist2.position) < 0.13
-//     && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13
-//     ) {
-//         // toggle line visibility
-//         if (visibleOtherPoseLine) {
-//             line2.visible = true;
-//         }
-//         else {
-//             line2.visible = false;
-//         }
-
-//         // Check if the thumb is touching the middle finger
-//         if (thumbTip2.position.distanceTo(middleDistal2.position) < 0.035 ) {
-//             line2.material = lineMaterialSelect;
-
-//             // raycast for objects being pointed at
-//             var raycaster = new THREE.Raycaster();
-//             raycaster.layers.set( 1 );
-//             var indexPointForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexKnuckle2.quaternion);
-//             raycaster.set(indexKnuckle2.getWorldPosition(new THREE.Vector3), indexPointForward);
-//             var intersects = raycaster.intersectObjects(scene.children);
-//             var intersect = intersects[0];
-
-//             if (intersect && controller2.userData.selected == undefined && !remoteOtherGrabbed) {
-//                 otherPointObject = intersect.object;
-//                 controller2.userData.selected = otherPointObject;
-//                 wrist2.attach(otherPointObject);
-//                 visibleOtherPoseLine = false;
-//                 remoteOtherGrabbed = true;
-//                 // If the other hand is holding this, clear it
-//                 if (lHeldObj == otherPointObject) {
-//                     lHeldObj = undefined;
-//                     controller1.userData.selected = undefined;
-//                 }
-//             }
-//             else if (controller2.userData.selected != undefined && remoteOtherGrabbed) {
-
-//                 // If the index curl hasn't been set yet, do so.
-//                 if (remoteOtherIndexCurlStart == 0) {
-//                     // remoteOtherIndexCurlStart = indexFingerTip2.position.distanceTo(thumbTip2.position);
-//                     remoteOtherIndexCurlStart = 0.09;
-//                 }
-
-//                 var indexOtherThumbDist = indexFingerTip2.position.distanceTo(thumbTip2.position);
-//                 var remoteOtherPush = false;
-
-//                 if (indexOtherThumbDist <= (remoteOtherIndexCurlStart / 2) + 0.02) {
-//                     // Move object closer
-//                     remoteOtherObjAccel = (((remoteOtherIndexCurlStart / 2) + 0.02) - indexOtherThumbDist) * 2;
-//                     remoteOtherCurlStart = true;
-//                 }
-//                 else if (remoteOtherCurlStart) {
-//                     // Move object away
-//                     remoteOtherObjAccel = (((remoteOtherIndexCurlStart / 2) + 0.02) - indexOtherThumbDist) * 2;
-//                     remoteOtherPush = true;
-//                 }
-
-//                 if (remoteOtherObjAccel != undefined) {
-//                     scene.attach(otherPointObject);
-//                     // Check if the object is being pushed or pulled
-//                     if (remoteOtherPush && camera.position.distanceTo(otherPointObject.position) <= 7) {       
-
-//                         // Calculate the direction vector from the wrist to the hand
-//                         var direction = new THREE.Vector3().subVectors(wrist2.position, indexKnuckle2.position);
-
-//                         // Normalize the direction vector
-//                         direction.normalize();
-
-//                         // Move the object relative to the hand
-//                         otherPointObject.position.add(direction.multiplyScalar(remoteOtherObjAccel));
-
-//                         wrist2.attach(otherPointObject);
-//                     }
-//                     else if (!remoteOtherPush && Math.abs(thumbTip2.position.distanceTo(otherPointObject.position)) >= .05) {
-
-//                         // Calculate the direction vector from the hand to the object
-//                         var direction = new THREE.Vector3().subVectors(thumbTip2.position, otherPointObject.position);
-
-//                         // Normalize the direction vector
-//                         direction.normalize();
-
-//                         // If moving the object would result in it being too close to the hand next iteration
-//                         // then snap to the hand position now.
-//                         if (Math.abs(thumbTip2.position.distanceTo(otherPointObject.position)) <= remoteOtherObjAccel) {
-//                             otherPointObject.position.set(thumbTip2.position.x, thumbTip2.position.y, thumbTip2.position.z);
-//                         }
-//                         else {
-//                             // Move the object relative to the hand
-//                             otherPointObject.position.add(direction.multiplyScalar(remoteOtherObjAccel));
-//                         }
-//                         wrist2.attach(otherPointObject);
-//                     }
-//                     else {
-//                         wrist2.attach(otherPointObject);
-//                     }
-//                 }
-//             }
-//         }
-//         else {
-//             breakOtherPoint = true;
-//         }
-//     }
-//     else {
-//         line2.visible = false;
-//         breakOtherPoint = true;
-
-//         // Drop the object if the hand was pinching it
-//         // if (rHeldObj != undefined && remoteOtherSpecialGrip) {
-//         //     scene.attach( rHeldObj );
-//         //     // Apply the throw velocity to the grabbed object
-//         //     rHeldObj.userData.velocity = velocityR;
-//         //     velocityObjects.push( rHeldObj );
-
-//         //     rHeldObj = undefined;
-//         //     remoteOtherSpecialGrip = false;
-//         // }
-//     }
-
-//     if (breakOtherPoint) {
-//         line2.scale.z = 2;
-//         line2.material = lineMaterial;
-//         visibleOtherPoseLine = true;
-//         remoteOtherGrabbed = false;
-//         remoteOtherIndexCurlStart = 0;
-//         remoteOtherObjAccel = undefined;
-//         remoteOtherCurlStart = false;
-
-//         if (otherPointObject && controller2.userData.selected == otherPointObject) {
-//             // as long as a hand isn't holding this, drop the object
-//             if (lHeldObj != otherPointObject && pointObject != otherPointObject && rHeldObj != otherPointObject) {
-//                 scene.attach( otherPointObject );
-//                 // Apply the throw velocity to the grabbed object
-//                 otherPointObject.userData.velocity = velocityR;
-//                 velocityObjects.push( otherPointObject );
-//                 rotationObjects.push( otherPointObject );
-//             }
-//             controller2.userData.selected = undefined;
-//             otherPointObject = undefined;
-//         }        
-//         breakOtherPoint = false;
-//     }
-
-// }
 
 
 
@@ -3369,6 +3157,292 @@ function animateconsoleLog() {
 
 
 
+// Workspace loader ======================================================================
+var uploadedWorkspace = false;
+var quedWorkspace;
+
+document.querySelector('#upload').addEventListener('input',function() {
+    const file = this.files[0];
+
+    let fr = new FileReader();
+
+    fr.readAsText(file);
+
+    fr.onload = () => {
+        console.log(fr.result);
+        quedWorkspace = JSON.parse(fr.result);
+        uploadedWorkspace = true;
+    }
+
+    fr.onerror = () => {
+        console.log(fr.error);
+    }
+});
+
+
+function initWorkspace() {
+    if (uploadedWorkspace) {
+        loadWorkspace();
+    } else {
+        loadTextBlock(currentURL);
+    }
+}
+
+function saveWorkspace() {
+
+    workspace.traverse( function(child) {
+
+        // clear the direct references for the lines to prevent circular json structure
+        if (child.userData.startObjRef != undefined) {
+            child.userData.startObjRef = undefined;
+        }
+        if (child.userData.endObjRef != undefined) {
+            child.userData.endObjRef = undefined;
+        }
+
+    });
+
+    const json_export = workspace.toJSON();
+    const content = JSON.stringify(json_export);
+    const file = new File([content], 'workspace-export-test.json', {
+        type: 'text/plain'
+    });
+
+    console.log(content);
+    download(file);
+
+    consoleLog("=================== WORKSPACE FINISHED SAVING ===================");
+
+}
+
+var pendingRemove = [];
+
+function loadWorkspace() {
+    const loader = new THREE.ObjectLoader();
+
+    const work = loader.parse( quedWorkspace );
+
+    scene.add( work );
+
+    workspace = work;
+
+    workspace.name = "workspace";
+
+    workspace.position.set( 0, 0, 0 );
+    workspace.rotation.set( 0, 0, 0 );
+
+
+    // FIRST TRAVERSAL THROUGH THE WORKSPACE ==========================================
+    workspace.traverse( function(child) {
+        // console.log(child.uuid);
+
+        if (child.name == "workspace") {
+
+            // lineArray = [];
+
+            // for (var i = child.userData.lineArray.length - 1; i >= 0; i--) {
+            //     lineArray.push( child.userData.lineArray[i].object );
+            // }
+
+            // console.log(lineArray);
+
+        }
+
+        if (child.userData.text != undefined) {
+
+            const newText = new Text();
+            scene.add( newText );
+            child.parent.attach( newText );
+            newText.position.set( child.position.x, child.position.y, child.position.z );
+            newText.rotation.set( child.rotation.x, child.rotation.y, child.rotation.z );
+            newText.text = child.userData.text;
+            newText.fontSize = child.userData.fontSize;
+            newText.color = child.userData.color;
+            newText.anchorX = child.userData.anchorX;
+            newText.anchorY = child.userData.anchorY;
+            newText.curveRadius = child.userData.curveRadius;
+
+            if (child.name != "") {
+                newText.name = child.name;
+            }
+
+            for (i in child.userData) {
+                
+                // if (i == "lines" ) {
+                //     // console.log(i);
+                //     var theseLines = [];
+
+                //     for (var j = child.userData.lines.length - 1; j >= 0; j--) {
+                //         if (child.userData.lines[j].object.userData._firstpass == undefined) {
+
+                //             var thisLine = child.userData.lines[j];
+                //             thisLine.object.userData._firstpass = true;
+                //             theseLines.push( thisLine )
+
+                //             thisLine.object.position.set(0,0,0);
+
+                //             // console.log(thisLine);
+                //         } else {
+
+                //             var thisLine = newText.userData.lines[j];
+                //             // thisLine.object.userData._firstpass = undefined;
+                //             theseLines.push( thisLine );
+
+                //             console.log("-passed-");
+                //         }
+                //     }
+
+                //     newText.userData[i] = theseLines;
+
+                // }
+                // else {
+                    newText.userData[i] = child.userData[i];
+                // }
+
+            // we need to pass all the userdata, but that also overwrites the userdata
+            // this is an issue with the lines, which are changed when we pass the first text (startObj)
+            // that uses them, then reset when we pass the second connecting text (endObj)
+
+            // first hit of a line, set a custom userdata
+            // second hit of the line, don't change that line, and remove the custom userdata
+                
+            }
+
+            
+
+            if (child.userData.maxWidth != undefined) {
+                newText.maxWidth = child.userData.maxWidth;
+            }
+
+            if (child.userData.layers != undefined) {
+                newText.layers.enable( child.userData.layers );
+            }
+
+            if (child.parent.userData.textBlock != undefined && child.name != "header") {
+                var textBlock = child.parent.userData.textBlock;
+                var index = textBlock.indexOf(child);
+                textBlock.splice(index, 1, newText);
+                // textBlock.push(newText);
+            }
+
+            if (child.userData.lines != undefined) {
+                var lines = [];
+                for (var i = child.userData.lines.length - 1; i >= 0; i--) {
+                    lines.push( child.userData.lines[i].object );
+                }
+                newText.userData.lines = lines;
+
+
+                for (var i = lines.length - 1; i >= 0; i--) {
+                    if (lines[i].userData.startObj == child.uuid) {
+                        lines[i].userData.startObj = newText.uuid;
+                        console.log("Set StartObj to: " + lines[i].userData.startObj);
+                    }
+                    else if (lines[i].userData.endObj == child.uuid) {
+                        lines[i].userData.endObj = newText.uuid;
+                        console.log("Set EndObj to: " + lines[i].userData.endObj) ;
+                    }
+
+                    if (animatedConnections.includes( lines[i], 0 ) == false) {
+                        animatedConnections.push(lines[i]);
+                        console.log("Pushed line to array: " + lines[i].uuid);
+                    }
+                    
+                }
+
+                console.log(lines);
+
+
+            }
+
+            console.log("***** " + animatedConnections.length);
+
+            pendingRemove.push(child);
+            newText.sync();
+        }
+
+        if (child.type == "Group" && child.name != "workspace") {
+
+            if (child.userData.swipeRot != undefined) {
+                child.rotation.set( 0, child.userData.swipeRot, 0 );
+            }
+
+            if (child.userData.textBlock != undefined) {
+                // child.userData.textBlock = [];
+            }
+
+        }
+ 
+    });
+
+    // REMOVE PENDING ELEMENTS =========================================================
+    for (var i = pendingRemove.length - 1; i >= 0; i--) {
+        console.log("REMOVE: " + pendingRemove[i]);
+        pendingRemove[i].parent.remove(pendingRemove[i]);
+        pendingRemove.splice(i,1);
+    }
+
+    // SECOND TRAVERSAL THROUGH THE WORKSPACE ==========================================
+    // workspace.traverse( function(child) {
+
+        // Iterate through the loaded workspace a second time after it has fully loaded.
+        // This time grab lines and things like that.
+
+        // if (child.userData.text != undefined) {
+        //     if (child.userData.lines != undefined) {
+        //         var lines = [];
+        //         for (var i = child.userData.lines.length - 1; i >= 0; i--) {
+        //             lines.push( child.userData.lines[i].object );
+        //         }
+        //         newText.userData.lines = lines;
+
+        //         for (var i = lines.length - 1; i >= 0; i--) {
+        //             console.log(lines[i]);
+        //             if (lines[i].userData.startObj == child.uuid) {
+        //                 lines[i].userData.startObj = newText.uuid;
+        //             }
+        //             else if (lines[i].userData.endObj == child.uuid) {
+        //                 lines[i].userData.endObj = newText.uuid;
+        //             }
+        //         }
+        //     }
+
+
+        // }
+
+
+
+         // for (var i = lineArray.length - 1; i >= 0; i--) {
+         //        lineArray[i].object.userData.startObj = workspace.getObjectByProperty('uuid', lineArray[i].object.userData.startObj.uuid);
+         //        lineArray[i].object.userData.endObj = workspace.getObjectByProperty('uuid', lineArray[i].object.userData.endObj.uuid);
+            
+         //        console.log(lineArray[i].object.userData.startObj);
+         //    }
+
+
+    // });
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3460,7 +3534,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 initMenu();
                 initTools();
                 initconsoleLog();
-                loadTextBlock(currentURL);
+                initWorkspace();
 
             } else if (firstInit && !secondInit && indexFingerTip2.position.distanceTo(wrist2.position) > 0.1 && indexFingerTip1.position.distanceTo(wrist1.position)){
                 // This runs once after the hands have properly loaded
@@ -3475,7 +3549,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryMenu();
                 tryBtns();
                 tryRecenter();
-                tryTools();
+                tryPointer();
 
                 animateCitationLines();
                 animateconsoleLog();
