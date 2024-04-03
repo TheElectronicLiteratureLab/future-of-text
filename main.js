@@ -83,7 +83,7 @@ const _zbackward = new THREE.Vector3( 0, 0, -1 );
 const _zforward = new THREE.Vector3( 0, 0, 1 );
 
 var debugMode = false;
-const readerStartDistance = 3;
+const readerStartDistance = 2;
 
 
 
@@ -952,6 +952,8 @@ var toolSelectorTimer = 0; // Current amout of time not pointing at anything
 var toolSelectorTimeout = 3; // How long until the line fades in
 var toolSelectorFading = false;
 
+var raycaster = new THREE.Raycaster();
+
 function tryPointer() {
     animateTools();
     let fingersMaxDist = 0.09;
@@ -1058,15 +1060,17 @@ function tryPointer() {
         if (linesToHide.length > 0) {
             for (var i = linesToHide.length - 1; i >= 0; i--) {
                 var thisLine = linesToHide[i];
-                if (thisLine.userData.persistent == undefined) {
-                    thisLine.visible = false;
+                // console.log(thisLine);
+                if (thisLine.name == "line") {
+                    if (thisLine.userData.persistent == undefined) {
+                        thisLine.visible = false;
+                    }
+                    linesToHide.splice(i, 1);
                 }
-                linesToHide.splice(i, 1);
             }
         }
 
         if (fingersNormalized >= 1) {
-            var raycaster = new THREE.Raycaster();
             raycaster.layers.set( 3 );
             toolSelectorCore.getWorldQuaternion(tempSelectorQuat);
             var rayForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(tempSelectorQuat);
@@ -1074,7 +1078,7 @@ function tryPointer() {
             var intersects = raycaster.intersectObjects(scene.children);
             var intersect = intersects[0];
 
-            placeholderArrow(raycaster, 0.2, 0x65e6ae);
+            placeholderArrow(raycaster, 0.1, 0x65e6ae);
 
             if (intersect) {
 
@@ -1146,6 +1150,7 @@ function tryPointer() {
 
                     const newPlaceholder = new THREE.Mesh( testGeo, testMat );
                     oldGroup.attach( newPlaceholder );
+                    newPlaceholder.name = "placeholder";
                     newPlaceholder.userData.sequenceOrder = target.userData.sequenceOrder;
                     oldGroup.userData.textBlock.push( newPlaceholder );
                     newPlaceholder.position.set( 
@@ -1221,13 +1226,19 @@ function tryPointer() {
                     if (thisfunction == "detach") {
                         const missingPiece = target.userData.sequenceOrder;
                         for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
-                            if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
-                                var thisPiece = oldGroup.userData.textBlock[i];
-                                // console.log(thisPiece);
-                                var tempNewTween = new TWEEN.Tween( thisPiece.position )
-                                .to( {x: thisPiece.position.x, y: thisPiece.position.y + 0.03, z: thisPiece.position.z }, 500 )
-                                .easing( TWEEN.Easing.Quadratic.InOut )
-                                .start()
+                            try {
+                                console.log(oldGroup.userData.textBlock[i].userData.sequenceOrder + " | " + missingPiece);
+                                if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
+                                    var thisPiece = oldGroup.userData.textBlock[i];
+                                    // console.log(thisPiece);
+                                    var tempNewTween = new TWEEN.Tween( thisPiece.position )
+                                    .to( {x: thisPiece.position.x, y: thisPiece.position.y + 0.03, z: thisPiece.position.z }, 500 )
+                                    .easing( TWEEN.Easing.Quadratic.InOut )
+                                    .start()
+                                }
+                            }
+                            catch {
+                                console.log("ERROR");
                             }
                         }
                         consoleLog("POPUP: Detach from location |" + (missingPiece + 1) + "|", 0x555555);
@@ -1240,6 +1251,7 @@ function tryPointer() {
                     var target = intersect.object.userData.target;
                     var oldGroup = target.userData.detachedParent;
                     var newGroup = target.parent;
+                    console.log(target);
                     var destination = [
                         target.userData.origin.position.x,
                         target.userData.origin.position.y,
@@ -1260,6 +1272,9 @@ function tryPointer() {
                     .easing( TWEEN.Easing.Quadratic.InOut )
                     .start()
                     .onComplete(() => {
+                        oldGroup.remove(target.userData.origin);
+                        target.userData.origin = null;
+
                         if (target.userData.isClone != undefined) {
                             if (target.userData.lines != undefined) {
                                 let lines = target.userData.lines;
@@ -1279,16 +1294,21 @@ function tryPointer() {
                     if (thisfunction == "attach") {
                         const missingPiece = target.userData.sequenceOrder;
                         for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
-                            if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
-                                var thisPiece = oldGroup.userData.textBlock[i];
-                                var tempNewTween = new TWEEN.Tween( thisPiece.position )
-                                .to( {x: thisPiece.position.x, y: thisPiece.position.y - 0.03, z: thisPiece.position.z }, 500 )
-                                .easing( TWEEN.Easing.Quadratic.InOut )
-                                .start()
-                                .onComplete(() => {
-                                    oldGroup.remove(target.userData.origin);
-                                    target.userData.origin = null;
-                                });
+                            try {
+                                if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
+                                    var thisPiece = oldGroup.userData.textBlock[i];
+                                    var tempNewTween = new TWEEN.Tween( thisPiece.position )
+                                    .to( {x: thisPiece.position.x, y: thisPiece.position.y - 0.03, z: thisPiece.position.z }, 500 )
+                                    .easing( TWEEN.Easing.Quadratic.InOut )
+                                    .start()
+                                    // .onComplete(() => {
+                                    //     oldGroup.remove(target.userData.origin);
+                                    //     target.userData.origin = null;
+                                    // });
+                                }
+                            }
+                            catch {
+                                console.log("ERROR");
                             }
                         }
                         consoleLog("POPUP: Attach to location |" + (missingPiece + 1) + "|", 0x555555);
@@ -1309,11 +1329,11 @@ function tryPointer() {
                             var line = lines[i];
                             var index = animatedConnections.indexOf(line);
                             animatedConnections.splice(index,1);
-                            scene.remove(line);
+                            workspace.remove(line);
                         }
                     }
                     
-                    scene.remove(target.parent);
+                    workspace.remove(target.parent);
                     popupMenu(undefined);
                     consoleLog("POPUP: Remove", 0x555555);
                 } else if (intersect.object.userData.type == "popup-connections-show") {
@@ -1350,14 +1370,18 @@ function tryPointer() {
                     var target = intersect.object.userData.target;
                     var color = intersect.object.userData.color;
                     target.outlineWidth = 0.01;
+                    target.userData.outlineWidth = target.outlineWidth;
                     // target.outlineOpacity = 0.7;
                     target.outlineColor = color;
+                    target.userData.outlineColor = target.outlineColor;
                     // target.color = color;
                     popupMenu(undefined);
                 } else if (intersect.object.userData.type == "popup-unmark") {
                     var target = intersect.object.userData.target;
                     target.userData.hasMarkup = undefined;
                     target.outlineWidth = 0;
+                    target.userData.outlineWidth = undefined;
+                    target.userData.outlineColor = undefined;
                     popupMenu(undefined);
                 }
 
@@ -1779,12 +1803,11 @@ function findCitation(url, num, object) {
 
 
 var animatedConnections = [];
-var lineArray = [];
+// var lineArray = [];
 
 function displayCitation(text, object) {
     var temporaryCitation;
     var temporaryCitationGroup;
-    var temporaryCitationLine;
     consoleLog(text.slice(0,48) + "...", 0xdddddd);
 
     if (temporaryCitation != undefined) {
@@ -1844,16 +1867,26 @@ function displayCitation(text, object) {
     
 
     // Citation line
+    createLine(object, temporaryCitation);
+
+}
+
+
+
+
+
+function createLine(object, target) {
     const lineGeo = new THREE.BoxGeometry( 0.001, 0.001, 1 );
     const lineMat = new THREE.MeshBasicMaterial( { color: 0x000000 } );
-    temporaryCitationLine = new THREE.Mesh( lineGeo, lineMat );
+    var temporaryCitationLine = new THREE.Mesh( lineGeo, lineMat );
 
     workspace.add(temporaryCitationLine);
-    lineArray.push(temporaryCitationLine);
-    workspace.userData.lineArray = lineArray;
+    // lineArray.push(temporaryCitationLine);
+    // workspace.userData.lineArray = lineArray;
 
     temporaryCitationLine.userData.startObj = object.uuid;
-    temporaryCitationLine.userData.endObj = temporaryCitation.uuid;
+    temporaryCitationLine.userData.endObj = target.uuid;
+    temporaryCitationLine.name = "line";
 
     if (object.userData.lines != undefined) {
         object.userData.lines.push( temporaryCitationLine );
@@ -1863,19 +1896,24 @@ function displayCitation(text, object) {
         object.userData.lines = newArray;
     }
 
-    if (temporaryCitation.userData.lines != undefined) {
-        temporaryCitation.userData.lines.push( temporaryCitationLine );
+    if (target.userData.lines != undefined) {
+        target.userData.lines.push( temporaryCitationLine );
     } else {
         var newArray = [];
         newArray.push( temporaryCitationLine );
-        temporaryCitation.userData.lines = newArray;
+        target.userData.lines = newArray;
     }
 
     temporaryCitationLine.visible = false;
 
     animatedConnections.push(temporaryCitationLine);
-
 }
+
+
+
+
+
+
 
 var temporaryCitationWorldPos = new THREE.Vector3();
 var temporaryCitationBlockWorldPos = new THREE.Vector3();
@@ -1902,10 +1940,21 @@ function animateCitationLines() {
                 // consoleLog("end object found from uuid: " + thisLine.userData.endObjRef);
             }
 
-            if (thisLine.userData.startObjRef != undefined && thisLine.userData.endObjRef != undefined) {
+            // if (thisLine.userData.startObjRef != undefined && thisLine.userData.endObjRef != undefined) {
 
-                var startObj = thisLine.userData.startObjRef;
-                var endObj = thisLine.userData.endObjRef;
+                var startObj, endObj;
+
+                if (thisLine.userData.startObjRef != undefined) {
+                    startObj = thisLine.userData.startObjRef;
+                } else {
+                    startObj = camera;
+                }
+
+                if (thisLine.userData.endObjRef != undefined) {
+                    endObj = thisLine.userData.endObjRef;
+                } else {
+                    endObj = camera;
+                }
 
                 endObj.getWorldPosition(temporaryCitationWorldPos);
                 startObj.getWorldPosition(temporaryCitationBlockWorldPos);
@@ -1928,7 +1977,7 @@ function animateCitationLines() {
 
                 thisLine.translateZ(-lineLength/2);
 
-            }
+            // }
 
         }
 
@@ -2133,7 +2182,7 @@ function startPos(mesh) {
 
 
 // BUGS:
-// Lines use circular references and break json exports - fix and re-enable
+// Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
 
 // NOTES:
 // image-based light??
@@ -2146,13 +2195,16 @@ function startPos(mesh) {
 // word wrap for citation block
 
 // WIP:
-// create workspace group for all modular items (not including user stuff like menu, hands, etc)
-// export workspace data & import workspace data (include spacial information and all userdata)
+// Save files are way too large - find a way to trim troika text geometry
 
 // COMPLETE THIS UPDATE:
 // clone is now more robust with copying userdata
 // popup menu - highlight bits of text to "mark"
 // finger selection pinch now requires a tighter pinch to trigger
+// create workspace group for all modular items (not including user stuff like menu, hands, etc)
+// export workspace data & import workspace data (include spacial information and all userdata)
+// Lines use circular references and break json exports - fix and re-enable
+// Color markup save/load
 
 
 
@@ -3203,19 +3255,41 @@ function saveWorkspace() {
     });
 
     const json_export = workspace.toJSON();
-    const content = JSON.stringify(json_export);
-    const file = new File([content], 'workspace-export-test.json', {
+
+    // filterWorkspace(json_export);
+
+    var content = JSON.stringify(json_export);
+
+    console.log(content);
+
+    // ====== get the current timestamp =====
+    const d = new Date();
+    let year = d.getFullYear().toString().slice(2,4);
+    let month = d.getMonth() + 1;
+    let day = d.getDay();
+    let hour = d.getHours();
+    let minute = d.getMinutes();
+    // ======================================
+
+    const file = new File([content], 'workspace-' + month + '.' + day + '.' + year + '-' + hour + '.' + minute + '.json', {
         type: 'text/plain'
     });
 
-    console.log(content);
     download(file);
 
     consoleLog("=================== WORKSPACE FINISHED SAVING ===================");
 
 }
 
+function filterWorkspace(content) {
+    // iterate through the json and remove the troika glyph bounds?
+    // this would save file space, but an immediate solution on how to do this is not obvious to me
+}
+
 var pendingRemove = [];
+var pendingLineCheck = [];
+var pendingOriginUpdate = [];
+var pendingDetachedParentSearch = [];
 
 function loadWorkspace() {
     const loader = new THREE.ObjectLoader();
@@ -3236,18 +3310,6 @@ function loadWorkspace() {
     workspace.traverse( function(child) {
         // console.log(child.uuid);
 
-        if (child.name == "workspace") {
-
-            // lineArray = [];
-
-            // for (var i = child.userData.lineArray.length - 1; i >= 0; i--) {
-            //     lineArray.push( child.userData.lineArray[i].object );
-            // }
-
-            // console.log(lineArray);
-
-        }
-
         if (child.userData.text != undefined) {
 
             const newText = new Text();
@@ -3267,48 +3329,14 @@ function loadWorkspace() {
             }
 
             for (i in child.userData) {
-                
-                // if (i == "lines" ) {
-                //     // console.log(i);
-                //     var theseLines = [];
-
-                //     for (var j = child.userData.lines.length - 1; j >= 0; j--) {
-                //         if (child.userData.lines[j].object.userData._firstpass == undefined) {
-
-                //             var thisLine = child.userData.lines[j];
-                //             thisLine.object.userData._firstpass = true;
-                //             theseLines.push( thisLine )
-
-                //             thisLine.object.position.set(0,0,0);
-
-                //             // console.log(thisLine);
-                //         } else {
-
-                //             var thisLine = newText.userData.lines[j];
-                //             // thisLine.object.userData._firstpass = undefined;
-                //             theseLines.push( thisLine );
-
-                //             console.log("-passed-");
-                //         }
-                //     }
-
-                //     newText.userData[i] = theseLines;
-
-                // }
-                // else {
-                    newText.userData[i] = child.userData[i];
-                // }
-
-            // we need to pass all the userdata, but that also overwrites the userdata
-            // this is an issue with the lines, which are changed when we pass the first text (startObj)
-            // that uses them, then reset when we pass the second connecting text (endObj)
-
-            // first hit of a line, set a custom userdata
-            // second hit of the line, don't change that line, and remove the custom userdata
-                
+                newText.userData[i] = child.userData[i];
             }
 
-            
+            if (child.userData.hasMarkup != undefined) {
+                newText.outlineWidth = child.userData.outlineWidth;
+                newText.outlineColor = child.userData.outlineColor;
+                console.log("MARKUP " + child.userData.outlineWidth + " | " + child.userData.outlineColor);
+            }
 
             if (child.userData.maxWidth != undefined) {
                 newText.maxWidth = child.userData.maxWidth;
@@ -3320,42 +3348,26 @@ function loadWorkspace() {
 
             if (child.parent.userData.textBlock != undefined && child.name != "header") {
                 var textBlock = child.parent.userData.textBlock;
-                var index = textBlock.indexOf(child);
-                textBlock.splice(index, 1, newText);
-                // textBlock.push(newText);
+                // var index = textBlock.indexOf(child);
+                // textBlock.splice(index, 1, newText);
+                // splice doesn't work, because the index fails to find the indexOf
+                textBlock.push(newText);
             }
 
             if (child.userData.lines != undefined) {
-                var lines = [];
-                for (var i = child.userData.lines.length - 1; i >= 0; i--) {
-                    lines.push( child.userData.lines[i].object );
-                }
-                newText.userData.lines = lines;
-
-
-                for (var i = lines.length - 1; i >= 0; i--) {
-                    if (lines[i].userData.startObj == child.uuid) {
-                        lines[i].userData.startObj = newText.uuid;
-                        console.log("Set StartObj to: " + lines[i].userData.startObj);
-                    }
-                    else if (lines[i].userData.endObj == child.uuid) {
-                        lines[i].userData.endObj = newText.uuid;
-                        console.log("Set EndObj to: " + lines[i].userData.endObj) ;
-                    }
-
-                    if (animatedConnections.includes( lines[i], 0 ) == false) {
-                        animatedConnections.push(lines[i]);
-                        console.log("Pushed line to array: " + lines[i].uuid);
-                    }
-                    
-                }
-
-                console.log(lines);
-
-
+                newText.userData.olduuid = child.uuid;
+                pendingLineCheck.push(newText);
             }
 
-            console.log("***** " + animatedConnections.length);
+            if (child.userData.origin != undefined) {
+                // console.log("ORIGIN: " + child.userData.origin.object.uuid);
+                pendingOriginUpdate.push(newText);
+            }
+
+            if (child.userData.detachedParent != undefined) {
+                // console.log("Detached Parent: " + child.userData.detachedParent.object.uuid);
+                pendingDetachedParentSearch.push(newText);
+            }
 
             pendingRemove.push(child);
             newText.sync();
@@ -3368,7 +3380,11 @@ function loadWorkspace() {
             }
 
             if (child.userData.textBlock != undefined) {
-                // child.userData.textBlock = [];
+                // var tempTextBlock = child.userData.textBlock;
+                child.userData.textBlock = [];
+                // for (var i = tempTextBlock.length - 1; i >= 0; i--) {
+                //     child.userData.textBlock.push(tempTextBlock[i].object);
+                // }
             }
 
         }
@@ -3383,48 +3399,96 @@ function loadWorkspace() {
     }
 
     // SECOND TRAVERSAL THROUGH THE WORKSPACE ==========================================
-    // workspace.traverse( function(child) {
-
+    workspace.traverse( function(child) {
         // Iterate through the loaded workspace a second time after it has fully loaded.
-        // This time grab lines and things like that.
 
-        // if (child.userData.text != undefined) {
-        //     if (child.userData.lines != undefined) {
-        //         var lines = [];
-        //         for (var i = child.userData.lines.length - 1; i >= 0; i--) {
-        //             lines.push( child.userData.lines[i].object );
-        //         }
-        //         newText.userData.lines = lines;
+        if (child.name == "line") {
+            console.log(child);
 
-        //         for (var i = lines.length - 1; i >= 0; i--) {
-        //             console.log(lines[i]);
-        //             if (lines[i].userData.startObj == child.uuid) {
-        //                 lines[i].userData.startObj = newText.uuid;
-        //             }
-        //             else if (lines[i].userData.endObj == child.uuid) {
-        //                 lines[i].userData.endObj = newText.uuid;
-        //             }
-        //         }
-        //     }
+            var findEndObj = child.userData.endObj;
+
+            for (var i = pendingLineCheck.length - 1; i >= 0; i--) {
+                for (var j = pendingLineCheck[i].userData.lines.length - 1; j >= 0; j--) {
+                    
+                    var thisOldUuid = pendingLineCheck[i].userData.olduuid;
+
+                    if (thisOldUuid == child.userData.startObj) {
+                        child.userData.startObj = pendingLineCheck[i].uuid;
+                        console.log("Found startobj: " + thisOldUuid);
+
+                        pendingLineCheck[i].userData.lines.splice( pendingLineCheck[i].userData.lines[j], 1, child );
+
+                    }
+                    if (thisOldUuid == child.userData.endObj) {
+                        child.userData.endObj = pendingLineCheck[i].uuid;
+                        console.log("Found endobj: " + thisOldUuid);
+
+                        pendingLineCheck[i].userData.lines.splice( pendingLineCheck[i].userData.lines[j], 1, child );
+
+                    }
+
+                }
+            }
+
+            if (animatedConnections.includes( child, 0 ) == false) {
+                animatedConnections.push(child);
+                console.log("Pushed line to array: " + child.uuid);
+            }
+
+        }
+
+        if (child.name == "placeholder") {
+            // console.log("PLACEHOLDER: " + child.uuid);
+
+            for (var i = pendingOriginUpdate.length - 1; i >= 0; i--) {
+
+                try {
+                    var targetuuid = pendingOriginUpdate[i].userData.origin.object.uuid;
+                    // console.log("SEARCHING FOR... " + targetuuid);
+
+                    if (child.uuid == targetuuid) {
+                        console.log("Found Placeholder: " + child.uuid);
+                        pendingOriginUpdate[i].userData.origin = child;
+                    }
+                }
+                catch { }
+            }
+
+            child.material = testMat;
+
+            if (child.parent.userData.textBlock != undefined) {
+                var textBlock = child.parent.userData.textBlock;
+                textBlock.push(child);
+            }
+
+        }
+
+        if (child.type == "Group") {
+            for (var i = pendingDetachedParentSearch.length - 1; i >= 0; i--) {
+
+                try {
+                    var targetuuid = pendingDetachedParentSearch[i].userData.detachedParent.object.uuid;
+                    // console.log("SEARCHING FOR... " + targetuuid);
+
+                    if (child.uuid == targetuuid) {
+                        console.log("Found Detached Parent: " + child.uuid);
+                        pendingDetachedParentSearch[i].userData.detachedParent = child;
+                    }
+                }
+                catch { }
+            }
+        }
 
 
-        // }
-
-
-
-         // for (var i = lineArray.length - 1; i >= 0; i--) {
-         //        lineArray[i].object.userData.startObj = workspace.getObjectByProperty('uuid', lineArray[i].object.userData.startObj.uuid);
-         //        lineArray[i].object.userData.endObj = workspace.getObjectByProperty('uuid', lineArray[i].object.userData.endObj.uuid);
-            
-         //        console.log(lineArray[i].object.userData.startObj);
-         //    }
-
-
-    // });
 
 
 
 
+        // the placeholders are not part of the sequence order for some reason
+        // probably not part of the textBlock array
+
+
+    });
 
 }
 
