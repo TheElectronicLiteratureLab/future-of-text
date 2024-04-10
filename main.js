@@ -155,7 +155,7 @@ var menuGeo = new THREE.CylinderGeometry( 0.1, 0.1, 0.6, 3, 1, false );
 var menuMat = new THREE.MeshStandardMaterial({ 
     color: 0x7c7c7c,
     transparent: false,
-    opacity: 0.95,
+    opacity: 0.75,
     roughness: 0.32,
     metalness: 0.1,
     normalScale: new THREE.Vector2( 1, 1 ),
@@ -197,6 +197,7 @@ var debugBtnMat = new THREE.MeshStandardMaterial({
 
 var liveWrist1Pos, liveCameraPos;
 var sphereHelperTransScale, sphereHelperTransPos;
+var workspaceTransScale;
 
 var sphereAnimLength = 500;
 
@@ -220,7 +221,7 @@ function initMenu() {
 
     sphereHelper.position.set( 0, 0, 0 );
 
-    toggleLibrary('close');
+    // toggleLibrary('open');
 
     scene.add(sphereHelperSolid);
     sphereHelperSolid.scale.set( 0.9, 0.9, 0.9 );
@@ -231,10 +232,17 @@ function initMenu() {
 function toggleLibrary(state) {
     if (state == 'open') {
         isMenuBusy = true;
+        library.visible = true;
 
         // Tween the helper sphere
         sphereHelperTransScale = new TWEEN.Tween( sphereHelper.scale )
                 .to( {x: 170, y: 170, z: 170}, sphereAnimLength )
+                .easing( TWEEN.Easing.Quadratic.InOut )
+                .start()
+        ;
+        // Tween the workspace
+        workspaceTransScale = new TWEEN.Tween( workspace.scale )
+                .to( {x: 10, y: 10, z: 10}, sphereAnimLength )
                 .easing( TWEEN.Easing.Quadratic.InOut )
                 .start()
         ;
@@ -254,7 +262,9 @@ function toggleLibrary(state) {
                     isMenuBusy = false;
                 })
         ;
+        sphereHelper.rotation.set(0,0,0);
 
+        menuMode = 99;
 
     } else if (state == 'close') {
         isMenuBusy = true;
@@ -264,6 +274,12 @@ function toggleLibrary(state) {
         sphereHelperTransScale = new TWEEN.Tween( sphereHelper.scale )
                 .to( {x: 1, y: 1, z: 1}, sphereAnimLength )
                 .easing( TWEEN.Easing.Circular.InOut )
+                .start()
+        ;
+        // Tween the workspace
+        workspaceTransScale = new TWEEN.Tween( workspace.scale )
+                .to( {x: 1, y: 1, z: 1}, sphereAnimLength )
+                .easing( TWEEN.Easing.Quadratic.InOut )
                 .start()
         ;
         liveWrist1Pos = new THREE.Vector3( wrist1.position.x, wrist1.position.y, wrist1.position.z );
@@ -279,10 +295,11 @@ function toggleLibrary(state) {
                     sphereHelper.position.set( wrist1.position.x, wrist1.position.y, wrist1.position.z );
                     wrist1.attach(sphereHelper);
                     isMenuBusy = false;
+                    library.visible = false;
                 })
         ;
 
-
+        menuMode = 0;
     }
 }
 
@@ -555,7 +572,10 @@ function createMenuBtns(menu) {
     sliderReaderText.translateY( 0.035 );
     sliderReaderText.sync();
 
-    subMenu(0);
+    // set the menu to its start rotation & scale the back buttons
+    menu.rotation.x = Math.PI * 2;
+    settingsBackBtn.scale.set(0,0,0);
+    slidersBackBtn.scale.set(0,0,0);
 
 }
 
@@ -881,6 +901,7 @@ function initTools() {
 var toolSelectorSmoothSteps = 25;
 var toolSelectorPrevRotations = [];
 var toolSelectorPrevPositions = [];
+var openHandles = [];
 
 function setToolPositions() {
 
@@ -1108,8 +1129,47 @@ function tryPointer() {
                         lines[i].visible = true;
                         linesToHide.push(lines[i]);
                     }
+                } else if (intersect.object.userData.type == "librarydoc") {
+                    var object = intersect.object;
+                    // libraryTitle, libraryAuthor, libraryYear, libraryAbstract
+
+                    if (libraryTitle.text != object.userData.title) {
+                        libraryTitle.text = object.userData.title;
+                        libraryYear.text = object.userData.year;
+                        libraryAuthor.text = object.userData.author;
+                        libraryAbstract.text = object.userData.abstract;
+                    }
+                } else if (intersect.object.userData.type == "handle") {
+                    var handlebar = intersect.object.userData.handlebar;
+
+                    if (handlebar != undefined && handlebar.userData.fullOpen != true) {
+                        handlebar.userData.fullOpen = true;
+
+                        // tween out to scale x = 0.1
+                        var tempHandlebarScale = new TWEEN.Tween( handlebar.scale )
+                        .to( {x: 1}, 300 )
+                        .easing( TWEEN.Easing.Quadratic.InOut )
+                        .start()
+                        .onComplete(() => {
+                            openHandles.push(handlebar);
+                        });
+                        var tempHandlebarPos = new TWEEN.Tween( handlebar.position )
+                        .to( {x: 0}, 300 )
+                        .easing( TWEEN.Easing.Quadratic.InOut )
+                        .start();
+                    }
+
                 }
 
+
+
+
+
+
+
+            } else {
+                // No current intersection
+                tryCloseHandles();
             }
 
             // Selection function - user has clamped their fingers together while pointing
@@ -1383,6 +1443,11 @@ function tryPointer() {
                     target.userData.outlineWidth = undefined;
                     target.userData.outlineColor = undefined;
                     popupMenu(undefined);
+                } else if (intersect.object.userData.type == "librarydoc" && menuMode == 99) {
+                    var source = intersect.object.userData.source;
+                    loadTextBlock(source);
+                    toggleLibrary('close');
+                    menuMode = 0;
                 }
 
 
@@ -1412,6 +1477,7 @@ function tryPointer() {
 
         toolSelectorActive = false;
         stopSwipe();
+        tryCloseHandles();
 
         // Animate out the selector core
         if (tempSelectorTweenedIn && !tempSelectorTweenedOut) {
@@ -1446,6 +1512,25 @@ function tryPointer() {
 
         }
 
+    }
+
+}
+
+function tryCloseHandles() {
+    if (openHandles.length > 0 && rSwipeObj == undefined) {
+        for (var i = openHandles.length - 1; i >= 0; i--) {
+            var tempHandlebarScale = new TWEEN.Tween( openHandles[i].scale )
+            .to( {x: 0.1}, 300 )
+            .easing( TWEEN.Easing.Quadratic.InOut )
+            .start();
+            var tempHandlebarPos = new TWEEN.Tween( openHandles[i].position )
+            .to( {x: 0.045}, 300 )
+            .easing( TWEEN.Easing.Quadratic.InOut )
+            .start();
+
+            openHandles[i].userData.fullOpen = false;
+            openHandles.splice(i,1);
+        }
     }
 
 }
@@ -1749,7 +1834,7 @@ function loadTextBlock(url) {
             // get the title
             var results = $html.find('.title');
             results.each(function() {
-                displayHead = $(this).html();
+                displayHead = $(this).text();
             });
 
             // get the citations
@@ -1801,6 +1886,32 @@ function findCitation(url, num, object) {
     });
 }
 
+function findAbstract(url, object) {
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'html',
+        success: function(data) {
+            var $html = $(data);
+
+            // Find the class 'abstract' and read the inner html
+            var abstract = $html.find('.abstract');
+            var result = abstract.text();
+            console.log(result);
+            object.userData.abstract = result;
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching HTML: ', error);
+        }
+    });
+
+}
+
+// findAbstract('../../_ref/htconference/2022/3511095.3531271.html');
+// findAbstract('https://www.code.futuretextlab.info/_ref/htconference/2022/3511095.3531271.html');
+// this fetch request fails even though it is on the same web server? Relative link works.
+
 
 var animatedConnections = [];
 // var lineArray = [];
@@ -1810,12 +1921,12 @@ function displayCitation(text, object) {
     var temporaryCitationGroup;
     consoleLog(text.slice(0,48) + "...", 0xdddddd);
 
-    if (temporaryCitation != undefined) {
-        temporaryCitation.parent.remove(temporaryCitation);
-        temporaryCitation = undefined;
-        temporaryCitationLine.parent.remove(temporaryCitationLine);
-        temporaryCitationLine = undefined;
-    }
+    // if (temporaryCitation != undefined) {
+    //     temporaryCitation.parent.remove(temporaryCitation);
+    //     temporaryCitation = undefined;
+    //     temporaryCitationLine.parent.remove(temporaryCitationLine);
+    //     temporaryCitationLine = undefined;
+    // }
 
     var distanceModifier = object.curveRadius;
     // console.log(distanceModifier);
@@ -1863,6 +1974,7 @@ function displayCitation(text, object) {
     temporaryCitation.addEventListener("synccomplete", function passHandle() {
         createHandle(temporaryCitation);
         this.removeEventListener("synccomplete", passHandle);
+        // console.log("%%%%%%%%%%%% temporaryCitation event removed");
     });
     
 
@@ -1988,6 +2100,8 @@ function animateCitationLines() {
 // loadTextBlock('./3511095.3531271.html');
 
 var tempSize = new THREE.Vector3();
+// var abortTempTextListener = new AbortController();
+// var { abortTempTextSignal } = abortTempTextListener;
 
 function displayTextBlock(head, text, source) {
     // Create:
@@ -2042,11 +2156,15 @@ function displayTextBlock(head, text, source) {
 
         totalPreInstance++;
 
-        tempText.addEventListener("synccomplete", () => {
-
+        tempText.addEventListener("synccomplete", function passHandle() {
             totalPostInstance++;
-            if (totalPreInstance == totalPostInstance && totalPreInstance > 0) {
-                createHandle(tempText, true);
+            if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
+                // createHandle(tempText, true);
+                createHandleTimeout(tempText, true);
+                var allTexts = this.parent.userData.textBlock;
+                for (var i = allTexts.length - 1; i >= 0; i--) {
+                    allTexts[i]._listeners = undefined;
+                }
             }
         });
 
@@ -2183,6 +2301,7 @@ function startPos(mesh) {
 
 // BUGS:
 // Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
+// Troika text lags a ridiculous amount after 50+ lines
 
 // NOTES:
 // image-based light??
@@ -2191,20 +2310,20 @@ function startPos(mesh) {
 // larger selection zone for each button
 // tags and sticky notes for document content
 // pass info to llm (chatgpt or claude) and return
-// handle is thin, then grows when pointed at
 // word wrap for citation block
-
-// WIP:
 // Save files are way too large - find a way to trim troika text geometry
 
+// WIP:
+
+
 // COMPLETE THIS UPDATE:
-// clone is now more robust with copying userdata
-// popup menu - highlight bits of text to "mark"
-// finger selection pinch now requires a tighter pinch to trigger
-// create workspace group for all modular items (not including user stuff like menu, hands, etc)
-// export workspace data & import workspace data (include spacial information and all userdata)
-// Lines use circular references and break json exports - fix and re-enable
-// Color markup save/load
+// JSON file created for the entire ACM 2022 library
+// library read from .json file and displayed in the library space
+// select from the library to load into the workspace
+// workspace no longer overlaps when the library is open
+// library is visible on the main page before entering
+// text handle is far too long sometimes
+// handles are now thin, then grow when pointed at
 
 
 
@@ -2220,11 +2339,12 @@ function startPos(mesh) {
 
 
 
-
-
+function createHandleTimeout(object, useParentY = false, delay = 500) {
+    setTimeout(() => {createHandle(object, useParentY)},delay);
+}
 
 function createHandle(object, useParentY = false) {
-    var width = 0.05;
+    var width = 0.10;
 
     const tempBox = new THREE.Box3().setFromObject(object.parent);
     tempBox.getSize(tempSize);
@@ -2243,14 +2363,27 @@ function createHandle(object, useParentY = false) {
         opacity: 0.5,
         side: THREE.DoubleSide
     });
-    const boundingMesh = new THREE.Mesh( boundingGeo, boundingMat );
+    var invisMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0
+    });
+    const boundingMesh = new THREE.Mesh( boundingGeo, invisMat );
+    const childMesh = new THREE.Mesh( boundingGeo, boundingMat );
 
     workspace.add( boundingMesh );
+    boundingMesh.add( childMesh );
     object.parent.attach( boundingMesh );
     boundingMesh.layers.enable( 3 );
     boundingMesh.userData.layers = 3;
     boundingMesh.userData.type = "handle";
+    // childMesh.userData.type = "handle";
     object.parent.userData.handle = boundingMesh;
+    boundingMesh.userData.handlebar = childMesh;
+
+    childMesh.scale.x = 0.1;
+    childMesh.translateX( 0.045 );
+    childMesh.translateZ( 0.001 );
 
     if ( useParentY ) {
         boundingMesh.position.set( object.position.x, object.parent.position.y - height/2 + 0.036, object.position.z );
@@ -2259,7 +2392,7 @@ function createHandle(object, useParentY = false) {
     }
     
     boundingMesh.rotation.set( object.parent.rotation.x, 0, object.parent.rotation.z );
-    boundingMesh.translateX( -0.04 );
+    boundingMesh.translateX( -0.06 );
 }
 
 
@@ -3236,7 +3369,8 @@ function initWorkspace() {
     if (uploadedWorkspace) {
         loadWorkspace();
     } else {
-        loadTextBlock(currentURL);
+        // temporarily turned off
+        // loadTextBlock(currentURL);
     }
 }
 
@@ -3479,18 +3613,128 @@ function loadWorkspace() {
             }
         }
 
+    });
+
+}
 
 
 
 
+var libraryTitle, libraryAuthor, libraryYear, libraryAbstract;
+const library = new THREE.Group();
 
-        // the placeholders are not part of the sequence order for some reason
-        // probably not part of the textBlock array
+function initLibrary(source) {
 
+    // library.position.set( sphereHelper.position.x, sphereHelper.position.y, sphereHelper.position.z );
+    // library.rotation.set( sphereHelper.rotation.x, sphereHelper.rotation.y, sphereHelper.rotation.z );
+    // library.scale.set( sphereHelper.scale.x, sphereHelper.scale.y, sphereHelper.scale.z );
+    sphereHelper.add(library);
+    
+    fetch('./library-acm22.json')
+    .then((response) => response.json())
+    .then((json) => {
+        for (var i = json.documents.length - 1; i >= 0; i--) {
+        
+        // Create:
+        const myText = new Text();
+        library.add(myText);
+        myText.layers.enable( 3 );
+        myText.userData.type = "librarydoc";
+
+        // Set userdata from json
+        myText.userData.title = json.documents[i].title;
+        myText.userData.year = json.documents[i].year;
+        myText.userData.source = json.documents[i].source;
+        for (var j = 0; j <= json.documents[i].author.length - 1; j++) {
+            if(j==0){ myText.userData.author = json.documents[i].author[j] }
+            else{
+                myText.userData.author = myText.userData.author.concat(", ", json.documents[i].author[j]);
+            }
+        }
+        findAbstract(json.documents[i].source, myText);
+        
+
+        // Set properties to configure:
+        myText.text = json.documents[i].title;
+        myText.fontSize = 0.0002;
+        myText.userData.fontSize = myText.fontSize;
+        myText.color = 0xffffff;
+        myText.anchorX = 'right';
+        myText.anchorY = 'middle';
+
+        myText.position.x = -0.0003;
+        myText.position.y = (i / 2000 - json.documents.length / 4000 + 0.001);
+        // myText.position.z = (Math.random()-0.5) * json.documents.length / 50000 - 0.02;
+        myText.position.z = -0.02;
+        myText.curveRadius = -myText.position.z;
+
+        myText.sync();
+
+        // console.log(json.documents[i]);
+
+        }
+
+
+        // Library divider line
+        const lineGeo = new THREE.BoxGeometry( 0.00002, 0.01, 0.00002 );
+        const lineMat = new THREE.MeshBasicMaterial( { color: 0xffffff } );
+        var dividerLine = new THREE.Mesh( lineGeo, lineMat );
+        library.add(dividerLine);
+        dividerLine.position.set( 0, 0, -0.02);
+
+        // Library preview title
+        libraryTitle = new Text();
+        library.add(libraryTitle);
+        libraryTitle.text = "";
+        libraryTitle.fontSize = 0.0004;
+        libraryTitle.fontWeight = 'bold';
+        libraryTitle.color = 0xffffff;
+        libraryTitle.position.set(0.0003, 0.005, -0.0198);
+        libraryTitle.curveRadius = -libraryTitle.position.z;
+        libraryTitle.sync();
+
+        // Library preview author(s)
+        libraryAuthor = new Text();
+        library.add(libraryAuthor);
+        libraryAuthor.text = "";
+        libraryAuthor.fontSize = 0.0003;
+        libraryAuthor.color = 0xffffff;
+        libraryAuthor.position.set(0.0003, 0.0045, -0.0199);
+        libraryAuthor.curveRadius = -libraryTitle.position.z;
+        libraryAuthor.sync();
+
+        // Library preview year
+        libraryYear = new Text();
+        library.add(libraryYear);
+        libraryYear.text = "";
+        libraryYear.fontSize = 0.00015;
+        libraryYear.color = 0xffffff;
+        libraryYear.position.set(0.0003, 0.0052, -0.02);
+        libraryYear.curveRadius = -libraryYear.position.z;
+        libraryYear.sync();
+
+        // Library preview abstract
+        libraryAbstract = new Text();
+        library.add(libraryAbstract);
+        libraryAbstract.text = "";
+        libraryAbstract.anchorY = 'top';
+        libraryAbstract.maxWidth = 0.015;
+        libraryAbstract.fontSize = 0.0002;
+        libraryAbstract.color = 0xffffff;
+        libraryAbstract.position.set(0.0003, 0.004, -0.02);
+        libraryAbstract.curveRadius = -libraryAbstract.position.z;
+        libraryAbstract.sync();
+
+        library.visible = false;
 
     });
 
 }
+
+
+
+
+
 
 
 
@@ -3572,6 +3816,9 @@ if ( WebGL.isWebGLAvailable() ) {
     // Append the VRButton to the doc body
     document.body.appendChild( VRButton.createButton( renderer ) );
 
+    // Load the libarary and build it
+    initLibrary('./library-acm22.json');
+
     // ================================================ RENDER LOOP ===================================================== //
     renderer.setAnimationLoop( function () {
         timer.update();
@@ -3583,8 +3830,8 @@ if ( WebGL.isWebGLAvailable() ) {
         }
 
         calcControllerVelocity();
-        calcThrownObjs();
-        calcRotationObjs();
+        // calcThrownObjs();
+        // calcRotationObjs();
 
         // ===== ONLY RUN AFTER CONTROLLERS ARE INITIALIZED ===== //
         if (controller1enabled && controller2enabled) {
@@ -3594,7 +3841,6 @@ if ( WebGL.isWebGLAvailable() ) {
                 firstInit = true;
                 // fetchMap();
                 initHandNormals();
-                repositionWorld();
                 initMenu();
                 initTools();
                 initconsoleLog();
@@ -3604,6 +3850,8 @@ if ( WebGL.isWebGLAvailable() ) {
                 // This runs once after the hands have properly loaded
                 secondInit = true;
                 setToolPositions();
+                repositionWorld();
+                toggleLibrary('open');
             }
 
             if (firstInit && secondInit) { // This runs every frame after first initialization
@@ -3617,6 +3865,8 @@ if ( WebGL.isWebGLAvailable() ) {
 
                 animateCitationLines();
                 animateconsoleLog();
+
+                // consoleLog("MenuMode = " + menuMode);
             }
 
         };

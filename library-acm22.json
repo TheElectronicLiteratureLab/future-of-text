@@ -1,0 +1,935 @@
+{
+  "library": "ACM Hypertext 2022 Library",
+  "version": 1,
+  "user": "Andrew Thompson",
+  "generator": "objgen.com",
+  "generatedOn": "2024-04-03T00:00:00.000Z",
+  "documents": [
+    {
+      "title": "Towards Proactively Forecasting Sentence-Specific Information Popularity within Online News Documents",
+      "author": [
+        "Sayar Ghosh Roy",
+        "Anshul Padhi",
+        "Risubh Jain",
+        "Manish Gupta",
+        "Vasudeva Varma"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531268.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Sentence Popularity Forecasting",
+            "Sentence Salience Prediction",
+            "Supervised Transfer Learning"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Learning to Adapt Domain Shifts of Moral Values via Instance Weighting",
+      "author": [
+        "Xiaolei Huang",
+        "Alexandra Wormley",
+        "Adam Cohen"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531269.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "morality",
+            "moral values",
+            "classification",
+            "domain variation",
+            "adaptation",
+            "instant weighting"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Links Of Darkness: Hypertext And Horror",
+      "author": [
+        "Mark Bernstein",
+        "Stee McMorris"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531270.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Hypertext",
+            "Links",
+            "Horror",
+            "World Wide Web",
+            "Literary Hypertext"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hypertext's meta-history: Documenting in-conference citations, authors and keyword data, 1987-2021",
+      "author": [
+        "Mark Anderson",
+        "David Millard"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531271.html",
+      "customData": [
+        {
+          "isFavorite": true,
+          "keywords": [
+            "hypertext",
+            "knowledge management",
+            "metadata",
+            "citation networks",
+            "links",
+            "linkbases",
+            "gender",
+            "Tinderbox",
+            "dataset",
+            "keywords",
+            "keywording",
+            "visualisation",
+            "analysis"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Impact of Non-Verbalization in Think-Aloud: Understanding Knowledge Gain Indicators Considering Think-Aloud Web Searches",
+      "author": [
+        "Marcelo Tibau",
+        "Sean Wolfgand Matsui Siqueira",
+        "Bernardo Pereira Nunes"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531272.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Think-aloud protocols",
+            "online information searching strategy",
+            "knowledge gain indicators",
+            "hypertext theory",
+            "Web search"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Enabling Convenient Online Collaborative Writing for Low Vision Screen Magnifier Users",
+      "author": [
+        "Hae-Na Lee",
+        "Yash Prakash",
+        "Mohan Sunkara",
+        "I.V. Ramakrishnan",
+        "Vikas Ashok"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531274.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Online Collaborative Writing",
+            "Low Vision",
+            "Screen Magnifier",
+            "Visual Impairment",
+            "Accessibility",
+            "Assistive Technology"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Kronecker Decomposition for Knowledge Graph Embeddings",
+      "author": [
+        "Caglar Demir",
+        "Julian Lienen",
+        "Axel-Cyrille Ngonga Ngomo"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531276.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Knowledge Graph Embedding",
+            "Kronecker Decomposition",
+            "Link Prediction"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Data Bootstrapping Approaches to Improve Low Resource Abusive Language Detection for Indic Languages",
+      "author": [
+        "Mithun Das",
+        "Somnath Banerjee",
+        "Animesh Mukherjee"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531277.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Abusive language",
+            "multilingual",
+            "detection",
+            "social media"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Magic of Carousels: Single vs. Multi-List Recommender Systems",
+      "author": [
+        "Behnam Rahdari",
+        "Branislav Kveton",
+        "Peter Brusilovsky"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531278.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Recommender Systems; Carousel-based interface; Human-AI collaboration",
+            "Navigability",
+            "Click Models"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cross-Lingual Query-Based Summarization of Crisis-Related Social Media: An Abstractive Approach Using Transformers",
+      "author": [
+        "Fedor Vitiugin",
+        "Carlos Castillo"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531279.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "abstractive summarization",
+            "multilingual retrieval",
+            "social media",
+            "emergency management"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Effect of Recommendation Source and Justification on Professional Development Recommendations for High School Teachers",
+      "author": [
+        "Lijie Guo",
+        "Christopher Flathmann",
+        "Reza Anaraky",
+        "Nathan McNeese",
+        "Bart Knijnenburg"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531280.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "recommender systems",
+            "professional development",
+            "algorithm aversion",
+            "justification"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Exploring the Feasibility of Crowd-Powered Decomposition of Complex User Questions in Text-to-SQL Tasks",
+      "author": [
+        "Sara Salimzadeh",
+        "Ujwal Gadiraju",
+        "Claudia Hauff",
+        "Arie van Deursen"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531282.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Text-to-SQL",
+            "Semantic Parsing",
+            "Natural Language Interface to Databases",
+            "Crowdsourcing",
+            "Human Computation",
+            "Corpus Annotation"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Characterizing Vaccination Movements on YouTube in the United States and Brazil",
+      "author": [
+        "Marcelo Sartori Locatelli",
+        "Josemar Caetano",
+        "Wagner Meira Jr.",
+        "Virgilio Almeida"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531283.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "social media",
+            "vaccination movements",
+            "textual analysis"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "SpaceE: Knowledge Graph Embedding by Relational Linear Transformation in the Entity Space",
+      "author": [
+        "Jinxing Yu",
+        "Yunfeng Cai",
+        "Mingming Sun",
+        "Ping Li"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531284.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Knowledge Graph Embedding",
+            "Link Prediction",
+            "Non-Injective Relations"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Is there an Author in this Labyrinth? Hypertext Fiction and Farrell's Textual Fallacy",
+      "author": [
+        "Sam Brooker"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531285.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Hypertext",
+            "Links",
+            "Literary Hypertext"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Effects of Spatial Visualization versus Ranked Lists on Quality, Time Efficiency, and Interaction",
+      "author": [
+        "Daniel Roßner",
+        "Claus Atzenbeck",
+        "Tom Gross"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531286.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "information retrieval",
+            "exploratory search",
+            "spatial hypertext",
+            "spatial layout",
+            "ranked list",
+            "user study"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "ADAGIO — Automated Data Augmentation of Knowledge Graphs Using Multi-expression Learning",
+      "author": [
+        "Kevin Dressler",
+        "Mohamed Ahmed Sherif",
+        "Axel-Cyrille Ngonga Ngomo"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531287.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Knowledge graphs",
+            "Data augmentation",
+            "Data integration",
+            "Machine learning",
+            "Genetic programming",
+            "Multi expression programming"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Characterizing Sponsored Content in Facebook and Instagram",
+      "author": [
+        "Emanuelle Azevedo Martins",
+        "Isadora Salles",
+        "Fabricio Benevenuto",
+        "Olga Goussevskaia"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3531289.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Social network analysis",
+            "sponsored content",
+            "influencer marketing",
+            "Instagram",
+            "Facebook"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "SIDEWAYS-2022 @ HT-2022: 7th International Workshop on Social Media World Sensors",
+      "author": [
+        "Luigi Di Caro",
+        "Claudio Schifanella",
+        "Mario Cataldi"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3532573.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "social media",
+            "sensors",
+            "topic detection",
+            "data mining"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "OASIS’22: 2nd International Workshop on Open Challenges in Online Social Networks",
+      "author": [
+        "Barbara Guidi",
+        "Laura Ricci"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3532574.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Social Networks and Media: analysis and mining",
+            "Decentralization",
+            "Blockchain",
+            "AI for Social Media"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "5th Workshop on Human Factors in Hypertext (HUMAN ’22)",
+      "author": [
+        "Claus Atzenbeck",
+        "Jessica Rubart"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3532575.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "hypertext",
+            "hypermedia",
+            "human factors",
+            "augmentation",
+            "user-centric",
+            "user interfaces",
+            "user interaction",
+            "cognitive aspects",
+            "collaboration",
+            "information structuring",
+            "communication",
+            "decision making",
+            "annotation",
+            "digital humanities",
+            "adaptive hypertext",
+            "intercultural aspects"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "NHT’22: Narrative and Hypertext 2022",
+      "author": [
+        "Charlie Hargood",
+        "David Millard"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3532576.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Narrative",
+            "Hypertext",
+            "Digital Storytelling",
+            "Authoring Tools",
+            "Narrative Games",
+            "Interactive Narrative"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Revealing the Demographic Attributes of the Authors from the Abstracts of Scientific Articles",
+      "author": [
+        "Salim Sazzed"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536358.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "demography prediction",
+            "native language identification",
+            "scientific publication",
+            "gender prediction",
+            "peer review",
+            "article abstract",
+            "authorship attribution"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Robust metadata in multiple environments",
+      "author": [
+        "Frode Hegland"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536360.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Metadata",
+            "document",
+            "infrastructure VR",
+            "AR",
+            "physical media",
+            "Visual-Meta",
+            "Metaverse"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "From Users to (Sense)Makers: On the Pivotal Role of Stigmergic Social Annotation in the Quest for Collective Sensemaking",
+      "author": [
+        "Ronen Tamari",
+        "Daniel Friedman",
+        "William Fischer",
+        "Lauren Hebert",
+        "Dafna Shahaf"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536361.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "web",
+            "dominant",
+            "epistemic",
+            "environment",
+            "beliefs",
+            "global",
+            "scale",
+            "online",
+            "polluted",
+            "impairing",
+            "societies",
+            "ability",
+            "coordinate",
+            "effectively",
+            "face",
+            "crises",
+            "centralized",
+            "platforms",
+            "source",
+            "pollution",
+            "healthier",
+            "redesigning",
+            "collectively",
+            "govern",
+            "attention",
+            "inspired",
+            "decentralization",
+            "open source software",
+            "movements",
+            "propose",
+            "Open Source Attention",
+            "socio-technical",
+            "framework",
+            "freeing",
+            "human",
+            "control",
+            "decentralized",
+            "ecosystem",
+            "creating",
+            "storing",
+            "querying",
+            "stigmergic",
+            "markers",
+            "digital",
+            "traces"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Rites de Passage: Elucidating Displacement to Emplacement of Refugees on Twitter",
+      "author": [
+        "Aparup Khatua",
+        "Wolfgang Nejdl"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536362.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Refugee Journey",
+            "Social Media",
+            "Twitter",
+            "Multimodal Framework",
+            "2022 Ukrainian Refugee Crisis"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Emotional Closeness by Means of Intelligent Thoughts and Memory Spaces",
+      "author": [
+        "Claus Atzenbeck",
+        "Mark Bernstein",
+        "Sarah Diefenbach"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536363.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "emotional closeness",
+            "memory space",
+            "remembrances",
+            "collective memory",
+            "family memory",
+            "intergenerational",
+            "storytelling",
+            "long-distance relationships",
+            "hypertext"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Impact of Exogenous Biases of Instagram Posts on Park Visitation Estimation",
+      "author": [
+        "Afra Mashhadi",
+        "Sana Suse",
+        "Susan Ammiri",
+        "Spencer Wood"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536364.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "social media",
+            "decision-making",
+            "urban computing",
+            "smart cities",
+            "management",
+            "public parks",
+            "data",
+            "biases",
+            "longitudinal study",
+            "pandemic"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Web At War: Hypertext, Social Media, and Totalitarianism",
+      "author": [
+        "Mark Bernstein"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536365.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Hypertext",
+            "Social Media",
+            "Politics",
+            "War"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Exploring Semantically Interlaced Cultural Heritage Narratives",
+      "author": [
+        "Noemi Mauro",
+        "Angelo Geninatti Cossatin",
+        "Ester Cravero",
+        "Liliana Ardissono",
+        "Guido Magnano",
+        "Marco Giardino"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536366.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "hypertext models",
+            "mobile guides",
+            "Cultural Heritage"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Identifying neutral reviews from unlabeled data: An exploratory study on user ratings and word-level polarity scores",
+      "author": [
+        "Salim Sazzed"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536367.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "neutral review",
+            "unlabeled data",
+            "sentiment analysis",
+            "sentiment lexicon",
+            "context sensitivity"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Erasing Labor with Labor: Dark Patterns and Lockstep Behaviors on Google Play",
+      "author": [
+        "Ashwin Singh",
+        "Arvindh Arun",
+        "Pulak Malhotra",
+        "Pooja Desur",
+        "Ayushi Jain",
+        "Duen Horng Chau",
+        "Ponnurangam Kumaraguru"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536368.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Google Play",
+            "Dark Patterns",
+            "Fraud"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Personalized Interventions for Online Moderation",
+      "author": [
+        "Stefano Cresci",
+        "Amaury Trujillo",
+        "Tiziano Fagni"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536369.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "online moderation",
+            "moderation interventions",
+            "personalization",
+            "user modeling",
+            "social media"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "More Comfortable With Chaos: Using Hypertext to Shatter Echo Chambers and Promote Creativity",
+      "author": [
+        "Dana McKay",
+        "Stephann Makri",
+        "George Buchanan"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536371.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Chaos",
+            "Serendipity",
+            "Creativity",
+            "Information Behaviour",
+            "Search",
+            "Hypertext"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Weaponising Social Media for Information Divide and Warfare",
+      "author": [
+        "Ehsan-Ul Haq",
+        "Gareth Tyson",
+        "Tristan Braud",
+        "Pan Hui"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536372.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Online Social Networks",
+            "Crisis",
+            "Information Warfare",
+            "Information Divide"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hyperownership: Beyond the Current State of Interaction with Digital Property",
+      "author": [
+        "Amaury Trujillo"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536373.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "digital ownership",
+            "distributed ledger technology",
+            "non-fungible tokens"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Telegram Monitor: Monitoring Brazilian Political Groups and Channels on Telegram",
+      "author": [
+        "Manoel Júnior",
+        "Philipe Melo",
+        "Daniel Kansaon",
+        "Vitor Mafra",
+        "Kaio Sa",
+        "Fabricio Benevenuto"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536375.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Telegram",
+            "instant messaging platforms",
+            "misinformation",
+            "fake news",
+            "politics"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "EarlyAd: A System for Real-Time Surveillance of Brazilian Early Electoral Ads on Twitter",
+      "author": [
+        "Marcelo M. R. Araújo",
+        "Samuel Guimarães",
+        "Marcio Silva",
+        "Josemar Caetano",
+        "Jonatas Santos",
+        "Julio C. S. Reis",
+        "Ana P. C. Silva",
+        "Fabricio Benevenuto",
+        "Jussara M. Almeida"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536376.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Twitter",
+            "Politics",
+            "Early Electoral Ads",
+            "Political Advertisement",
+            "Propaganda"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Understanding Effects of Moderation and Migration on Online Video Sharing Platforms",
+      "author": [
+        "Gabriel Luis Santos Freire",
+        "Tales Panoutsos",
+        "Lucas Perez",
+        "Fabricio Benevenuto",
+        "Flavio Figueiredo"
+      ],
+      "year": "2022",
+      "source": "./_ref/htconference/2022/3511095.3536377.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "misinformation",
+            "content moderation",
+            "video platform",
+            "youtube",
+            "regression discontinuity",
+            "fake news"
+          ]
+        }
+      ]
+    }
+  ]
+}
