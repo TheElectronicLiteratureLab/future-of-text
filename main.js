@@ -665,6 +665,7 @@ function btnPress(intersect) {
             // Check which slider is being used and apply that function
             if (funct.slice(7,13) == "reader") {
                 var newRange = normalizedResult * 10 + 0.5;
+                snapDistanceOneValue = newRange;
                 for (var i = snapDistanceOne.length - 1; i >= 0; i--) {
                     var thisGroup = snapDistanceOne[i];
                     // Set the curve radius and position of the header
@@ -807,7 +808,7 @@ function subMenu(v) {
 
 
 
-let toolSelector, toolSelectorCore, toolSelectorTip, toolSelectorTip2, toolSelectorBeam, toolSelectorDot, toolSelectorDotFX;
+let toolSelector, toolSelectorCore, toolSelectorCast, toolSelectorTip, toolSelectorTip2, toolSelectorBeam, toolSelectorDot, toolSelectorDotFX, toolSelectorFloatingPoint;
 
 const toolColorMat = new THREE.MeshBasicMaterial( {
     color: 0xffffff,
@@ -850,16 +851,18 @@ function initTools() {
 
     toolSelector = new THREE.Group();
     toolSelectorCore = new THREE.Group();
+    toolSelectorCast = new THREE.Group();
     toolSelectorTip = new THREE.Mesh( tipGeo, toolColorMat );
     toolSelectorTip2 = new THREE.Mesh( tipGeo, toolColorMat );
     toolSelectorBeam = new THREE.Mesh( beamGeo, toolColorMat );
     toolSelectorDot = new THREE.Mesh( dotGeo, colorMat );
     toolSelectorDotFX = new THREE.Mesh( dotGeo, fxMat );
+    toolSelectorFloatingPoint = new THREE.Mesh( tipGeo, testMat);
 
     toolSelectorCore.attach( toolSelectorTip );
     toolSelectorCore.attach( toolSelectorTip2 );
-    toolSelectorCore.attach( toolSelectorBeam );
-    toolSelectorCore.attach( toolSelectorDot );
+    toolSelectorCast.attach( toolSelectorBeam );
+    toolSelectorCast.attach( toolSelectorDot );
     toolSelectorDot.attach( toolSelectorDotFX );
 
     toolSelectorTip.rotateY( Math.PI / 4 );
@@ -876,6 +879,8 @@ function initTools() {
 
     toolSelector.attach( toolSelectorCore );
     scene.add( toolSelector );
+    scene.add( toolSelectorCast );
+    scene.add( toolSelectorFloatingPoint );
 
     toolSelector.renderOrder = 99;
     toolSelectorTip.renderOrder = 99;
@@ -898,10 +903,12 @@ function initTools() {
 
 }
 
-var toolSelectorSmoothSteps = 25;
+var toolSelectorSmoothSteps = 3;
 var toolSelectorPrevRotations = [];
 var toolSelectorPrevPositions = [];
 var openHandles = [];
+var toolSelectorGapSet = false;
+var toolSelectorCoreWorld = new THREE.Vector3;
 
 function setToolPositions() {
 
@@ -932,13 +939,45 @@ function setToolPositions() {
     toolSelector.position.set( runningPosVector[0] / toolSelectorSmoothSteps, runningPosVector[1] / toolSelectorSmoothSteps, runningPosVector[2] / toolSelectorSmoothSteps );
     toolSelector.quaternion.set( runningRotQuaternion[0] / toolSelectorSmoothSteps, runningRotQuaternion[1] / toolSelectorSmoothSteps, runningRotQuaternion[2] / toolSelectorSmoothSteps, runningRotQuaternion[3] / toolSelectorSmoothSteps );
 
+    // Set the cast group to the core location
+    toolSelectorCore.getWorldPosition( toolSelectorCoreWorld );
+    toolSelectorCast.position.set( toolSelectorCoreWorld.x, toolSelectorCoreWorld.y, toolSelectorCoreWorld.z );
 
+    // Move the floating point (raycaster source) to the appropiate position
+    if (!toolSelectorGapSet && toolSelectorActive) {
+        toolSelectorFloatingPoint.position.set( wrist2.position.x, wrist2.position.y, wrist2.position.z );
+        toolSelectorFloatingPoint.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
+        toolSelectorFloatingPoint.translateZ( 0.55 );
+        toolSelectorGapSet = true;
+    }
 
+    // Rotate the tool selector core to match the angle between the floating point and the tool tip
+    if (toolSelectorActive) {
+
+        var newRot = new THREE.Quaternion().setFromRotationMatrix(
+            new THREE.Matrix4().lookAt( toolSelectorFloatingPoint.position, tempSelectorWorld, _ybackward ) 
+        );
+        toolSelectorCast.quaternion.copy( newRot );
+
+    }
+
+    // if distance between camera and pointer is outside of bounds, reset the floating point position
+    if (toolSelectorActive) {
+        let toolSelectorRayGap = toolSelectorFloatingPoint.position.distanceTo(tempSelectorWorld);
+        if (toolSelectorRayGap < 0.3) {
+            toolSelectorGapSet = false;
+        }
+    }
+    
 }
 
 function animateTools() {
 
-    if (toolSelectorActive) { setToolPositions() };
+    if (toolSelectorActive) { setToolPositions() }; 
+
+    if (toolSelectorGapSet && !toolSelectorActive) {
+        toolSelectorGapSet = false;
+    }
     
     toolSelectorTip.rotation.y -= 0.01;
     toolSelectorTip.rotation.x -= 0.01;
@@ -966,6 +1005,7 @@ var highlightMat = new THREE.MeshBasicMaterial( {
 var textsToReset = [];
 var linesToHide = [];
 var toolSelectorActive = false;
+var toolSelectorPointing = false;
 
 
 var toolSelectorVisible = false; // Change this to show/hide the selector beam and tool
@@ -990,19 +1030,17 @@ function tryPointer() {
 
         toolSelectorActive = true;
         toolSelectorTimer += deltaTime;
-        // consoleLog(toolSelectorTimer);
 
         // Animate in the selector core
         if (!tempSelectorTweenedIn && tempSelectorTweenedOut) {
-            consoleLog("...fading in!");
             tempSelectorTweenedOut = false;
 
             toolSelectorTip.visible = toolSelectorVisible;
             toolSelectorTip2.visible = toolSelectorVisible;
             toolSelectorBeam.visible = toolSelectorVisible;
 
-            toolSelectorBeam.scale.z = 500;
-            toolSelectorBeam.position.z = -0.25;
+            toolSelectorBeam.scale.z = snapDistanceOneValue * 1000;
+            toolSelectorBeam.position.z = -snapDistanceOneValue/2;
 
             tempSelectorIntroTween = new TWEEN.Tween( toolSelectorTip.scale )
                     .to( {x: 1, y: 1, z: 1}, 300 )
@@ -1060,11 +1098,6 @@ function tryPointer() {
             });
         }
 
-
-
-
-
-
         toolSelectorTip.getWorldPosition(tempSelectorWorld);
 
         // If there are any bolded texts, clear them
@@ -1091,19 +1124,28 @@ function tryPointer() {
             }
         }
 
+        // Check if the fingers are doing the point gesture, then raycast
         if (fingersNormalized >= 1) {
+            toolSelectorPointing = true;
             raycaster.layers.set( 3 );
-            toolSelectorCore.getWorldQuaternion(tempSelectorQuat);
+            toolSelectorCast.getWorldQuaternion(tempSelectorQuat);
             var rayForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(tempSelectorQuat);
             raycaster.set(tempSelectorWorld, rayForward);
             var intersects = raycaster.intersectObjects(scene.children);
             var intersect = intersects[0];
 
-            placeholderArrow(raycaster, 0.1, 0x65e6ae);
+            // If the dot has been reset last time, give it a default distance
+            if (toolSelectorDot.position.z >= -0.01) {
+                toolSelectorDot.position.z = -snapDistanceOneValue;
+            }
 
+            toolSelectorDot.visible = true;
+
+            placeholderArrow(raycaster, 0.5, 0xffffff);
+
+            // If the raycaster has found an eligible object
             if (intersect) {
 
-                toolSelectorDot.visible = true;
                 toolSelectorTimer = 0;
 
                 let beamScale = tempSelectorWorld.distanceTo(intersect.point) * 1000;
@@ -1121,51 +1163,7 @@ function tryPointer() {
 
                 textsToReset.push(intersect.object);
 
-                // Show connection lines, if applicable
-                if (intersect.object.userData.lines != undefined) {
-                    const lines = intersect.object.userData.lines;
-                    // console.log(lines);
-                    for (var i = lines.length - 1; i >= 0; i--) {
-                        lines[i].visible = true;
-                        linesToHide.push(lines[i]);
-                    }
-                } else if (intersect.object.userData.type == "librarydoc") {
-                    var object = intersect.object;
-                    // libraryTitle, libraryAuthor, libraryYear, libraryAbstract
-
-                    if (libraryTitle.text != object.userData.title) {
-                        libraryTitle.text = object.userData.title;
-                        libraryYear.text = object.userData.year;
-                        libraryAuthor.text = object.userData.author;
-                        libraryAbstract.text = object.userData.abstract;
-                    }
-                } else if (intersect.object.userData.type == "handle") {
-                    var handlebar = intersect.object.userData.handlebar;
-
-                    if (handlebar != undefined && handlebar.userData.fullOpen != true) {
-                        handlebar.userData.fullOpen = true;
-
-                        // tween out to scale x = 0.1
-                        var tempHandlebarScale = new TWEEN.Tween( handlebar.scale )
-                        .to( {x: 1}, 300 )
-                        .easing( TWEEN.Easing.Quadratic.InOut )
-                        .start()
-                        .onComplete(() => {
-                            openHandles.push(handlebar);
-                        });
-                        var tempHandlebarPos = new TWEEN.Tween( handlebar.position )
-                        .to( {x: 0}, 300 )
-                        .easing( TWEEN.Easing.Quadratic.InOut )
-                        .start();
-                    }
-
-                }
-
-
-
-
-
-
+                tryPointerOver(intersect);
 
             } else {
                 // No current intersection
@@ -1176,7 +1174,7 @@ function tryPointer() {
             if (intersect && fingersCurDist <= 0.008 && !tempSelectorActive) {
                 tempSelectorActive = true;
 
-                // Tween the selector dot
+                // Tween the selector dot for the selection 'click'
                 tempSelectorDotTween = new TWEEN.Tween( toolSelectorDotFX.scale )
                     .to( {x: 3, y: 3, z: 3}, 150 )
                     .easing( TWEEN.Easing.Quadratic.Out )
@@ -1189,275 +1187,7 @@ function tryPointer() {
                         toolSelectorDotFX.material.opacity = 1;
                     });
 
-                if (intersect.object.userData.type == "citation") {
-                    popupMenu(intersect.object);
-                } else if (intersect.object.userData.type == "popup-find") {
-                    var target = intersect.object.userData.target;
-                    var tempTextResult = target.text.slice(1).split(']')[0];
-                    var tempSource = target.userData.source;
-                    findCitation(tempSource, tempTextResult, target);
-                    popupMenu(undefined);
-                    consoleLog("POPUP: Find " + tempTextResult, 0x555555);
-                } else if (intersect.object.userData.type == "popup-close") {
-                    popupMenu(undefined);
-                    consoleLog("POPUP: Close", 0x555555);
-                } else if (intersect.object.userData.type == "popup-detach" || intersect.object.userData.type == "popup-clone") {
-                    var thisfunction = intersect.object.userData.type.slice(6,99);
-
-                    var target = intersect.object.userData.target;
-
-                    var oldGroup = target.parent;
-
-                    const newPlaceholder = new THREE.Mesh( testGeo, testMat );
-                    oldGroup.attach( newPlaceholder );
-                    newPlaceholder.name = "placeholder";
-                    newPlaceholder.userData.sequenceOrder = target.userData.sequenceOrder;
-                    oldGroup.userData.textBlock.push( newPlaceholder );
-                    newPlaceholder.position.set( 
-                        target.position.x,
-                        target.position.y,
-                        target.position.z
-                    );
-                    newPlaceholder.rotation.set( 
-                        target.rotation.x,
-                        target.rotation.y,
-                        target.rotation.z
-                    );
-                    target.userData.origin = newPlaceholder;
-
-                    var newGroup = new THREE.Group();
-                    newGroup.position.set( 
-                        oldGroup.position.x,
-                        oldGroup.position.y,
-                        oldGroup.position.z
-                    );
-                    newGroup.rotation.set( 
-                        oldGroup.rotation.x,
-                        oldGroup.rotation.y,
-                        oldGroup.rotation.z
-                    );
-                    workspace.add(newGroup);
-
-                    if (thisfunction == "clone") {
-                        var newText = new Text();
-                        newText.text = target.text;
-                        newText.fontSize = target.fontSize;
-                        newText.curveRadius = target.curveRadius;
-                        newText.color = target.color;
-                        newText.outlineWidth = target.outlineWidth;
-                        newText.outlineColor = target.outlineColor;
-                        workspace.add(newText);
-                        oldGroup.attach(newText);
-                        newText.position.set( target.position.x, target.position.y, target.position.z );
-                        newText.rotation.set( target.rotation.x, target.rotation.y, target.rotation.z );
-                        newText.sync();
-                        newText.layers.enable( 3 );
-                        newText.userData.layers = 3;
-                        
-                        for (i in target.userData) {
-                            newText.userData[i] = target.userData[i];
-                            consoleLog("Cloned data: " + i, 0x65e6ae);
-                        }
-
-                        newText.userData.isClone = true;
-                        newText.userData.cloneSource = target;
-                        target = newText;
-                    }
-
-                    newGroup.attach(target);
-                    var tempNewGroupTween = new TWEEN.Tween( newGroup.rotation )
-                        .to( {x: oldGroup.rotation.x, y: oldGroup.rotation.y + 0.1, z: oldGroup.rotation.z }, 500 )
-                        .easing( TWEEN.Easing.Quadratic.InOut )
-                        .start()
-                    target.userData.detachedParent = oldGroup;
-                    createHandle(target);
-
-                    if (thisfunction == "detach") {
-                        const index = oldGroup.userData.textBlock.indexOf(target);
-                        oldGroup.userData.textBlock.splice(index,1);
-                    }
-
-                    var newArray = [];
-                    newArray.push(target);
-                    newGroup.userData.textBlock = newArray;
-                    snapDistanceOne.push(newGroup);
-                    popupMenu(undefined);
-
-                    if (thisfunction == "detach") {
-                        const missingPiece = target.userData.sequenceOrder;
-                        for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
-                            try {
-                                console.log(oldGroup.userData.textBlock[i].userData.sequenceOrder + " | " + missingPiece);
-                                if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
-                                    var thisPiece = oldGroup.userData.textBlock[i];
-                                    // console.log(thisPiece);
-                                    var tempNewTween = new TWEEN.Tween( thisPiece.position )
-                                    .to( {x: thisPiece.position.x, y: thisPiece.position.y + 0.03, z: thisPiece.position.z }, 500 )
-                                    .easing( TWEEN.Easing.Quadratic.InOut )
-                                    .start()
-                                }
-                            }
-                            catch {
-                                console.log("ERROR");
-                            }
-                        }
-                        consoleLog("POPUP: Detach from location |" + (missingPiece + 1) + "|", 0x555555);
-                    } else if (thisfunction == "clone"){
-                        consoleLog("POPUP: Cloned", 0x555555);
-                    }
-                } else if (intersect.object.userData.type == "popup-attach" || intersect.object.userData.type == "popup-return") {
-                    var thisfunction = intersect.object.userData.type.slice(6,99);
-
-                    var target = intersect.object.userData.target;
-                    var oldGroup = target.userData.detachedParent;
-                    var newGroup = target.parent;
-                    console.log(target);
-                    var destination = [
-                        target.userData.origin.position.x,
-                        target.userData.origin.position.y,
-                        target.userData.origin.position.z,
-                        target.userData.origin.rotation.x,
-                        target.userData.origin.rotation.y,
-                        target.userData.origin.rotation.z
-                    ];
-                    oldGroup.attach(target);
-                    target.userData.detachedParent = undefined;
-                    // Tween to the original position and rotation
-                    var tempReturnPosTween = new TWEEN.Tween( target.position )
-                    .to( {x: destination[0], y: destination[1], z: -target.curveRadius}, 500 )
-                    .easing( TWEEN.Easing.Quadratic.InOut )
-                    .start()
-                    var tempReturnRotTween = new TWEEN.Tween( target.rotation )
-                    .to( {x: destination[3], y: destination[4], z: destination[5]}, 500 )
-                    .easing( TWEEN.Easing.Quadratic.InOut )
-                    .start()
-                    .onComplete(() => {
-                        oldGroup.remove(target.userData.origin);
-                        target.userData.origin = null;
-
-                        if (target.userData.isClone != undefined) {
-                            if (target.userData.lines != undefined) {
-                                let lines = target.userData.lines;
-                                for (var i = lines.length - 1; i >= 0; i--) {
-                                    lines[i].userData.startObj = target.userData.cloneSource.uuid;
-                                }
-                            }
-                            target.parent.remove(target);
-                        }
-                    });
-                    oldGroup.userData.textBlock.push(target);
-                    const index = snapDistanceOne.indexOf(newGroup);
-                    snapDistanceOne.splice(index,1);
-                    newGroup.parent.remove(newGroup);
-                    popupMenu(undefined);
-
-                    if (thisfunction == "attach") {
-                        const missingPiece = target.userData.sequenceOrder;
-                        for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
-                            try {
-                                if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
-                                    var thisPiece = oldGroup.userData.textBlock[i];
-                                    var tempNewTween = new TWEEN.Tween( thisPiece.position )
-                                    .to( {x: thisPiece.position.x, y: thisPiece.position.y - 0.03, z: thisPiece.position.z }, 500 )
-                                    .easing( TWEEN.Easing.Quadratic.InOut )
-                                    .start()
-                                    // .onComplete(() => {
-                                    //     oldGroup.remove(target.userData.origin);
-                                    //     target.userData.origin = null;
-                                    // });
-                                }
-                            }
-                            catch {
-                                console.log("ERROR");
-                            }
-                        }
-                        consoleLog("POPUP: Attach to location |" + (missingPiece + 1) + "|", 0x555555);
-                    } else if (thisfunction == "return") {
-                        consoleLog("POPUP: Returned", 0x555555);
-                    }
-                } else if (intersect.object.userData.type == "handle") {
-                    startSwipe(intersect.object);
-                    popupMenu(undefined);
-                } else if (intersect.object.userData.type == "reference") {
-                    popupMenu(intersect.object, "reference");
-                } else if (intersect.object.userData.type == "popup-remove") {
-                    var target = intersect.object.userData.target;
-
-                    if (target.userData.lines != undefined) {
-                        const lines = target.userData.lines;
-                        for (var i = lines.length - 1; i >= 0; i--) {
-                            var line = lines[i];
-                            var index = animatedConnections.indexOf(line);
-                            animatedConnections.splice(index,1);
-                            workspace.remove(line);
-                        }
-                    }
-                    
-                    workspace.remove(target.parent);
-                    popupMenu(undefined);
-                    consoleLog("POPUP: Remove", 0x555555);
-                } else if (intersect.object.userData.type == "popup-connections-show") {
-                    var target = intersect.object.userData.target;
-                    target.userData.persistentLines = true;
-                    // linesToHide = [];
-
-                    if (target.userData.lines != undefined) {
-                        let lines = target.userData.lines;
-                        for (var i = lines.length - 1; i >= 0; i--) {
-                            lines[i].visible = true;
-                            lines[i].userData.persistent = true;
-                        }
-                    }
-
-                    popupMenu(undefined);
-                    consoleLog("POPUP: Show Connections", 0x555555);
-                } else if (intersect.object.userData.type == "popup-connections-hide") {
-                    var target = intersect.object.userData.target;
-                    target.userData.persistentLines = undefined;
-                    if (target.userData.lines != undefined) {
-                        const lines = target.userData.lines;
-                        for (var i = lines.length - 1; i >= 0; i--) {
-                            linesToHide.push(lines[i]);
-                            lines[i].userData.persistent = undefined;
-                        }
-                    }
-                    popupMenu(undefined);
-                    consoleLog("POPUP: Hide Connections", 0x555555);
-                } else if (intersect.object.userData.type == "popup-mark") {
-                    var target = intersect.object.userData.target;
-                    popupMenu(target, "markup");
-                } else if (intersect.object.userData.type == "popup-color") {
-                    var target = intersect.object.userData.target;
-                    var color = intersect.object.userData.color;
-                    target.outlineWidth = 0.01;
-                    target.userData.outlineWidth = target.outlineWidth;
-                    // target.outlineOpacity = 0.7;
-                    target.outlineColor = color;
-                    target.userData.outlineColor = target.outlineColor;
-                    // target.color = color;
-                    popupMenu(undefined);
-                } else if (intersect.object.userData.type == "popup-unmark") {
-                    var target = intersect.object.userData.target;
-                    target.userData.hasMarkup = undefined;
-                    target.outlineWidth = 0;
-                    target.userData.outlineWidth = undefined;
-                    target.userData.outlineColor = undefined;
-                    popupMenu(undefined);
-                } else if (intersect.object.userData.type == "librarydoc" && menuMode == 99) {
-                    var source = intersect.object.userData.source;
-                    loadTextBlock(source);
-                    toggleLibrary('close');
-                    menuMode = 0;
-                }
-
-
-
-
-
-
-
-
-
+                tryPointerSelect(intersect);
 
             } else if (fingersCurDist > 0.02 && tempSelectorActive) {
                 tempSelectorActive = false;
@@ -1470,12 +1200,14 @@ function tryPointer() {
             // toolSelectorBeam.position.z = 0;
             toolSelectorDot.position.z = 0;
             toolSelectorDot.visible = false;
+            toolSelectorPointing = false;
             stopSwipe();
         }
 
     } else {
 
         toolSelectorActive = false;
+        toolSelectorPointing = false;
         stopSwipe();
         tryCloseHandles();
 
@@ -1516,6 +1248,7 @@ function tryPointer() {
 
 }
 
+
 function tryCloseHandles() {
     if (openHandles.length > 0 && rSwipeObj == undefined) {
         for (var i = openHandles.length - 1; i >= 0; i--) {
@@ -1533,6 +1266,312 @@ function tryCloseHandles() {
         }
     }
 
+}
+
+
+function tryPointerOver(intersect) {
+    // Show connection lines, if applicable
+    if (intersect.object.userData.lines != undefined) {
+        const lines = intersect.object.userData.lines;
+        for (var i = lines.length - 1; i >= 0; i--) {
+            lines[i].visible = true;
+            linesToHide.push(lines[i]);
+        }
+    // For the library, update the preview text
+    } else if (intersect.object.userData.type == "librarydoc") {
+        var object = intersect.object;
+
+        if (libraryTitle.text != object.userData.title) {
+            libraryTitle.text = object.userData.title;
+            libraryYear.text = object.userData.year;
+            libraryAuthor.text = object.userData.author;
+            libraryAbstract.text = object.userData.abstract;
+        }
+    // When pointing at a handle, tween it
+    } else if (intersect.object.userData.type == "handle") {
+        var handlebar = intersect.object.userData.handlebar;
+
+        if (handlebar != undefined && handlebar.userData.fullOpen != true) {
+            handlebar.userData.fullOpen = true;
+
+            // tween out to scale x = 0.1
+            var tempHandlebarScale = new TWEEN.Tween( handlebar.scale )
+            .to( {x: 1}, 300 )
+            .easing( TWEEN.Easing.Quadratic.InOut )
+            .start()
+            .onComplete(() => {
+                openHandles.push(handlebar);
+            });
+            var tempHandlebarPos = new TWEEN.Tween( handlebar.position )
+            .to( {x: 0}, 300 )
+            .easing( TWEEN.Easing.Quadratic.InOut )
+            .start();
+        }
+    }
+}
+
+
+function tryPointerSelect(intersect) {
+    if (intersect.object.userData.type == "citation") {
+        popupMenu(intersect.object);
+    } else if (intersect.object.userData.type == "popup-find") {
+        var target = intersect.object.userData.target;
+        var tempTextResult = target.text.slice(1).split(']')[0];
+        var tempSource = target.userData.source;
+        findCitation(tempSource, tempTextResult, target);
+        popupMenu(undefined);
+        consoleLog("POPUP: Find " + tempTextResult, 0x555555);
+    } else if (intersect.object.userData.type == "popup-close") {
+        popupMenu(undefined);
+        consoleLog("POPUP: Close", 0x555555);
+    } else if (intersect.object.userData.type == "popup-detach" || intersect.object.userData.type == "popup-clone") {
+        var thisfunction = intersect.object.userData.type.slice(6,99);
+
+        var target = intersect.object.userData.target;
+
+        var oldGroup = target.parent;
+
+        const newPlaceholder = new THREE.Mesh( testGeo, testMat );
+        oldGroup.attach( newPlaceholder );
+        newPlaceholder.name = "placeholder";
+        newPlaceholder.userData.sequenceOrder = target.userData.sequenceOrder;
+        oldGroup.userData.textBlock.push( newPlaceholder );
+        newPlaceholder.position.set( 
+            target.position.x,
+            target.position.y,
+            target.position.z
+        );
+        newPlaceholder.rotation.set( 
+            target.rotation.x,
+            target.rotation.y,
+            target.rotation.z
+        );
+        target.userData.origin = newPlaceholder;
+
+        var newGroup = new THREE.Group();
+        newGroup.position.set( 
+            oldGroup.position.x,
+            oldGroup.position.y,
+            oldGroup.position.z
+        );
+        newGroup.rotation.set( 
+            oldGroup.rotation.x,
+            oldGroup.rotation.y,
+            oldGroup.rotation.z
+        );
+        workspace.add(newGroup);
+
+        if (thisfunction == "clone") {
+            var newText = new Text();
+            newText.text = target.text;
+            newText.fontSize = target.fontSize;
+            newText.curveRadius = target.curveRadius;
+            newText.color = target.color;
+            newText.outlineWidth = target.outlineWidth;
+            newText.outlineColor = target.outlineColor;
+            workspace.add(newText);
+            oldGroup.attach(newText);
+            newText.position.set( target.position.x, target.position.y, target.position.z );
+            newText.rotation.set( target.rotation.x, target.rotation.y, target.rotation.z );
+            newText.sync();
+            newText.layers.enable( 3 );
+            newText.userData.layers = 3;
+            
+            for (i in target.userData) {
+                newText.userData[i] = target.userData[i];
+                consoleLog("Cloned data: " + i, 0x65e6ae);
+            }
+
+            newText.userData.isClone = true;
+            newText.userData.cloneSource = target;
+            target = newText;
+        }
+
+        newGroup.attach(target);
+        var tempNewGroupTween = new TWEEN.Tween( newGroup.rotation )
+            .to( {x: oldGroup.rotation.x, y: oldGroup.rotation.y + 0.1, z: oldGroup.rotation.z }, 500 )
+            .easing( TWEEN.Easing.Quadratic.InOut )
+            .start()
+        target.userData.detachedParent = oldGroup;
+        createHandle(target);
+
+        if (thisfunction == "detach") {
+            const index = oldGroup.userData.textBlock.indexOf(target);
+            oldGroup.userData.textBlock.splice(index,1);
+        }
+
+        var newArray = [];
+        newArray.push(target);
+        newGroup.userData.textBlock = newArray;
+        snapDistanceOne.push(newGroup);
+        popupMenu(undefined);
+
+        if (thisfunction == "detach") {
+            const missingPiece = target.userData.sequenceOrder;
+            for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
+                try {
+                    console.log(oldGroup.userData.textBlock[i].userData.sequenceOrder + " | " + missingPiece);
+                    if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
+                        var thisPiece = oldGroup.userData.textBlock[i];
+                        // console.log(thisPiece);
+                        var tempNewTween = new TWEEN.Tween( thisPiece.position )
+                        .to( {x: thisPiece.position.x, y: thisPiece.position.y + 0.03, z: thisPiece.position.z }, 500 )
+                        .easing( TWEEN.Easing.Quadratic.InOut )
+                        .start()
+                    }
+                }
+                catch {
+                    console.log("ERROR");
+                }
+            }
+            consoleLog("POPUP: Detach from location |" + (missingPiece + 1) + "|", 0x555555);
+        } else if (thisfunction == "clone"){
+            consoleLog("POPUP: Cloned", 0x555555);
+        }
+    } else if (intersect.object.userData.type == "popup-attach" || intersect.object.userData.type == "popup-return") {
+        var thisfunction = intersect.object.userData.type.slice(6,99);
+
+        var target = intersect.object.userData.target;
+        var oldGroup = target.userData.detachedParent;
+        var newGroup = target.parent;
+        console.log(target);
+        var destination = [
+            target.userData.origin.position.x,
+            target.userData.origin.position.y,
+            target.userData.origin.position.z,
+            target.userData.origin.rotation.x,
+            target.userData.origin.rotation.y,
+            target.userData.origin.rotation.z
+        ];
+        oldGroup.attach(target);
+        target.userData.detachedParent = undefined;
+        // Tween to the original position and rotation
+        var tempReturnPosTween = new TWEEN.Tween( target.position )
+        .to( {x: destination[0], y: destination[1], z: -target.curveRadius}, 500 )
+        .easing( TWEEN.Easing.Quadratic.InOut )
+        .start()
+        var tempReturnRotTween = new TWEEN.Tween( target.rotation )
+        .to( {x: destination[3], y: destination[4], z: destination[5]}, 500 )
+        .easing( TWEEN.Easing.Quadratic.InOut )
+        .start()
+        .onComplete(() => {
+            oldGroup.remove(target.userData.origin);
+            target.userData.origin = null;
+
+            if (target.userData.isClone != undefined) {
+                if (target.userData.lines != undefined) {
+                    let lines = target.userData.lines;
+                    for (var i = lines.length - 1; i >= 0; i--) {
+                        lines[i].userData.startObj = target.userData.cloneSource.uuid;
+                    }
+                }
+                target.parent.remove(target);
+            }
+        });
+        oldGroup.userData.textBlock.push(target);
+        const index = snapDistanceOne.indexOf(newGroup);
+        snapDistanceOne.splice(index,1);
+        newGroup.parent.remove(newGroup);
+        popupMenu(undefined);
+
+        if (thisfunction == "attach") {
+            const missingPiece = target.userData.sequenceOrder;
+            for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
+                try {
+                    if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
+                        var thisPiece = oldGroup.userData.textBlock[i];
+                        var tempNewTween = new TWEEN.Tween( thisPiece.position )
+                        .to( {x: thisPiece.position.x, y: thisPiece.position.y - 0.03, z: thisPiece.position.z }, 500 )
+                        .easing( TWEEN.Easing.Quadratic.InOut )
+                        .start()
+                        // .onComplete(() => {
+                        //     oldGroup.remove(target.userData.origin);
+                        //     target.userData.origin = null;
+                        // });
+                    }
+                }
+                catch {
+                    console.log("ERROR");
+                }
+            }
+            consoleLog("POPUP: Attach to location |" + (missingPiece + 1) + "|", 0x555555);
+        } else if (thisfunction == "return") {
+            consoleLog("POPUP: Returned", 0x555555);
+        }
+    } else if (intersect.object.userData.type == "handle") {
+        startSwipe(intersect.object);
+        popupMenu(undefined);
+    } else if (intersect.object.userData.type == "reference") {
+        popupMenu(intersect.object, "reference");
+    } else if (intersect.object.userData.type == "popup-remove") {
+        var target = intersect.object.userData.target;
+
+        if (target.userData.lines != undefined) {
+            const lines = target.userData.lines;
+            for (var i = lines.length - 1; i >= 0; i--) {
+                var line = lines[i];
+                var index = animatedConnections.indexOf(line);
+                animatedConnections.splice(index,1);
+                workspace.remove(line);
+            }
+        }
+        
+        workspace.remove(target.parent);
+        popupMenu(undefined);
+        consoleLog("POPUP: Remove", 0x555555);
+    } else if (intersect.object.userData.type == "popup-connections-show") {
+        var target = intersect.object.userData.target;
+        target.userData.persistentLines = true;
+        // linesToHide = [];
+
+        if (target.userData.lines != undefined) {
+            let lines = target.userData.lines;
+            for (var i = lines.length - 1; i >= 0; i--) {
+                lines[i].visible = true;
+                lines[i].userData.persistent = true;
+            }
+        }
+
+        popupMenu(undefined);
+        consoleLog("POPUP: Show Connections", 0x555555);
+    } else if (intersect.object.userData.type == "popup-connections-hide") {
+        var target = intersect.object.userData.target;
+        target.userData.persistentLines = undefined;
+        if (target.userData.lines != undefined) {
+            const lines = target.userData.lines;
+            for (var i = lines.length - 1; i >= 0; i--) {
+                linesToHide.push(lines[i]);
+                lines[i].userData.persistent = undefined;
+            }
+        }
+        popupMenu(undefined);
+        consoleLog("POPUP: Hide Connections", 0x555555);
+    } else if (intersect.object.userData.type == "popup-mark") {
+        var target = intersect.object.userData.target;
+        popupMenu(target, "markup");
+    } else if (intersect.object.userData.type == "popup-color") {
+        var target = intersect.object.userData.target;
+        var color = intersect.object.userData.color;
+        target.outlineWidth = 0.01;
+        target.userData.outlineWidth = target.outlineWidth;
+        // target.outlineOpacity = 0.7;
+        target.outlineColor = color;
+        target.userData.outlineColor = target.outlineColor;
+        // target.color = color;
+        popupMenu(undefined);
+    } else if (intersect.object.userData.type == "popup-unmark") {
+        var target = intersect.object.userData.target;
+        target.userData.hasMarkup = undefined;
+        target.outlineWidth = 0;
+        target.userData.outlineWidth = undefined;
+        target.userData.outlineColor = undefined;
+        popupMenu(undefined);
+    } else if (intersect.object.userData.type == "librarydoc" && menuMode == 99) {
+        var source = intersect.object.userData.source;
+        loadTextBlock(source);
+        toggleLibrary('close');
+        menuMode = 0;
+    }
 }
 
 
@@ -1818,6 +1857,7 @@ function popupMenu(target, variation = "citation") {
 
 
 const snapDistanceOne = [];
+var snapDistanceOneValue = readerStartDistance;
 
 function loadTextBlock(url) {
 
@@ -2317,14 +2357,9 @@ function startPos(mesh) {
 
 
 // COMPLETE THIS UPDATE:
-// JSON file created for the entire ACM 2022 library
-// library read from .json file and displayed in the library space
-// select from the library to load into the workspace
-// workspace no longer overlaps when the library is open
-// library is visible on the main page before entering
-// text handle is far too long sometimes
-// handles are now thin, then grow when pointed at
-
+// Reworked the pointer system to work completely differently (position is now based on movement, not rotation)
+// Motion smoothing reduced to 3 with the new system
+// Debug has a more pronounced arrow for pointing
 
 
 
@@ -2830,12 +2865,12 @@ function mapDistanceToScale(distance) {
     return scaledValue;
 }
 
-function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77) {
+function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77, life = 50) {
     if (debugMode) {
         // Draw a placeholder arrow to visualize the raycast
         const arrowTest = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, length, color);
         scene.add(arrowTest);
-        setTimeout(() => {scene.remove(arrowTest);},100);
+        setTimeout(() => {scene.remove(arrowTest);}, life);
     }
 }
 
@@ -3806,6 +3841,7 @@ function changeURL() {
 var firstInit = false;
 var secondInit = false;
 var loadDelay = 1.0;
+// let xrSession;
 
 // Check if WebGL is available on this browser
 if ( WebGL.isWebGLAvailable() ) {
@@ -3818,6 +3854,10 @@ if ( WebGL.isWebGLAvailable() ) {
 
     // Load the libarary and build it
     initLibrary('./library-acm22.json');
+
+    // navigator.xr.requestSession("immersive-vr").then( function(session) {
+    //     xrSession = session;
+    // });
 
     // ================================================ RENDER LOOP ===================================================== //
     renderer.setAnimationLoop( function () {
@@ -3872,6 +3912,8 @@ if ( WebGL.isWebGLAvailable() ) {
         };
 
         testAnim(testCube,0.5);
+        // console.log(XRSession.inputSources);
+        // console.log(xrSession.inputSources);
 
         renderer.render( scene, camera );
         TWEEN.update();
