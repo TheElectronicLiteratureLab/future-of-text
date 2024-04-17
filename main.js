@@ -674,6 +674,12 @@ function btnPress(intersect) {
                         headText.curveRadius = newRange;
                         headText.position.set( headText.position.x, headText.position.y, -newRange );
                     }
+                    // Set the curve radius and position of the preview text block
+                    if (thisGroup.userData.previewText != undefined) {
+                        var previewText = thisGroup.userData.previewText;
+                        previewText.curveRadius = newRange;
+                        previewText.position.set( previewText.position.x, previewText.position.y, -newRange );
+                    }
                     // Set the curve radius and position of all text block elements
                     if (thisGroup.userData.textBlock != undefined) {
                         var textBlock = thisGroup.userData.textBlock;
@@ -1004,6 +1010,7 @@ var highlightMat = new THREE.MeshBasicMaterial( {
 
 var textsToReset = [];
 var linesToHide = [];
+var previewsToReset = [];
 var toolSelectorActive = false;
 var toolSelectorPointing = false;
 
@@ -1158,12 +1165,15 @@ function tryPointer() {
                 let distScale = (beamScale / 2000) + 1;
                 toolSelectorDot.scale.set( distScale, distScale, distScale );
 
-                intersect.object.fontSize = intersect.object.userData.fontSize * 1.1;
-                intersect.object.fontWeight = "bold";
+                if (intersect.object.userData.type != "preview") {
+                    intersect.object.fontSize = intersect.object.userData.fontSize * 1.1;
+                    intersect.object.fontWeight = "bold";
+                    textsToReset.push(intersect.object);
+                }
 
-                textsToReset.push(intersect.object);
-
-                tryPointerOver(intersect);
+                if (rSwipeObj == undefined) {
+                    tryPointerOver(intersect);
+                }
 
             } else {
                 // No current intersection
@@ -1269,7 +1279,43 @@ function tryCloseHandles() {
 }
 
 
+function tryResetPreviews() {
+    if ( previewsToReset.length > 0 ){
+        console.log(previewsToReset);
+        for (var i = previewsToReset.length - 1; i >= 0; i--) {
+            previewsToReset[i].visible = true;
+            previewsToReset[i].layers.enable( 3 );
+
+            let thisTextBlock = previewsToReset[i].parent.userData.textBlock;
+            for (var j = thisTextBlock.length - 1; j >= 0; j--) {
+                thisTextBlock[j].visible = false;
+                thisTextBlock[j].layers.disable( 3 );
+            }
+
+            previewsToReset.splice( i, 1 );
+        }
+        previewsToReset = [];
+    }
+}
+
+function disablePreviews(group) {
+    let previewText = group.userData.previewText;
+    if (previewText != undefined) {
+        console.log(previewText);
+        previewText.visible = false;
+        previewText.layers.disable( 3 );
+        previewsToReset.push(previewText);
+        let textBlock = group.userData.textBlock;
+        for (var i = textBlock.length - 1; i >= 0; i--) {
+            textBlock[i].visible = true;
+            textBlock[i].layers.enable( 3 );
+        }
+    }
+}
+
+
 function tryPointerOver(intersect) {
+    // console.log(intersect);
     // Show connection lines, if applicable
     if (intersect.object.userData.lines != undefined) {
         const lines = intersect.object.userData.lines;
@@ -1294,18 +1340,30 @@ function tryPointerOver(intersect) {
         if (handlebar != undefined && handlebar.userData.fullOpen != true) {
             handlebar.userData.fullOpen = true;
 
-            // tween out to scale x = 0.1
-            var tempHandlebarScale = new TWEEN.Tween( handlebar.scale )
-            .to( {x: 1}, 300 )
-            .easing( TWEEN.Easing.Quadratic.InOut )
-            .start()
-            .onComplete(() => {
-                openHandles.push(handlebar);
-            });
-            var tempHandlebarPos = new TWEEN.Tween( handlebar.position )
-            .to( {x: 0}, 300 )
-            .easing( TWEEN.Easing.Quadratic.InOut )
-            .start();
+            if (handlebar != undefined) {
+                // tween out to scale x = 0.1
+                var tempHandlebarScale = new TWEEN.Tween( handlebar.scale )
+                .to( {x: 1}, 300 )
+                .easing( TWEEN.Easing.Quadratic.InOut )
+                .start()
+                .onComplete(() => {
+                    openHandles.push(handlebar);
+                });
+                var tempHandlebarPos = new TWEEN.Tween( handlebar.position )
+                .to( {x: 0}, 300 )
+                .easing( TWEEN.Easing.Quadratic.InOut )
+                .start();
+            }
+        }
+    // When pointing at a preview text block, hide it and show the individual texts instead
+    } else if (intersect.object.userData.type == "preview") {
+        if (intersect.object.parent.userData.previewText != undefined && intersect.object.parent.userData.previewText.visible != false) {
+            
+            tryResetPreviews();
+
+            disablePreviews(intersect.object.parent);
+
+            consoleLog("Preview text toggled off");
         }
     }
 }
@@ -1398,6 +1456,13 @@ function tryPointerSelect(intersect) {
         if (thisfunction == "detach") {
             const index = oldGroup.userData.textBlock.indexOf(target);
             oldGroup.userData.textBlock.splice(index,1);
+
+            // Edit the preview text block
+            const baseTxt = oldGroup.userData.previewText.text;
+            var txtArray = baseTxt.split('\n');
+            txtArray.splice(index,1);
+            const newTxt = txtArray.join('\n');
+            oldGroup.userData.previewText.text = newTxt;
         }
 
         var newArray = [];
@@ -1410,7 +1475,7 @@ function tryPointerSelect(intersect) {
             const missingPiece = target.userData.sequenceOrder;
             for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
                 try {
-                    console.log(oldGroup.userData.textBlock[i].userData.sequenceOrder + " | " + missingPiece);
+                    // console.log(oldGroup.userData.textBlock[i].userData.sequenceOrder + " | " + missingPiece);
                     if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
                         var thisPiece = oldGroup.userData.textBlock[i];
                         // console.log(thisPiece);
@@ -1468,14 +1533,24 @@ function tryPointerSelect(intersect) {
                 target.parent.remove(target);
             }
         });
-        oldGroup.userData.textBlock.push(target);
-        const index = snapDistanceOne.indexOf(newGroup);
-        snapDistanceOne.splice(index,1);
+
+        const snapindex = snapDistanceOne.indexOf(newGroup);
+        snapDistanceOne.splice(snapindex,1);
         newGroup.parent.remove(newGroup);
         popupMenu(undefined);
 
         if (thisfunction == "attach") {
             const missingPiece = target.userData.sequenceOrder;
+
+            // Edit the preview text block
+            const baseTxt = oldGroup.userData.previewText.text;
+            var txtArray = baseTxt.split('\n');
+            txtArray.splice(missingPiece,0,target.text);
+            const newTxt = txtArray.join('\n');
+            oldGroup.userData.previewText.text = newTxt;
+
+            disablePreviews(oldGroup);
+
             for (var i = oldGroup.userData.textBlock.length - 1; i >= 0; i--) {
                 try {
                     if (oldGroup.userData.textBlock[i].userData.sequenceOrder > missingPiece) {
@@ -1484,10 +1559,14 @@ function tryPointerSelect(intersect) {
                         .to( {x: thisPiece.position.x, y: thisPiece.position.y - 0.03, z: thisPiece.position.z }, 500 )
                         .easing( TWEEN.Easing.Quadratic.InOut )
                         .start()
-                        // .onComplete(() => {
-                        //     oldGroup.remove(target.userData.origin);
-                        //     target.userData.origin = null;
-                        // });
+                        .onComplete(() => {
+                            oldGroup.remove(target.userData.origin);
+                            target.userData.origin = null;
+
+                            oldGroup.userData.textBlock.push(target);
+
+                            tryResetPreviews();
+                        });
                     }
                 }
                 catch {
@@ -1499,6 +1578,7 @@ function tryPointerSelect(intersect) {
             consoleLog("POPUP: Returned", 0x555555);
         }
     } else if (intersect.object.userData.type == "handle") {
+        tryResetPreviews();
         startSwipe(intersect.object);
         popupMenu(undefined);
     } else if (intersect.object.userData.type == "reference") {
@@ -1938,7 +2018,7 @@ function findAbstract(url, object) {
             // Find the class 'abstract' and read the inner html
             var abstract = $html.find('.abstract');
             var result = abstract.text();
-            console.log(result);
+            // console.log(result);
             object.userData.abstract = result;
         },
         error: function(xhr, status, error) {
@@ -1960,13 +2040,6 @@ function displayCitation(text, object) {
     var temporaryCitation;
     var temporaryCitationGroup;
     consoleLog(text.slice(0,48) + "...", 0xdddddd);
-
-    // if (temporaryCitation != undefined) {
-    //     temporaryCitation.parent.remove(temporaryCitation);
-    //     temporaryCitation = undefined;
-    //     temporaryCitationLine.parent.remove(temporaryCitationLine);
-    //     temporaryCitationLine = undefined;
-    // }
 
     var distanceModifier = object.curveRadius;
     // console.log(distanceModifier);
@@ -2158,20 +2231,57 @@ function displayTextBlock(head, text, source) {
     let totalPreInstance = 0;
     let totalPostInstance = 0;
 
+    // Generate the large block of text as a single Troika element
+    let tempTextString = text[0];
+    for (var i = 1; i <= text.length - 1; i++) {
+        tempTextString = tempTextString.concat('\n', text[i]);
+    }
+    let tempTextBlock = new Text();
+    textGroup.add(tempTextBlock);
+    tempTextBlock.layers.enable( 3 );
+    tempTextBlock.userData.layers = 3;
+    tempTextBlock.userData.type = "preview";
+
+    let specialReaderOffset = Math.random(0.001, -0.001);
+
+    tempTextBlock.position.set( 0, 0.0, -readerStartDistance - specialReaderOffset );
+
+    tempTextBlock.text = tempTextString;
+    tempTextBlock.fontSize = 0.02;
+    tempTextBlock.color = 0x000000;
+    tempTextBlock.anchorX = 'left';
+    tempTextBlock.anchorY = 'top';
+    tempTextBlock.lineHeight = 1.5;
+    tempTextBlock.curveRadius = readerStartDistance + specialReaderOffset;
+
+    tempTextBlock.userData.text = tempTextBlock.text;
+    tempTextBlock.userData.fontSize = tempTextBlock.fontSize;
+    tempTextBlock.userData.color = tempTextBlock.color;
+    tempTextBlock.userData.anchorX = tempTextBlock.anchorX;
+    tempTextBlock.userData.anchorY = tempTextBlock.anchorY;
+    tempTextBlock.userData.curveRadius = tempTextBlock.curveRadius;
+    tempTextBlock.userData.lineHeight = tempTextBlock.lineHeight;
+
+    tempTextBlock.position.y = totalTextOffset;
+
+    tempTextBlock.sync();
+
+
+    // Generate each text line as individual Troika elements
     for (var i = 0; i <= text.length - 1; i++) {
         let tempText = new Text();
         textGroup.add(tempText);
         tempText.layers.enable( 3 );
         tempText.userData.layers = 3;
 
-        tempText.position.set( 0, 0.0, -readerStartDistance );
+        tempText.position.set( 0, 0.0, - readerStartDistance - specialReaderOffset );
 
         tempText.text = text[i];
         tempText.fontSize = 0.02;
         tempText.color = 0x000000;
         tempText.anchorX = 'left';
         tempText.anchorY = 'top';
-        tempText.curveRadius = readerStartDistance;
+        tempText.curveRadius = readerStartDistance + specialReaderOffset;
         
         // tempText.maxWidth = 2;
 
@@ -2182,7 +2292,6 @@ function displayTextBlock(head, text, source) {
         tempText.userData.anchorY = tempText.anchorY;
         tempText.userData.curveRadius = tempText.curveRadius;
         
-
         tempText.position.y = totalTextOffset;
         totalTextOffset += textOffset;
 
@@ -2204,6 +2313,7 @@ function displayTextBlock(head, text, source) {
                 var allTexts = this.parent.userData.textBlock;
                 for (var i = allTexts.length - 1; i >= 0; i--) {
                     allTexts[i]._listeners = undefined;
+                    allTexts[i].visible = false;
                 }
             }
         });
@@ -2215,8 +2325,8 @@ function displayTextBlock(head, text, source) {
     headText.color = 0x000000;
     headText.anchorX = 'left';
     headText.anchorY = 'bottom';
-    headText.curveRadius = readerStartDistance;
-    headText.position.set( 0, 0.0, -readerStartDistance );
+    headText.curveRadius = readerStartDistance + specialReaderOffset;
+    headText.position.set( 0, 0.0, - readerStartDistance - specialReaderOffset );
 
     headText.userData.text = headText.text;
     headText.userData.fontSize = headText.fontSize;
@@ -2232,7 +2342,9 @@ function displayTextBlock(head, text, source) {
     // console.log(headText);
     headText.sync();
     textGroup.userData.header = headText;
+    textGroup.userData.previewText = tempTextBlock;
     textGroup.userData.textBlock = textBlock;
+    textGroup.userData.specialReaderOffset = specialReaderOffset;
     snapDistanceOne.push(textGroup);
 
 }
@@ -2341,7 +2453,7 @@ function startPos(mesh) {
 
 // BUGS:
 // Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
-// Troika text lags a ridiculous amount after 50+ lines
+// Text preview is broken on workspace load
 
 // NOTES:
 // image-based light??
@@ -2352,14 +2464,20 @@ function startPos(mesh) {
 // pass info to llm (chatgpt or claude) and return
 // word wrap for citation block
 // Save files are way too large - find a way to trim troika text geometry
+// less max width on library abstract
+// 'focus' snap view distance that can hold one active document
 
 // WIP:
+
 
 
 // COMPLETE THIS UPDATE:
 // Reworked the pointer system to work completely differently (position is now based on movement, not rotation)
 // Motion smoothing reduced to 3 with the new system
 // Debug has a more pronounced arrow for pointing
+// Troika text major optimization
+// Updates to the save system to support changes made this week and last
+
 
 
 
@@ -2393,15 +2511,14 @@ function createHandle(object, useParentY = false) {
     // const boundingWire = new THREE.EdgesGeometry( boundingGeo, 90 );
     // const boundingLine = new THREE.LineSegments( boundingWire );
     var boundingMat = new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        transparent: true,
+        color: 0x555555,
+        transparent: false,
         opacity: 0.5,
         side: THREE.DoubleSide
     });
     var invisMat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
-        transparent: true,
-        opacity: 0
+        visible: false
     });
     const boundingMesh = new THREE.Mesh( boundingGeo, invisMat );
     const childMesh = new THREE.Mesh( boundingGeo, boundingMat );
@@ -2412,7 +2529,7 @@ function createHandle(object, useParentY = false) {
     boundingMesh.layers.enable( 3 );
     boundingMesh.userData.layers = 3;
     boundingMesh.userData.type = "handle";
-    // childMesh.userData.type = "handle";
+    childMesh.userData.type = "handlebar";
     object.parent.userData.handle = boundingMesh;
     boundingMesh.userData.handlebar = childMesh;
 
@@ -3411,6 +3528,8 @@ function initWorkspace() {
 
 function saveWorkspace() {
 
+    tryResetPreviews();
+
     workspace.traverse( function(child) {
 
         // clear the direct references for the lines to prevent circular json structure
@@ -3459,6 +3578,9 @@ var pendingRemove = [];
 var pendingLineCheck = [];
 var pendingOriginUpdate = [];
 var pendingDetachedParentSearch = [];
+var pendingHandlebarBolt = [];
+var pendingHeaderUpdate = [];
+var pendingPreviewTextUpdate = [];
 
 function loadWorkspace() {
     const loader = new THREE.ObjectLoader();
@@ -3492,6 +3614,11 @@ function loadWorkspace() {
             newText.anchorX = child.userData.anchorX;
             newText.anchorY = child.userData.anchorY;
             newText.curveRadius = child.userData.curveRadius;
+            newText.visible = child.visible;
+
+            if (child.userData.lineHeight != undefined) {
+                newText.lineHeight = child.userData.lineHeight;
+            }
 
             if (child.name != "") {
                 newText.name = child.name;
@@ -3515,12 +3642,13 @@ function loadWorkspace() {
                 newText.layers.enable( child.userData.layers );
             }
 
-            if (child.parent.userData.textBlock != undefined && child.name != "header") {
-                var textBlock = child.parent.userData.textBlock;
+            if (child.parent.userData.textBlock != undefined && child.userData.type == "citation") {
+                // var textBlock = child.parent.userData.textBlock;
                 // var index = textBlock.indexOf(child);
                 // textBlock.splice(index, 1, newText);
                 // splice doesn't work, because the index fails to find the indexOf
-                textBlock.push(newText);
+                child.parent.userData.textBlock.push(newText);
+                // console.log(child.parent.userData.textBlock);
             }
 
             if (child.userData.lines != undefined) {
@@ -3536,6 +3664,16 @@ function loadWorkspace() {
             if (child.userData.detachedParent != undefined) {
                 // console.log("Detached Parent: " + child.userData.detachedParent.object.uuid);
                 pendingDetachedParentSearch.push(newText);
+            }
+
+            if (child.userData.type == "preview") {
+                child.parent.userData.previewText = newText;
+                // console.log(child.parent);
+                // pendingPreviewTextUpdate.push()
+            }
+
+            if (child.userData.name == "header") {
+                child.parent.userData.header = newText;
             }
 
             pendingRemove.push(child);
@@ -3557,6 +3695,19 @@ function loadWorkspace() {
             }
 
         }
+
+        if (child.userData.type == "handle") {
+            child.parent.userData.handle = child;
+        }
+
+        if (child.userData.type == "handlebar") {
+            child.parent.userData.handlebar = child;
+        }
+
+        // May need to add a calculation for previewText and header inside userData
+        // ...for the reader distance slider.
+        // ...also for "handlebar"?
+        // group userData: handle, header, previewText all need to be set to their new text objects
  
     });
 
@@ -3633,6 +3784,7 @@ function loadWorkspace() {
         }
 
         if (child.type == "Group") {
+            // detached parent search
             for (var i = pendingDetachedParentSearch.length - 1; i >= 0; i--) {
 
                 try {
@@ -3646,6 +3798,14 @@ function loadWorkspace() {
                 }
                 catch { }
             }
+
+
+            // if (child.name != "workspace") {
+            //     disablePreviews(child);
+            // }
+
+
+
         }
 
     });
