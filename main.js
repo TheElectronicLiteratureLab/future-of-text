@@ -26,11 +26,7 @@ scene.add( topLight );
 topLight.position.x = 50;
 topLight.position.z = 30;
 
-// const bottomLight = new THREE.DirectionalLight( 0xffffff, Math.PI * 0.25 );
-// scene.add( bottomLight );
-// bottomLight.position.y = -50;
-// bottomLight.position.z = -30;
-
+// Create a center light and add it to the scene
 const centerLight = new THREE.PointLight( 0xffffff, 1, Math.PI * 0.2 );
 centerLight.distance = 100;
 scene.add( centerLight );
@@ -72,9 +68,7 @@ floorAxis.position.set( 0, -1.3, 0 );
 floorAxis.rotation.set( -Math.PI / 2, 0, -Math.PI / 2 );
 floorAxis.visible = false;
 
-
 // Universal axis definitions
-
 const _xbackward = new THREE.Vector3( -1, 0, 0 );
 const _xforward = new THREE.Vector3( 1, 0, 0 );
 const _ybackward = new THREE.Vector3( 0, -1, 0 );
@@ -82,10 +76,12 @@ const _yforward = new THREE.Vector3( 0, 1, 0 );
 const _zbackward = new THREE.Vector3( 0, 0, -1 );
 const _zforward = new THREE.Vector3( 0, 0, 1 );
 
+
 var debugMode = false;
 const readerStartDistance = 2;
 
-
+// Rotation order
+camera.rotation.order = 'YXZ';
 
 
 
@@ -105,29 +101,6 @@ const readerStartDistance = 2;
 // ================================== MENU CONTENT =========================================
 
 const normalNone = new THREE.TextureLoader().load( './normal-none.jpg' );
-// const normalArtdeco = new THREE.TextureLoader().load( './normal-artdeco.jpg' );
-// const normalGrate = new THREE.TextureLoader().load( './normal-grate.jpg' );
-// const normalLace = new THREE.TextureLoader().load( './normal-lace.jpg' );
-// const normalScifi1 = new THREE.TextureLoader().load( './normal-scifi-1.jpg' );
-// const normalScifi2 = new THREE.TextureLoader().load( './normal-scifi-2.jpg' );
-// const normalScifi3 = new THREE.TextureLoader().load( './normal-scifi-3.jpg' );
-// const normalScifi4 = new THREE.TextureLoader().load( './normal-scifi-4.jpg' );
-// const normalScifi5 = new THREE.TextureLoader().load( './normal-scifi-5.jpg' );
-// const normalScifi6 = new THREE.TextureLoader().load( './normal-scifi-6.jpg' );
-// const normalScifi7 = new THREE.TextureLoader().load( './normal-scifi-7.jpg' );
-// const normalScifi8 = new THREE.TextureLoader().load( './normal-scifi-8.jpg' );
-// const normalScifi9 = new THREE.TextureLoader().load( './normal-scifi-9.jpg' );
-// const normalScifi10 = new THREE.TextureLoader().load( './normal-scifi-10.jpg' );
-// const normalScifi11 = new THREE.TextureLoader().load( './normal-scifi-11.jpg' );
-
-// const normalOptions = [normalArtdeco,normalGrate,normalLace,normalScifi1,normalScifi2,normalScifi3,
-//     normalScifi4,normalScifi5,normalScifi6,normalScifi7,normalScifi8,normalScifi9,normalScifi10,normalScifi11];
-
-// var nbtnArt,nbtnGrate,nbtnLace,nbtnSci1,nbtnSci2,nbtnSci3,nbtnSci4,nbtnSci5,nbtnSci6,nbtnSci7,
-//     nbtnSci8,nbtnSci9,nbtnSci10,nbtnSci11;
-
-// const normalBtns = [nbtnArt,nbtnGrate,nbtnLace,nbtnSci1,nbtnSci2,nbtnSci3,nbtnSci4,nbtnSci5,nbtnSci6,nbtnSci7,
-//     nbtnSci8,nbtnSci9,nbtnSci10,nbtnSci11];
 
 var normalMainBtn, sliderMainBtn, settingsBackBtn, slidersBackBtn;
 
@@ -139,15 +112,21 @@ var debugBtn, debugText;
 
 var exportBtn, exportText;
 
+const btnMat = new THREE.MeshStandardMaterial({ 
+        color: 0xffffff,
+        roughness: 0.32,
+        metalness: 1,
+        emissive: 0x6a6a6a
+    });
+
+const btnPressMat = new THREE.MeshStandardMaterial({ 
+        color: 0xffffff,
+        roughness: 0.32,
+        metalness: 1,
+        emissive: 0xffffff
+    });
+
 // =========================================================================================
-
-
-
-
-
-
-
-
 
 const menuGroup = new THREE.Group();
 
@@ -221,8 +200,6 @@ function initMenu() {
 
     sphereHelper.position.set( 0, 0, 0 );
 
-    // toggleLibrary('open');
-
     scene.add(sphereHelperSolid);
     sphereHelperSolid.scale.set( 0.9, 0.9, 0.9 );
     sphereHelperSolid.position.set( wrist1.position.x, wrist1.position.y, wrist1.position.z );
@@ -262,7 +239,11 @@ function toggleLibrary(state) {
                     isMenuBusy = false;
                 })
         ;
-        sphereHelper.rotation.set(0,0,0);
+
+        if (camera.rotation.y )
+        sphereHelper.rotation.set(0,camera.rotation.y,0);
+        
+
 
         menuMode = 99;
 
@@ -349,21 +330,6 @@ function tryMenu() {
     }
 }
 
-const btnMat = new THREE.MeshStandardMaterial({ 
-        color: 0xffffff,
-        roughness: 0.32,
-        metalness: 1,
-        emissive: 0x6a6a6a
-    });
-
-const btnPressMat = new THREE.MeshStandardMaterial({ 
-        color: 0xffffff,
-        roughness: 0.32,
-        metalness: 1,
-        emissive: 0xffffff
-    });
-
-
 
 function createMenuBtns(menu) {
     var btnGeo = new THREE.CylinderGeometry( 0.03, 0.03, 0.005 );
@@ -416,33 +382,6 @@ function createMenuBtns(menu) {
     slidersBackBtn.userData.defaultMat = btnMat;
 
 
-// ============================ Create grid of normal-texture buttons ============================
-    // for (var i = normalOptions.length - 1; i >= 0; i--) {
-    //     normalBtns[i] = new THREE.Mesh( btnGeo, btnMat );
-
-    //     menuGroup.add(normalBtns[i]);
-
-    //     normalBtns[i].userData.function = "normal-" + i;
-
-    //     normalBtns[i].position.set( menu.position.x, menu.position.y - 0.03, menu.position.z );
-    //     normalBtns[i].rotation.set( 1, 0, 0 );
-    //     normalBtns[i].translateY( -0.035 );
-    //     normalBtns[i].translateZ( -0.025 );
-
-    //     // First or second half of the total buttons
-    //     if (i <= (normalOptions.length / 2) - 1) {
-    //         normalBtns[i].translateX( (distanceBetweenWidth * i) - (distanceBetweenWidth * 3) );
-    //         normalBtns[i].translateZ( - distanceBetweenHeight );
-    //     }
-    //     else {
-    //         normalBtns[i].translateX( (distanceBetweenWidth * (i - normalOptions.length / 2)) - (distanceBetweenWidth * 3) );
-    //         normalBtns[i].translateZ( distanceBetweenHeight );
-    //     }
-
-    //     normalBtns[i].layers.enable( 10 );
-    //     menu.attach(normalBtns[i]);
-    // }
-
 // DEBUG BUTTON
     var debugBtnGeo = new THREE.BoxGeometry( 0.08, 0.005, 0.04 );
 
@@ -472,7 +411,6 @@ function createMenuBtns(menu) {
     menu.attach(debugBtn);
 
     debugText.sync();
-
 
 
 // EXPORT SCENE DATA BUTTON
@@ -507,37 +445,6 @@ function createMenuBtns(menu) {
 
 
 // ============================ Create sliders for adjusting settings ============================
-    // sliderNormalScale = new THREE.Mesh( sliderGeo, btnMat );
-    // sliderNormalBg = new THREE.Mesh( sliderBgGeo, sliderBgMat );
-    // menuGroup.add( sliderNormalScale );
-    // menuGroup.add( sliderNormalBg );
-    // sliderNormalScale.attach( sliderNormalBg );
-    // sliderNormalScale.position.set( menu.position.x, menu.position.y, menu.position.z );
-    // sliderNormalScale.rotation.set( 0, Math.PI / 2, -1.04);
-    // sliderNormalScale.translateY( -0.05 );
-    // sliderNormalScale.translateX( -0.035 );
-    // sliderNormalScale.layers.enable( 10 );
-    // menu.attach(sliderNormalScale);
-    // sliderNormalScale.userData.function = "slider-nscale";
-    // menu.attach(sliderNormalBg)
-    // sliderNormalBg.rotateX( Math.PI / 2 );
-
-
-    // sliderEmissive = new THREE.Mesh( sliderGeo, btnMat );
-    // sliderEmissiveBg = new THREE.Mesh( sliderBgGeo, sliderBgMat );
-    // menuGroup.add( sliderEmissive );
-    // menuGroup.add( sliderEmissiveBg );
-    // sliderEmissive.attach( sliderEmissiveBg );
-    // sliderEmissive.position.set( menu.position.x, menu.position.y, menu.position.z );
-    // sliderEmissive.rotation.set( 0, Math.PI / 2, -1.04);
-    // sliderEmissive.translateY( -0.051 );
-    // sliderEmissive.translateX( 0.035 );
-    // sliderEmissive.layers.enable( 10 );
-    // menu.attach(sliderEmissive);
-    // sliderEmissive.userData.function = "slider-intensity";
-    // menu.attach(sliderEmissiveBg)
-    // sliderEmissiveBg.rotateX( Math.PI / 2 );
-    // sliderEmissive.translateZ( -0.2 );
 
     var sliderReaderText = new Text();
     sliderReaderText.text = "Reading Distance";
@@ -598,9 +505,6 @@ function tryBtns() {
         var intersects = raycaster.intersectObjects(scene.children);
         var intersect = intersects[0];
 
-        // Draw a placeholder arrow to visualize the raycast
-        // placeholderArrow(raycaster, menuRayDistance, 0x33ff77);
-
         if (intersect != undefined && intersect.distance <= menuRayDistance) {
             if (!isBtnPressed ) {
                 btnPress(intersect);
@@ -614,11 +518,6 @@ function tryBtns() {
     }
 
 }
-
-// const dummyButton = new THREE.Object3D();
-// dummyButton.material = menuMat;
-// dummyButton.userData.defaultMat = menuMat;
-// dummyButton.userData.function = "slider-reader";
 
 
 var lastSliderPos;
@@ -668,32 +567,7 @@ function btnPress(intersect) {
                 snapDistanceOneValue = newRange;
                 for (var i = snapDistanceOne.length - 1; i >= 0; i--) {
                     var thisGroup = snapDistanceOne[i];
-                    // Set the curve radius and position of the header
-                    if (thisGroup.userData.header != undefined) {
-                        var headText = thisGroup.userData.header;
-                        headText.curveRadius = newRange;
-                        headText.position.set( headText.position.x, headText.position.y, -newRange );
-                    }
-                    // Set the curve radius and position of the preview text block
-                    if (thisGroup.userData.previewText != undefined) {
-                        var previewText = thisGroup.userData.previewText;
-                        previewText.curveRadius = newRange;
-                        previewText.position.set( previewText.position.x, previewText.position.y, -newRange );
-                    }
-                    // Set the curve radius and position of all text block elements
-                    if (thisGroup.userData.textBlock != undefined) {
-                        var textBlock = thisGroup.userData.textBlock;
-                        for (var j = textBlock.length - 1; j >= 0; j--) {
-                            textBlock[j].curveRadius = newRange;
-                            textBlock[j].position.z = -newRange;
-                        }
-                    }
-                    // Set the position of the handle
-                    if (thisGroup.userData.handle != undefined) {
-                        var handle = thisGroup.userData.handle;
-                        handle.position.z = -newRange;
-                    }
-
+                    changeDistance(thisGroup, newRange);
                 }
 
             }
@@ -728,8 +602,6 @@ function btnPress(intersect) {
         isBtnPressed = true; // Consume the button press until the finger is removed
     }
 }
-
- 
 
 
 
@@ -1014,7 +886,6 @@ var previewsToReset = [];
 var toolSelectorActive = false;
 var toolSelectorPointing = false;
 
-
 var toolSelectorVisible = false; // Change this to show/hide the selector beam and tool
 var toolSelectorTimer = 0; // Current amout of time not pointing at anything
 var toolSelectorTimeout = 3; // How long until the line fades in
@@ -1181,7 +1052,7 @@ function tryPointer() {
             }
 
             // Selection function - user has clamped their fingers together while pointing
-            if (intersect && fingersCurDist <= 0.008 && !tempSelectorActive) {
+            if (intersect && isTwoPinching && !tempSelectorActive) {
                 tempSelectorActive = true;
 
                 // Tween the selector dot for the selection 'click'
@@ -1199,7 +1070,7 @@ function tryPointer() {
 
                 tryPointerSelect(intersect);
 
-            } else if (fingersCurDist > 0.02 && tempSelectorActive) {
+            } else if (!isTwoPinching && tempSelectorActive) {
                 tempSelectorActive = false;
                 stopSwipe();
             }
@@ -1281,7 +1152,7 @@ function tryCloseHandles() {
 
 function tryResetPreviews() {
     if ( previewsToReset.length > 0 ){
-        console.log(previewsToReset);
+        // console.log(previewsToReset);
         for (var i = previewsToReset.length - 1; i >= 0; i--) {
             previewsToReset[i].visible = true;
             previewsToReset[i].layers.enable( 3 );
@@ -1301,7 +1172,6 @@ function tryResetPreviews() {
 function disablePreviews(group) {
     let previewText = group.userData.previewText;
     if (previewText != undefined) {
-        console.log(previewText);
         previewText.visible = false;
         previewText.layers.disable( 3 );
         previewsToReset.push(previewText);
@@ -1363,7 +1233,7 @@ function tryPointerOver(intersect) {
 
             disablePreviews(intersect.object.parent);
 
-            consoleLog("Preview text toggled off");
+            // consoleLog("Preview text toggled off");
         }
     }
 }
@@ -1651,6 +1521,14 @@ function tryPointerSelect(intersect) {
         loadTextBlock(source);
         toggleLibrary('close');
         menuMode = 0;
+    } else if (intersect.object.userData.type == "popup-focus") {
+        var target = intersect.object.userData.target;
+        focusThis(target.parent);
+        popupMenu(undefined);
+    } else if (intersect.object.userData.type == "popup-unfocus") {
+        var target = intersect.object.userData.target;
+        unfocusThis(target.parent);
+        popupMenu(undefined);
     }
 }
 
@@ -1789,6 +1667,30 @@ function popupMenu(target, variation = "citation") {
             popupMark.userData.target = target;
             popupItems.push(popupMark);
 
+    // FOCUS popup button
+            const popupFocus = new Text();
+            scene.add(popupFocus);
+            if (target.parent.userData.focusBG != undefined) {
+            // UNFOCUS
+            popupFocus.text = "Unfocus";
+            popupFocus.userData.type = "popup-unfocus";
+            } else {
+            // FOCUS
+            popupFocus.text = "Focus";
+            popupFocus.userData.type = "popup-focus";
+            }
+            popupFocus.fontSize = 0.02;
+            popupFocus.userData.fontSize = 0.02;
+            popupFocus.color = 0xffffff;
+            popupFocus.anchorX = 'left';
+            popupFocus.anchorY = 'middle';
+            newPopup.attach(popupFocus);
+            popupFocus.position.x = -0.11;
+            popupFocus.position.y = -0.10;
+            popupFocus.layers.enable( 3 );
+            popupFocus.userData.target = target;
+            popupItems.push(popupFocus);
+
         } else if (variation == "reference") { //======================================================
     // REMOVE popup button
             const popupRemove = new Text();
@@ -1857,9 +1759,6 @@ function popupMenu(target, variation = "citation") {
             }
             
             
-
-            
-
 
         }
 
@@ -1937,7 +1836,9 @@ function popupMenu(target, variation = "citation") {
 
 
 const snapDistanceOne = [];
+const snapDistanceFocus = [];
 var snapDistanceOneValue = readerStartDistance;
+var snapDistanceFocusValue = 2.00;
 
 function loadTextBlock(url) {
 
@@ -2090,14 +1991,10 @@ function displayCitation(text, object) {
         // console.log("%%%%%%%%%%%% temporaryCitation event removed");
     });
     
-
     // Citation line
     createLine(object, temporaryCitation);
 
 }
-
-
-
 
 
 function createLine(object, target) {
@@ -2133,11 +2030,6 @@ function createLine(object, target) {
 
     animatedConnections.push(temporaryCitationLine);
 }
-
-
-
-
-
 
 
 var temporaryCitationWorldPos = new THREE.Vector3();
@@ -2210,11 +2102,7 @@ function animateCitationLines() {
 
 }
 
-// loadTextBlock('./3511095.3531271.html');
-
 var tempSize = new THREE.Vector3();
-// var abortTempTextListener = new AbortController();
-// var { abortTempTextSignal } = abortTempTextListener;
 
 function displayTextBlock(head, text, source) {
     // Create:
@@ -2244,7 +2132,7 @@ function displayTextBlock(head, text, source) {
 
     let specialReaderOffset = Math.random(0.001, -0.001);
 
-    tempTextBlock.position.set( 0, 0.0, -readerStartDistance - specialReaderOffset );
+    tempTextBlock.position.set( 0, 0.0, -snapDistanceOneValue - specialReaderOffset );
 
     tempTextBlock.text = tempTextString;
     tempTextBlock.fontSize = 0.02;
@@ -2252,7 +2140,7 @@ function displayTextBlock(head, text, source) {
     tempTextBlock.anchorX = 'left';
     tempTextBlock.anchorY = 'top';
     tempTextBlock.lineHeight = 1.5;
-    tempTextBlock.curveRadius = readerStartDistance + specialReaderOffset;
+    tempTextBlock.curveRadius = snapDistanceOneValue + specialReaderOffset;
 
     tempTextBlock.userData.text = tempTextBlock.text;
     tempTextBlock.userData.fontSize = tempTextBlock.fontSize;
@@ -2274,16 +2162,14 @@ function displayTextBlock(head, text, source) {
         tempText.layers.enable( 3 );
         tempText.userData.layers = 3;
 
-        tempText.position.set( 0, 0.0, - readerStartDistance - specialReaderOffset );
+        tempText.position.set( 0, 0.0, - snapDistanceOneValue - specialReaderOffset );
 
         tempText.text = text[i];
         tempText.fontSize = 0.02;
         tempText.color = 0x000000;
         tempText.anchorX = 'left';
         tempText.anchorY = 'top';
-        tempText.curveRadius = readerStartDistance + specialReaderOffset;
-        
-        // tempText.maxWidth = 2;
+        tempText.curveRadius = snapDistanceOneValue + specialReaderOffset;
 
         tempText.userData.text = tempText.text;
         tempText.userData.fontSize = tempText.fontSize;
@@ -2308,13 +2194,13 @@ function displayTextBlock(head, text, source) {
         tempText.addEventListener("synccomplete", function passHandle() {
             totalPostInstance++;
             if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
-                // createHandle(tempText, true);
                 createHandleTimeout(tempText, true);
                 var allTexts = this.parent.userData.textBlock;
                 for (var i = allTexts.length - 1; i >= 0; i--) {
                     allTexts[i]._listeners = undefined;
                     allTexts[i].visible = false;
                 }
+                focusThisTimout(textGroup);
             }
         });
 
@@ -2325,8 +2211,8 @@ function displayTextBlock(head, text, source) {
     headText.color = 0x000000;
     headText.anchorX = 'left';
     headText.anchorY = 'bottom';
-    headText.curveRadius = readerStartDistance + specialReaderOffset;
-    headText.position.set( 0, 0.0, - readerStartDistance - specialReaderOffset );
+    headText.curveRadius = snapDistanceOneValue + specialReaderOffset;
+    headText.position.set( 0, 0.0, - snapDistanceOneValue - specialReaderOffset );
 
     headText.userData.text = headText.text;
     headText.userData.fontSize = headText.fontSize;
@@ -2336,10 +2222,6 @@ function displayTextBlock(head, text, source) {
     headText.userData.curveRadius = headText.curveRadius;
     headText.name = "header";
 
-    // textGroup.userData.constrainMin = new THREE.Vector3(0, -0.15, 0);
-    // textGroup.userData.constrainMax = new THREE.Vector3(0, 2.5, 0);
-
-    // console.log(headText);
     headText.sync();
     textGroup.userData.header = headText;
     textGroup.userData.previewText = tempTextBlock;
@@ -2349,48 +2231,151 @@ function displayTextBlock(head, text, source) {
 
 }
 
-// displayTextBlock(testDisplayHead,testDisplayText);
 
-function HTMLtitle(htmlContent) {
-    var $html = $(htmlContent);
-    var results = $html.find('.title');
-    var innerHTML;
 
-    results.each(function() {
-        innerHTML = $(this).html();
-    });
 
-    return innerHTML;
 
-}
 
-function fetchHTML(url, callback) {
-    $.ajax({
-        url: url,
-        type: 'GET',
-        dataType: 'html',
-        success: function(data) {
-            // console.log(callback(data));
-            return callback(data);
-        },
-        error: function(xhr, status, error) {
-            console.error('Error fetching HTML: ', error);
+function changeDistance(object, value) {
+    // Set the curve radius and position of the header
+    if (object.userData.header != undefined) {
+        var headText = object.userData.header;
+        headText.curveRadius = value;
+        headText.userData.curveRadius = value;
+        console.log(headText);
+        headText.position.set( headText.position.x, headText.position.y, -value );
+    }
+    // Set the curve radius and position of the preview text block
+    if (object.userData.previewText != undefined) {
+        var previewText = object.userData.previewText;
+        previewText.curveRadius = value;
+        previewText.userData.curveRadius = value;
+        previewText.position.set( previewText.position.x, previewText.position.y, -value );
+    }
+    // Set the curve radius and position of all text block elements
+    if (object.userData.textBlock != undefined) {
+        var textBlock = object.userData.textBlock;
+        for (var j = textBlock.length - 1; j >= 0; j--) {
+            textBlock[j].curveRadius = value;
+            textBlock[j].userData.curveRadius = value;
+            textBlock[j].position.z = -value;
         }
-    });
+    }
+    // Set the position of the handle
+    if (object.userData.handle != undefined) {
+        var handle = object.userData.handle;
+        handle.position.z = -value;
+    }
+    // Set the position of the focus background
+    if (object.userData.focusBG != undefined) {
+        var focusBG = object.userData.focusBG;
+        focusBG.scale.set(value,1,-value);
+    }
 }
 
 
-function processHTML(htmlContent) {
-    var $html = $(htmlContent);
+const focusBGmat = new THREE.MeshBasicMaterial( {
+    color: 0xeeeeee,
+    side: THREE.DoubleSide
+} );
 
-    // Find all classes 'bib' and read their inner html
-    var bibElements = $html.find('.bib');
-    bibElements.each(function() {
-        var innerHTML = $(this).html();
-        console.log(innerHTML);
-    });
+var rememberedFocusRotation;
+var focusTransScale;
+
+function focusThis(object) {
+    // remove any other focused objects
+    for (var i = snapDistanceFocus.length - 1; i >= 0; i--) {
+        unfocusThis(snapDistanceFocus[i]);
+    }
+
+    // remove from snapDistanceOne and add to snapDistanceFocus
+    const index = snapDistanceOne.indexOf(object);
+    snapDistanceOne.splice(index,1);
+    snapDistanceFocus.push(object);
+
+    // calculate width & height
+    changeDistance(object, 1);
+
+    rememberedFocusRotation = object.rotation.y;
+    object.rotation.set(0,0,0);
+
+    if (object.userData.previewText != undefined) {
+        var previewText = object.userData.previewText;
+        previewText.curveRadius = 0;
+    }
+
+    const tempTarget = object.userData.previewText;
+    // tempTarget.fontWeight = "bold";
+    const tempBox = new THREE.Box3().setFromObject(object);
+    tempBox.getSize(tempSize);
+    var height = tempSize.y + 0.1;
+    var width = tempSize.x + 0.22;
+    // tempTarget.fontWeight = "normal";
+    console.log(width);
+
+    // add a solid background
+    const focusBGgeo = new THREE.CylinderGeometry( 1 + 0.01, 1 + 0.01, height, 32, 1, true, -0.12, width/2);
+    const focusBG = new THREE.Mesh( focusBGgeo, focusBGmat );
+    object.add(focusBG);
+    focusBG.scale.set(1,1,-1);
+    focusBG.translateY(-height/2 + 0.04 + 0.05);
+    focusBG.layers.enable( 3 );
+    focusBG.userData.type = "focusBG";
+
+    // set userdata of focusBG
+    object.userData.focusBG = focusBG;
+
+    // reset the rotation back to what it was before calculations
+    object.rotation.y = rememberedFocusRotation;
+
+    // set the distance and curve radius to snapDistanceFocusValue
+    changeDistance(object, snapDistanceFocusValue);
+
+    // change the scale so it is a bit smaller
+    object.scale.set(0.3, 0.3, 0.4);
+
+    // set the height to an easy reading distance
+    object.position.y = camera.position.y;
+
+    // tween scale
+    focusTransScale = new TWEEN.Tween( object.scale )
+        .to( {x: 0.4, y: 0.4, z: 0.4}, 300 )
+        .easing( TWEEN.Easing.Quadratic.Out )
+        .start()
+    ;
 }
 
+
+function unfocusThis(object) {
+    // remove from snapDistanceFocus and add to snapDistanceOne
+    const index = snapDistanceFocus.indexOf(object);
+    snapDistanceFocus.splice(index,1);
+    snapDistanceOne.push(object);
+
+    // set the distance and curve radius to snapDistanceOneValue + userData.specialReaderOffset
+    changeDistance(object, snapDistanceOneValue + object.userData.specialReaderOffset);
+
+    // remove the solid background
+    object.remove(object.userData.focusBG);
+
+    // set userdata to say it is no longer focused
+    object.userData.focusBG = undefined;
+
+    // reset any changes to scale
+    object.scale.set(1.1, 1.1, 1);
+    
+    // tween
+    focusTransScale = new TWEEN.Tween( object.scale )
+        .to( {x: 1, y: 1, z: 1}, 300 )
+        .easing( TWEEN.Easing.Quadratic.Out )
+        .start()
+    ;
+}
+
+
+function focusThisTimout(object,delay = 500) {
+    setTimeout(() => {focusThis(object)},delay);
+}
 
 
 
@@ -2427,7 +2412,7 @@ function startPos(mesh) {
     var dir = pWorld.sub( camera.position ).normalize();
 
     // Move the mesh away from the camera in the direction it is facing
-    mesh.position.add(dir.clone().multiplyScalar(0.5));
+    mesh.position.add(dir.clone().multiplyScalar(0.35));
 
     // Look at the camera
     var newRot = new THREE.Quaternion().setFromRotationMatrix(
@@ -2451,32 +2436,6 @@ function startPos(mesh) {
 
 
 
-// BUGS:
-// Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
-// Text preview is broken on workspace load
-
-// NOTES:
-// image-based light??
-// remove three-finger curl?
-// popup menu to change snap distance
-// larger selection zone for each button
-// tags and sticky notes for document content
-// pass info to llm (chatgpt or claude) and return
-// word wrap for citation block
-// Save files are way too large - find a way to trim troika text geometry
-// less max width on library abstract
-// 'focus' snap view distance that can hold one active document
-
-// WIP:
-
-
-
-// COMPLETE THIS UPDATE:
-// Reworked the pointer system to work completely differently (position is now based on movement, not rotation)
-// Motion smoothing reduced to 3 with the new system
-// Debug has a more pronounced arrow for pointing
-// Troika text major optimization
-// Updates to the save system to support changes made this week and last
 
 
 
@@ -2602,8 +2561,6 @@ let wrist1, wrist2, thumbTip1, thumbTip2, thumbDistal1, thumbDistal2, indexFinge
 indexDis1, indexDis2, middleFingerTip1, middleFingerTip2, middleDistal1, middleDistal2, ringFingerTip1, ringFingerTip2, 
 pinkyFingerTip1, pinkyFingerTip2, indexKnuckle1, indexKnuckle2;
 
-let line1, line2;
-
 let controls;
 let controller1enabled = false;
 let controller2enabled = false;
@@ -2621,8 +2578,6 @@ const grabDistance = 0.095;
 var lHeldObj = THREE.object;
 var rHeldObj = THREE.object;
 
-let lineMaterial, lineMaterialSelect;
-
 function init() {
 
     const controllerModelFactory = new XRControllerModelFactory();
@@ -2635,7 +2590,7 @@ function init() {
     controller2 = renderer.xr.getController( 1 );
     scene.add( controller2 );
 
-    // Hand 1
+    // Hand 1 - 'left' or non-dominant hand (menu sphere)
     controllerGrip1 = renderer.xr.getControllerGrip( 0 );
     controllerGrip1.add( controllerModelFactory.createControllerModel( controllerGrip1 ) );
     scene.add( controllerGrip1 );
@@ -2655,11 +2610,11 @@ function init() {
         hand1.add( model );
     }
 
-    // hand1.addEventListener( 'pinchstart', onPinchStartLeft );
-    // hand1.addEventListener( 'pinchend', onPinchEndLeft );
+    hand1.addEventListener( 'pinchstart', onPinchStartOne );
+    hand1.addEventListener( 'pinchend', onPinchEndOne );
     
     
-    // Hand 2
+    // Hand 2 - 'right' or dominant hand (interactions)
     controllerGrip2 = renderer.xr.getControllerGrip( 1 );
     controllerGrip2.add( controllerModelFactory.createControllerModel( controllerGrip2 ) );
     scene.add( controllerGrip2 );
@@ -2679,15 +2634,8 @@ function init() {
         hand2.add( model );
     }
 
-    // hand2.addEventListener( 'pinchstart', onPinchStartRight );
-    // hand2.addEventListener( 'pinchend', onPinchEndRight );
-
-    // Lines drawn from hands
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints( [ new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, - 1 ) ] );
-    lineMaterial = new THREE.LineBasicMaterial({ color: 0x555555, linewidth: 1 });
-    lineMaterialSelect = new THREE.LineBasicMaterial({ color: 0x559999, linewidth: 2 });
-    line1 = new THREE.Line( lineGeometry, lineMaterial );
-    line2 = new THREE.Line( lineGeometry, lineMaterial );
+    hand2.addEventListener( 'pinchstart', onPinchStartTwo );
+    hand2.addEventListener( 'pinchend', onPinchEndTwo );
 
     // Wait for the hand to connect, then get finger joints
     hand1.addEventListener('connected', (event) => {
@@ -2703,8 +2651,6 @@ function init() {
         pinkyFingerTip1 = event.target.joints['pinky-finger-tip'];
         middleDistal1 = event.target.joints['middle-finger-phalanx-distal'];
 
-        indexKnuckle1.add( line1 );
-        line1.visible = false;
         controller1enabled = true;
     });
 
@@ -2722,264 +2668,27 @@ function init() {
         pinkyFingerTip2 = event.target.joints['pinky-finger-tip'];
         middleDistal2 = event.target.joints['middle-finger-phalanx-distal'];
 
-        indexKnuckle2.add( line2 );
-        line2.visible = false;
         controller2enabled = true;
     });
 }
 
-var TESTSPAWNPDF = false;
+var isOnePinching = false;
+var isTwoPinching = false;
 
-function onPinchStartLeft( event ) {    
-
-    const controller = event.target;
-    const hand = 'left';
-    startGrab (controller, hand);
-
-    if (TESTSPAWNPDF) {
-        TESTSPAWNPDF = false;
-        loadPDF('3511095.3531286.pdf');
-    }
-
+function onPinchStartOne( event ) {    
+    isOnePinching = true;
 }
 
-function onPinchEndLeft( event ) {
-
-    const controller = event.target;
-    const hand = 'left';
-    endGrab (controller, hand);
-
+function onPinchEndOne( event ) {
+    isOnePinching = false;
 }
 
-function onPinchStartRight( event ) {    
-
-    const controller = event.target;
-    const hand = 'right';
-    startGrab (controller, hand);
-
+function onPinchStartTwo( event ) {    
+    isTwoPinching = true;
 }
 
-function onPinchEndRight( event ) {
-
-    const controller = event.target;
-    const hand = 'right';
-    endGrab (controller, hand);
-
-}
-
-function startGrab( controller, hand ) {
-
-    const indexTip = controller.joints[ 'index-finger-tip' ];
-    const indexStrt = controller.joints[ 'index-finger-phalanx-proximal' ];
-    const thumbTip = controller.joints[ 'thumb-tip' ];
-    const thumbStrt = controller.joints[ 'thumb-phalanx-proximal' ];
-    const object = collideObject( indexTip, thumbTip, indexStrt, thumbStrt );
-
-    if ( object ) {
-
-        thumbTip.attach( object );
-        
-        if (hand == 'left') {
-            lHeldObj = object;
-            if (object == rHeldObj) {
-                rHeldObj = undefined;
-            }
-            // If the remote grab is holding this, clear it
-            if (lHeldObj == otherPointObject) {
-                otherPointObject = undefined;
-                controller2.userData.selected = undefined;
-            }
-        }
-        else if (hand == 'right') {
-            rHeldObj = object;
-            if (object == lHeldObj) {
-                lHeldObj = undefined;
-            }
-            // If the remote grab is holding this, clear it
-            if (rHeldObj == pointObject) {
-                pointObject = undefined;
-                controller1.userData.selected = undefined;
-            }
-        }
-
-        controller.userData.selected = object;
-        // console.log( 'Selected', object );
-    }
-}
-
-function endGrab( controller, hand ) {
-
-    if ( controller.userData.selected != undefined ) {
-        const object = controller.userData.selected;
-
-        if (hand == 'left' && object != rHeldObj && lHeldObj != undefined && object != otherPointObject) {
-            lHeldObj = undefined;
-            scene.attach( object );
-            // Apply the throw velocity to the grabbed object
-            object.userData.velocity = velocityL;
-            velocityObjects.push( object );
-            rotationObjects.push( object );
-        }
-        else if (hand == 'right' && object != lHeldObj && rHeldObj != undefined && object != pointObject) {
-            rHeldObj = undefined;
-            scene.attach( object );
-            // Apply the throw velocity to the grabbed object
-            object.userData.velocity = velocityR;
-            velocityObjects.push( object );
-            rotationObjects.push( object );
-        }
-        controller.userData.selected = undefined;
-    }
-}
-
-function collideObject( indexTip, thumbTip, indexStrt, thumbStrt ) {
-    var attemptFailed = false;
-    try { // Raycast forward from the thumb and get the first object hit
-        var raycaster = new THREE.Raycaster();
-        raycaster.layers.set( 1 );
-        var thumbForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(thumbTip.quaternion);
-        raycaster.set(thumbStrt.getWorldPosition(new THREE.Vector3), thumbForward);
-        var intersects = raycaster.intersectObjects(scene.children);
-        var intersect = intersects[0];
-
-        // Draw a placeholder arrow to visualize the raycast
-        // placeholderArrow(raycaster, grabDistance, 0xff10d3);
-
-        // Check if the hit object is something we want to grab
-        if (intersect.object.userData.grabbable == "true" 
-            && intersect.distance <= grabDistance * 1) {
-            return intersect.object;
-        }
-    }
-    catch { // The ray didn't hit anything
-        attemptFailed = true;
-    }
-
-    // If the first ray failed, try a raycast based on the index finger instead.
-    if (attemptFailed == true) {
-        try {
-            var backupRaycaster = new THREE.Raycaster();
-            backupRaycaster.layers.set( 1 );
-            var indexForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexTip.quaternion);
-            backupRaycaster.set(indexStrt.getWorldPosition(new THREE.Vector3), indexForward);
-            var backupIntersects = backupRaycaster.intersectObjects(scene.children);
-            var backupIntersect = backupIntersects[0];
-
-            // Draw a placeholder arrow to visualize the raycast
-            // placeholderArrow(raycaster, grabDistance, 0xffffff);
-
-            // Check if the hit object is something we want to grab
-            if (backupIntersect.object.userData.grabbable == "true" 
-                && backupIntersect.distance <= grabDistance * 1.5) {
-                return backupIntersect.object;
-            }
-        }
-        catch { // The backup ray didn't hit anything either
-            // console.log("ERR: No Grabbable Found");
-        }
-        // Nothing succeeded, no valid hit results
-        return null;
-    }
-}
-
-
-
-
-
-var scaleStartDistance = 0;
-
-function tryScaleObjects() {
-    var touchedObject, otherTouchedObject;
-    var intersect, otherIntersect;
-    if (pointObject == undefined && otherPointObject == undefined && rHeldObj == undefined && lHeldObj == undefined) {
-
-        if (indexFingerTip1.position.distanceTo(middleFingerTip1.position) <= 0.04) {
-            try { // Raycast forward from the index and get the first object hit
-                var raycaster = new THREE.Raycaster();
-                raycaster.layers.set( 1 );
-                var indexPointForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexFingerTip1.quaternion);
-                raycaster.set(indexDis1.getWorldPosition(new THREE.Vector3), indexPointForward);
-                var intersects = raycaster.intersectObjects(scene.children);
-                intersect = intersects[0];
-
-                // Draw a placeholder arrow to visualize the raycast
-                // placeholderArrow(raycaster, grabDistance, 0x33ff77);
-
-                // Check if the hit object is something we want to scale
-                if (intersect.object.userData.grabbable == "true" 
-                    && intersect.distance <= grabDistance * 1) {
-                    touchedObject = intersect.object;
-                }
-            }
-            catch { // The ray didn't hit anything
-                
-            }
-        }
-
-        if (indexFingerTip1.position.distanceTo(middleFingerTip1.position) <= 0.04) {
-            try { // Raycast forward from the index and get the first object hit (second hand)
-                var otherRaycaster = new THREE.Raycaster();
-                otherRaycaster.layers.set( 1 );
-                var index2PointForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(indexFingerTip2.quaternion);
-                otherRaycaster.set(indexDis2.getWorldPosition(new THREE.Vector3), index2PointForward);
-                var otherIntersects = otherRaycaster.intersectObjects(scene.children);
-                otherIntersect = otherIntersects[0];
-
-                // Draw a placeholder arrow to visualize the raycast
-                // placeholderArrow(raycaster, grabDistance, 0xff7733);
-
-                // Check if the hit object is something we want to scale
-                if (otherIntersect.object.userData.grabbable == "true" 
-                    && otherIntersect.distance <= grabDistance * 1) {
-                    otherTouchedObject = otherIntersect.object;
-                }
-            }
-            catch { // The ray didn't hit anything
-                
-            }
-        }
-
-        // If both fingers are touching the same object, try scaling
-        if (touchedObject == otherTouchedObject && touchedObject != undefined) {
-            var distance = calculateDistance(intersect.point, otherIntersect.point);
-            var scale = mapDistanceToScale(distance);
-
-            if (scaleStartDistance == 0) {
-                scaleStartDistance = distance / touchedObject.scale.x;
-            }
-            
-            // const scaleFactor = distance / scaleStartDistance;
-
-            const scaleFactor = Math.min(Math.max(distance / scaleStartDistance, 0.25), 5);
-
-            touchedObject.scale.set(scaleFactor, scaleFactor, scaleFactor);
-        }
-        else {
-            scaleStartDistance = 0;
-        }
-    }
-}
-
-function calculateDistance(point1, point2) {
-    const dx = point1.x - point2.x;
-    const dy = point1.y - point2.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance;
-}
-
-function mapDistanceToScale(distance) {
-    // Adjust these values based on experimentation
-    const minDistance = 0.1;  // Minimum distance for scaling
-    const maxDistance = 1;    // Maximum distance for scaling
-    const minScale = 0.25;    // Minimum scale factor
-    const maxScale = 5.0;     // Maximum scale factor
-
-    // Map distance to scale within the specified range
-    const normalizedDistance = Math.min(Math.max(distance, minDistance), maxDistance);
-    const scaleFactor = (normalizedDistance - minDistance) / (maxDistance - minDistance);
-    const scaledValue = minScale + scaleFactor * (maxScale - minScale);
-
-    return scaledValue;
+function onPinchEndTwo( event ) {
+    isTwoPinching = false;
 }
 
 function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77, life = 50) {
@@ -3025,98 +2734,6 @@ function clamp(value, min, max) {
 
 
 
-var prevControllerPosL = new THREE.Vector3(0.0,0.0,0.0);
-var prevControllerPosR = new THREE.Vector3(0.0,0.0,0.0);
-var velocityL = new THREE.Vector3(0.0,0.0,0.0);
-var velocityR = new THREE.Vector3(0.0,0.0,0.0);
-
-const velocityDampen = 0.95;
-
-function calcControllerVelocity() {
-    // Calculate velocity of the left hand
-    if (controller1enabled) {
-        velocityL = new THREE.Vector3(
-        indexKnuckle1.position.x - prevControllerPosL.x,
-        indexKnuckle1.position.y - prevControllerPosL.y,
-        indexKnuckle1.position.z - prevControllerPosL.z);
-
-        prevControllerPosL.x = indexKnuckle1.position.x;
-        prevControllerPosL.y = indexKnuckle1.position.y;
-        prevControllerPosL.z = indexKnuckle1.position.z;
-    }
-
-    // Calculate velocity of the right hand
-    if (controller2enabled) {
-        velocityR = new THREE.Vector3(
-        indexKnuckle2.position.x - prevControllerPosR.x,
-        indexKnuckle2.position.y - prevControllerPosR.y,
-        indexKnuckle2.position.z - prevControllerPosR.z);
-
-        prevControllerPosR.x = indexKnuckle2.position.x;
-        prevControllerPosR.y = indexKnuckle2.position.y;
-        prevControllerPosR.z = indexKnuckle2.position.z;
-    }
-}
-
-
-function calcThrownObjs() {
-    // Check if a thrown object exists
-    if (velocityObjects.length > 0) {
-        for (var i = velocityObjects.length - 1; i >= 0; i--) {
-            var thrownObject = velocityObjects[i];
-
-            // Update the position based on the throw velocity
-            var thisVelocity = new THREE.Vector3(
-                thrownObject.userData.velocity.x,
-                thrownObject.userData.velocity.y,
-                thrownObject.userData.velocity.z
-            );
-
-            // Clamp the velocity and dampen it
-            thisVelocity.x *= velocityDampen;
-            thisVelocity.y *= velocityDampen;
-            thisVelocity.z *= velocityDampen;
-
-            // Add velocity to the object thrown
-            if (Math.abs(thisVelocity.x) > 0.0001 || Math.abs(thisVelocity.y) > 0.0001 || Math.abs(thisVelocity.z) > 0.0001) {
-                thrownObject.position.add(thisVelocity);
-            } else { // If the object has stopped moving, remove it from future calculations
-                velocityObjects.splice(i,1);
-            }
-            thrownObject.userData.velocity = thisVelocity;
-        }
-    }
-}
-
-
-function calcRotationObjs() {
-    // Check if any objects should be rotated
-    if (rotationObjects.length > 0) {
-        for (var i = rotationObjects.length -1; i >= 0; i--) {
-            var spinObject = rotationObjects[i];
-
-            if (spinObject.userData.targetQuaternion == undefined) {
-                spinObject.userData.targetQuaternion = new THREE.Quaternion().copy(camera.quaternion);
-            }
-
-            var targetQuaternion = spinObject.userData.targetQuaternion;
-
-            var step = 0.015;
-            spinObject.quaternion.rotateTowards(targetQuaternion, step);
-
-                // Get the rotation vector of the object facing the camera
-
-                // Rotate the object towards that destination vector
-
-                // If the object's rotation is close enough to the destination rotation, remove the object from the rotationObjects array
-    
-            if (spinObject.quaternion.equals(targetQuaternion)) {
-                rotationObjects.splice(i,1);
-                spinObject.userData.targetQuaternion = undefined;
-            }
-        }
-    }
-}
 
 
 
@@ -3175,7 +2792,9 @@ var curObjDir = new THREE.Vector3();
 var swipeRayLengthBase = 0.75;
 var rSwipeObj = undefined;
 
-
+var toolSelectorDotWorld = new THREE.Vector3();
+var curObjDir = new THREE.Vector3();
+var swipeInverter = 1;
 
 function startSwipe(object) {
     consoleLog("==== drag started on " + object + " ====", 0x5500aa);
@@ -3187,24 +2806,6 @@ function stopSwipe() {
     // consoleLog("==== drag stopped ====");
     rSwipeObj = undefined;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var toolSelectorDotWorld = new THREE.Vector3();
-var curObjDir = new THREE.Vector3();
-var swipeInverter = 1;
 
 function trySwipe() {
     if ( rSwipeObj != undefined ) {
@@ -3255,35 +2856,6 @@ function trySwipe() {
 
 
 
-
-
-
-
-let palm1NormalX, palm2NormalX, palm1NormalZ, palm2NormalZ;
-function initHandNormals() {
-    
-    const geo = new THREE.BoxGeometry( 0.0, 0.0, 0.0 );
-    const mat = new THREE.MeshBasicMaterial( {
-        color: Math.random() * 0xffffff
-    } );
-    palm2NormalX = new THREE.Mesh( geo, mat );
-    palm2NormalZ = new THREE.Mesh( geo, mat );
-
-    palm2NormalX.position.set( wrist2.position.x, wrist2.position.y, wrist2.position.z );
-    palm2NormalX.rotation.set( wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z );
-    palm2NormalZ.position.set( wrist2.position.x, wrist2.position.y, wrist2.position.z );
-    palm2NormalZ.rotation.set( wrist2.rotation.x, wrist2.rotation.y, wrist2.rotation.z );
-
-    scene.add( palm2NormalX );
-    wrist2.attach( palm2NormalX );
-    scene.add( palm2NormalZ );
-    wrist2.attach( palm2NormalZ );
-
-    palm2NormalX.translateX( 0.3 );
-    palm2NormalZ.translateZ( 0.3 );
-
-    // console.log("intialized: " + palm2NormalX);
-}
 
 
 
@@ -3346,8 +2918,6 @@ function repositionWorld() {
 
     renderer.xr.setReferenceSpace( teleportSpaceOffset );
 }
-
-// repositionWorld();
 
 var recenterTimer = 0.0;
 var recenterThreshold = 2;
@@ -3509,6 +3079,7 @@ document.querySelector('#upload').addEventListener('input',function() {
         console.log(fr.result);
         quedWorkspace = JSON.parse(fr.result);
         uploadedWorkspace = true;
+        indicateLoaded();
     }
 
     fr.onerror = () => {
@@ -3608,6 +3179,7 @@ function loadWorkspace() {
             child.parent.attach( newText );
             newText.position.set( child.position.x, child.position.y, child.position.z );
             newText.rotation.set( child.rotation.x, child.rotation.y, child.rotation.z );
+            newText.scale.set( child.scale.x, child.scale.y, child.scale.z );
             newText.text = child.userData.text;
             newText.fontSize = child.userData.fontSize;
             newText.color = child.userData.color;
@@ -3672,8 +3244,9 @@ function loadWorkspace() {
                 // pendingPreviewTextUpdate.push()
             }
 
-            if (child.userData.name == "header") {
+            if (child.name == "header") {
                 child.parent.userData.header = newText;
+                console.log(child.parent.userData);
             }
 
             pendingRemove.push(child);
@@ -3704,10 +3277,9 @@ function loadWorkspace() {
             child.parent.userData.handlebar = child;
         }
 
-        // May need to add a calculation for previewText and header inside userData
-        // ...for the reader distance slider.
-        // ...also for "handlebar"?
-        // group userData: handle, header, previewText all need to be set to their new text objects
+        if (child.userData.type == "focusBG") {
+            child.parent.userData.focusBG = child;
+        }
  
     });
 
@@ -3815,15 +3387,27 @@ function loadWorkspace() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 var libraryTitle, libraryAuthor, libraryYear, libraryAbstract;
 const library = new THREE.Group();
 
 function initLibrary(source) {
 
-    // library.position.set( sphereHelper.position.x, sphereHelper.position.y, sphereHelper.position.z );
-    // library.rotation.set( sphereHelper.rotation.x, sphereHelper.rotation.y, sphereHelper.rotation.z );
-    // library.scale.set( sphereHelper.scale.x, sphereHelper.scale.y, sphereHelper.scale.z );
     sphereHelper.add(library);
+
+    initRays(sphereHelper);
     
     fetch('./library-acm22.json')
     .then((response) => response.json())
@@ -3864,8 +3448,6 @@ function initLibrary(source) {
         myText.curveRadius = -myText.position.z;
 
         myText.sync();
-
-        // console.log(json.documents[i]);
 
         }
 
@@ -3913,7 +3495,7 @@ function initLibrary(source) {
         library.add(libraryAbstract);
         libraryAbstract.text = "";
         libraryAbstract.anchorY = 'top';
-        libraryAbstract.maxWidth = 0.015;
+        libraryAbstract.maxWidth = 0.010;
         libraryAbstract.fontSize = 0.0002;
         libraryAbstract.color = 0xffffff;
         libraryAbstract.position.set(0.0003, 0.004, -0.02);
@@ -3924,6 +3506,67 @@ function initLibrary(source) {
 
     });
 
+}
+
+
+function establishLibrary() {
+    if (uploadedWorkspace) {
+        toggleLibrary('close');
+        menuMode = 0;
+    } else {
+        toggleLibrary('open');
+    }
+}
+
+
+var rayGeo = new THREE.PlaneGeometry(0.01, 0.01);
+var rayMat = new THREE.MeshBasicMaterial( {
+        map: new THREE.TextureLoader().load(
+            './ray-1.png'
+    ),
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false
+} );
+var allRays = [];
+
+function initRays(parent) {
+    
+    var rayCount = 7;
+
+    for (var i = rayCount - 1; i >= 0; i--) {
+        var ray = new THREE.Mesh( rayGeo, rayMat );
+        parent.add(ray);
+        // ray.quaternion.set(Math.random(),Math.random(),Math.random(),Math.random());
+        ray.rotation.x = Math.random() * (3 + 3) - 3;
+        ray.rotation.y = Math.random() * (3 + 3) - 3;
+        ray.rotation.z = Math.random() * (3 + 3) - 3;
+        // ray.position.set(Math.random(-0.0001, 0.0001),Math.random(-0.0001, 0.0001),Math.random(-0.0001, 0.0001));
+        ray.position.x = Math.random() * (0.001 + 0.001) - 0.001;
+        ray.position.y = Math.random() * (0.001 + 0.001) - 0.001;
+        ray.position.z = Math.random() * (0.001 + 0.001) - 0.001;
+        var newscale = Math.random() * (8 - 7) + 7;
+        ray.scale.set(newscale,newscale,newscale);
+        var speed = Math.random() * (0.01 - 0.001) + 0.001;
+        ray.userData.speed = speed;
+
+        allRays.push(ray);
+    }
+
+    
+
+}
+
+
+function animateRays() {
+    // if (menuMode == 99) {
+    for (var i = allRays.length - 1; i >= 0; i--) {
+        var ray = allRays[i];
+        var speed = ray.userData.speed;
+
+        ray.rotateZ(-speed);
+    }
+    // }
 }
 
 
@@ -3942,9 +3585,11 @@ function initLibrary(source) {
 
 
 
-
-
-
+function indicateLoaded() {
+    // display a message on the main page that shows that the page is loaded
+    $('#loaderping').css("animation-name", "loaderpinganim");
+    $('#workspacenotification').css("animation-name", "notificationanim");
+}
 
 
 
@@ -3983,11 +3628,6 @@ $('#urlin').change(function(){
 
 
 
-function changeURL() {
-    
-}
-
-
 
 
 
@@ -4023,15 +3663,12 @@ if ( WebGL.isWebGLAvailable() ) {
     renderer.setAnimationLoop( function () {
         timer.update();
         deltaTime = timer.getDelta();
+        animateRays();
 
         if (renderer.xr.isPresenting && !firstInit && loadDelay > 0) {
             // When the VR mode is first launched
             browserSphereTransitionSetup();
         }
-
-        calcControllerVelocity();
-        // calcThrownObjs();
-        // calcRotationObjs();
 
         // ===== ONLY RUN AFTER CONTROLLERS ARE INITIALIZED ===== //
         if (controller1enabled && controller2enabled) {
@@ -4039,8 +3676,6 @@ if ( WebGL.isWebGLAvailable() ) {
 
             if (!firstInit && loadDelay <= 0) { // This runs once after the user is inside VR
                 firstInit = true;
-                // fetchMap();
-                initHandNormals();
                 initMenu();
                 initTools();
                 initconsoleLog();
@@ -4051,12 +3686,11 @@ if ( WebGL.isWebGLAvailable() ) {
                 secondInit = true;
                 setToolPositions();
                 repositionWorld();
-                toggleLibrary('open');
+                establishLibrary();
+                // toggleLibrary('open');
             }
 
             if (firstInit && secondInit) { // This runs every frame after first initialization
-                // tryRemoteGrab();
-                // tryScaleObjects();
                 trySwipe();
                 tryMenu();
                 tryBtns();
@@ -4065,8 +3699,9 @@ if ( WebGL.isWebGLAvailable() ) {
 
                 animateCitationLines();
                 animateconsoleLog();
+                // animateRays();
 
-                // consoleLog("MenuMode = " + menuMode);
+                // consoleLog(camera.rotation.y);
             }
 
         };
@@ -4089,18 +3724,58 @@ if ( WebGL.isWebGLAvailable() ) {
 
 }
 
-// Animate the doc for testing
+// Animate an object for testing
 function testAnim(object,n=0.2) {
     object.rotation.x -= n * deltaTime;
     object.rotation.y -= n * deltaTime;
 }
 
-// Call the loadPDF function with your PDF URL
-// loadPDF('../3511095.3531286.pdf');
-var pageNum = 10;
-// timeout();
-
 // Move some stuff around for the test layout
 camera.position.z = 1;
-// camera.rotation.z = 32;
-// camera.rotation.y = 0.2;
+
+
+
+
+
+
+
+
+// BUGS:
+// Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
+
+// NOTES:
+// popup menu to change snap distance
+// larger selection zone for each button
+// tags and sticky notes for document content
+// pass info to llm (chatgpt or claude) and return
+// word wrap for citation block
+// Save files are way too large - find a way to trim troika text geometry
+// redesign energy lines
+// read entire document content
+// slightly darker background everywhere
+// change text of "upload Library" to "upload workspace"
+// remove links from citation page?
+// focused objects popups should focus as well
+// multiple focused objects at once
+// close popup menu by tapping anywhere
+// library generates in a backward order?
+// history feature
+
+
+// WIP:
+
+
+// COMPLETE THIS UPDATE:
+// reduced max width on library abstract
+// adjusted menu start position
+// use the default 'select' function for pinching rather than a custom distance check - improves reliability
+// loading workspace skips the library screen - opens directly into the workspace
+// indicator when a workspace is done loading
+// changed styling of the upload library button to make it clearer
+// popup menu to move document into or out of 'focus'
+// 'focus' snap view distance that can hold one active document
+// loading documents from the library 'focus' them
+// rotate library so it is always facing the user when it opens
+// Orange energy lines in the library view - plan to redesign these in the future
+// Favicon added to page
+// save and load system for focused objects

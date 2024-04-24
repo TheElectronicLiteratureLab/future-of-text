@@ -1,109 +1,3 @@
-#upload-button {
-  width: 150px;
-  display: block;
-  margin: 20px auto;
-}
-
-#file-to-upload {
-  display: none;
-}
-
-#pdf-main-container {
-/*  width: 400px;*/
-  margin: 20px auto;
-}
-
-#pdf-loader {
-  display: none;
-  text-align: center;
-  color: #999999;
-  font-size: 13px;
-  line-height: 100px;
-  height: 100px;
-}
-
-#pdf-contents {
-  display: none;
-}
-
-#pdf-meta {
-  overflow: hidden;
-  margin: 0 0 20px 0;
-}
-
-#pdf-buttons {
-  float: left;
-  z-index: 999;
-}
-
-#page-count-container {
-  float: right;
-}
-
-#pdf-current-page {
-  display: inline;
-}
-
-#pdf-total-pages {
-  display: inline;
-}
-
-#pdf-canvas {
-  border: 1px solid rgba(0,0,0,0.2);
-  box-sizing: border-box;
-}
-
-#page-loader {
-  height: 100px;
-  line-height: 100px;
-  text-align: center;
-  display: none;
-  color: #999999;
-  font-size: 13px;
-}
-
-#text-layer { 
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  opacity: 0.2;
-  line-height: 1.0;
-}
-
-#text-layer > div {
-  color: transparent;
-  position: absolute;
-  white-space: pre;
-  cursor: text;
-  transform-origin: 0% 0%;
-}
-
-.placeholder {
-	position: fixed;
-	width: 6px;
-	height: 6px;
-  transform: translate(-3px,-3px);
-	background: magenta;
-	top: 0px;
-	left: 0px;
-	z-index: 999;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*#VRButton::before {
   background: red;
@@ -152,12 +46,106 @@
 
 
 
-/*#urlsidebar {
-  position: fixed;
-  right: 0;
-}*/
 
 #fileupload {
   position: fixed;
   bottom: 0;
+}
+
+#fileupload > label {
+  display:block;
+  background: white;
+  outline: 1px black solid;
+  border-radius: 3px;
+  text-align: center;
+  width:150px;
+  height:30px;
+  padding-top: 10px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+#fileupload > label:hover {
+  outline: 2px black solid;
+}
+
+#upload {
+  display: none;
+}
+
+
+
+
+
+
+
+
+
+#indicators {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+}
+
+#loaderping {
+  background: #e78900;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  opacity: 0;
+/*  animation-name: loaderpinganim;*/
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+.notification {
+  color: #c3c3c3;
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  top: 50px;
+  font-size: 1.5em;
+  font-family: sans-serif;
+}
+
+#workspacenotification {
+  opacity: 0;
+/*  animation-name: notificationanim;*/
+  animation-duration: 1.5s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+@keyframes loaderpinganim {
+  0% {
+    opacity: 0;
+    transform: scale(1.0);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.0);
+  }
+}
+
+@keyframes notificationanim {
+  0% {
+    opacity: 0;
+    transform: translateY(0px);
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
 }

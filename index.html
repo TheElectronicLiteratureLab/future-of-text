@@ -5,6 +5,7 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 		<script type="module" src="./main.js"></script>
 		<link rel="stylesheet" href="./styles.css">
+		<link rel="icon" type="image/x-icon" href="./favicon.ico">
 		<meta charset="utf-8">
 		<title>alpha41624</title>
 		<style>
@@ -13,8 +14,12 @@
 	</head>
 	<body>
 		<form id="fileupload">
-			<label for="upload">workspace upload</label>
+			<label for="upload">Upload Workspace</label>
 			<input id="upload" name="upload" type="file">
 		</form>
+		<section id="indicators">
+			<p class="notification" id="workspacenotification">Workspace Loaded</p>
+			<div id="loaderping"></div>
+		</section>
 	</body>
 </html>
