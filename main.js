@@ -79,6 +79,7 @@ const _zforward = new THREE.Vector3( 0, 0, 1 );
 
 var debugMode = false;
 const readerStartDistance = 2;
+const closeEnough = 0.1;
 
 // Rotation order
 camera.rotation.order = 'YXZ';
@@ -1043,7 +1044,7 @@ function tryPointer() {
                 }
 
                 if (rSwipeObj == undefined) {
-                    tryPointerOver(intersect);
+                    tryPointerOver(intersect.object);
                 }
 
             } else {
@@ -1068,7 +1069,7 @@ function tryPointer() {
                         toolSelectorDotFX.material.opacity = 1;
                     });
 
-                tryPointerSelect(intersect);
+                tryPointerSelect(intersect.object);
 
             } else if (!isTwoPinching && tempSelectorActive) {
                 tempSelectorActive = false;
@@ -1184,18 +1185,18 @@ function disablePreviews(group) {
 }
 
 
-function tryPointerOver(intersect) {
+function tryPointerOver(object) {
     // console.log(intersect);
     // Show connection lines, if applicable
-    if (intersect.object.userData.lines != undefined) {
-        const lines = intersect.object.userData.lines;
+    if (object.userData.lines != undefined) {
+        const lines = object.userData.lines;
         for (var i = lines.length - 1; i >= 0; i--) {
             lines[i].visible = true;
             linesToHide.push(lines[i]);
         }
     // For the library, update the preview text
-    } else if (intersect.object.userData.type == "librarydoc") {
-        var object = intersect.object;
+    } else if (object.userData.type == "librarydoc") {
+        var object = object;
 
         if (libraryTitle.text != object.userData.title) {
             libraryTitle.text = object.userData.title;
@@ -1204,8 +1205,8 @@ function tryPointerOver(intersect) {
             libraryAbstract.text = object.userData.abstract;
         }
     // When pointing at a handle, tween it
-    } else if (intersect.object.userData.type == "handle") {
-        var handlebar = intersect.object.userData.handlebar;
+    } else if (object.userData.type == "handle") {
+        var handlebar = object.userData.handlebar;
 
         if (handlebar != undefined && handlebar.userData.fullOpen != true) {
             handlebar.userData.fullOpen = true;
@@ -1226,12 +1227,12 @@ function tryPointerOver(intersect) {
             }
         }
     // When pointing at a preview text block, hide it and show the individual texts instead
-    } else if (intersect.object.userData.type == "preview") {
-        if (intersect.object.parent.userData.previewText != undefined && intersect.object.parent.userData.previewText.visible != false) {
+    } else if (object.userData.type == "preview") {
+        if (object.parent.userData.previewText != undefined && intersect.object.parent.userData.previewText.visible != false) {
             
             tryResetPreviews();
 
-            disablePreviews(intersect.object.parent);
+            disablePreviews(object.parent);
 
             // consoleLog("Preview text toggled off");
         }
@@ -1239,23 +1240,23 @@ function tryPointerOver(intersect) {
 }
 
 
-function tryPointerSelect(intersect) {
-    if (intersect.object.userData.type == "citation") {
-        popupMenu(intersect.object);
-    } else if (intersect.object.userData.type == "popup-find") {
-        var target = intersect.object.userData.target;
+function tryPointerSelect(object) {
+    if (object.userData.type == "citation") {
+        popupMenu(object);
+    } else if (object.userData.type == "popup-find") {
+        var target = object.userData.target;
         var tempTextResult = target.text.slice(1).split(']')[0];
         var tempSource = target.userData.source;
         findCitation(tempSource, tempTextResult, target);
         popupMenu(undefined);
         consoleLog("POPUP: Find " + tempTextResult, 0x555555);
-    } else if (intersect.object.userData.type == "popup-close") {
+    } else if (object.userData.type == "popup-close") {
         popupMenu(undefined);
         consoleLog("POPUP: Close", 0x555555);
-    } else if (intersect.object.userData.type == "popup-detach" || intersect.object.userData.type == "popup-clone") {
-        var thisfunction = intersect.object.userData.type.slice(6,99);
+    } else if (object.userData.type == "popup-detach" || object.userData.type == "popup-clone") {
+        var thisfunction = object.userData.type.slice(6,99);
 
-        var target = intersect.object.userData.target;
+        var target = object.userData.target;
 
         var oldGroup = target.parent;
 
@@ -1363,10 +1364,10 @@ function tryPointerSelect(intersect) {
         } else if (thisfunction == "clone"){
             consoleLog("POPUP: Cloned", 0x555555);
         }
-    } else if (intersect.object.userData.type == "popup-attach" || intersect.object.userData.type == "popup-return") {
-        var thisfunction = intersect.object.userData.type.slice(6,99);
+    } else if (object.userData.type == "popup-attach" || object.userData.type == "popup-return") {
+        var thisfunction = object.userData.type.slice(6,99);
 
-        var target = intersect.object.userData.target;
+        var target = object.userData.target;
         var oldGroup = target.userData.detachedParent;
         var newGroup = target.parent;
         console.log(target);
@@ -1447,14 +1448,14 @@ function tryPointerSelect(intersect) {
         } else if (thisfunction == "return") {
             consoleLog("POPUP: Returned", 0x555555);
         }
-    } else if (intersect.object.userData.type == "handle") {
+    } else if (object.userData.type == "handle") {
         tryResetPreviews();
-        startSwipe(intersect.object);
+        startSwipe(object);
         popupMenu(undefined);
-    } else if (intersect.object.userData.type == "reference") {
-        popupMenu(intersect.object, "reference");
-    } else if (intersect.object.userData.type == "popup-remove") {
-        var target = intersect.object.userData.target;
+    } else if (object.userData.type == "reference") {
+        popupMenu(object, "reference");
+    } else if (object.userData.type == "popup-remove") {
+        var target = object.userData.target;
 
         if (target.userData.lines != undefined) {
             const lines = target.userData.lines;
@@ -1469,8 +1470,8 @@ function tryPointerSelect(intersect) {
         workspace.remove(target.parent);
         popupMenu(undefined);
         consoleLog("POPUP: Remove", 0x555555);
-    } else if (intersect.object.userData.type == "popup-connections-show") {
-        var target = intersect.object.userData.target;
+    } else if (object.userData.type == "popup-connections-show") {
+        var target = object.userData.target;
         target.userData.persistentLines = true;
         // linesToHide = [];
 
@@ -1484,8 +1485,8 @@ function tryPointerSelect(intersect) {
 
         popupMenu(undefined);
         consoleLog("POPUP: Show Connections", 0x555555);
-    } else if (intersect.object.userData.type == "popup-connections-hide") {
-        var target = intersect.object.userData.target;
+    } else if (object.userData.type == "popup-connections-hide") {
+        var target = object.userData.target;
         target.userData.persistentLines = undefined;
         if (target.userData.lines != undefined) {
             const lines = target.userData.lines;
@@ -1496,12 +1497,12 @@ function tryPointerSelect(intersect) {
         }
         popupMenu(undefined);
         consoleLog("POPUP: Hide Connections", 0x555555);
-    } else if (intersect.object.userData.type == "popup-mark") {
-        var target = intersect.object.userData.target;
+    } else if (object.userData.type == "popup-mark") {
+        var target = object.userData.target;
         popupMenu(target, "markup");
-    } else if (intersect.object.userData.type == "popup-color") {
-        var target = intersect.object.userData.target;
-        var color = intersect.object.userData.color;
+    } else if (object.userData.type == "popup-color") {
+        var target = object.userData.target;
+        var color = object.userData.color;
         target.outlineWidth = 0.01;
         target.userData.outlineWidth = target.outlineWidth;
         // target.outlineOpacity = 0.7;
@@ -1509,25 +1510,90 @@ function tryPointerSelect(intersect) {
         target.userData.outlineColor = target.outlineColor;
         // target.color = color;
         popupMenu(undefined);
-    } else if (intersect.object.userData.type == "popup-unmark") {
-        var target = intersect.object.userData.target;
+    } else if (object.userData.type == "popup-unmark") {
+        var target = object.userData.target;
         target.userData.hasMarkup = undefined;
         target.outlineWidth = 0;
         target.userData.outlineWidth = undefined;
         target.userData.outlineColor = undefined;
         popupMenu(undefined);
-    } else if (intersect.object.userData.type == "librarydoc" && menuMode == 99) {
-        var source = intersect.object.userData.source;
-        loadTextBlock(source);
+    } else if (object.userData.type == "librarydoc" && menuMode == 99) {
+        var source = object.userData.source;
+        const title = object.userData.title;
+        const author = object.userData.author;
+        // loadTextBlock(source);
+        findDocumentContent(source,title,author);
         toggleLibrary('close');
         menuMode = 0;
-    } else if (intersect.object.userData.type == "popup-focus") {
-        var target = intersect.object.userData.target;
+    } else if (object.userData.type == "popup-focus") {
+        var target = object.userData.target;
         focusThis(target.parent);
         popupMenu(undefined);
-    } else if (intersect.object.userData.type == "popup-unfocus") {
-        var target = intersect.object.userData.target;
+    } else if (object.userData.type == "popup-unfocus") {
+        var target = object.userData.target;
         unfocusThis(target.parent);
+        popupMenu(undefined);
+    } else if (object.userData.type == "clipTop") {
+        tryResetPreviews();
+        startSwipe(object, "clipTop");
+        popupMenu(undefined);
+    } else if (object.userData.type == "clipBot") {
+        tryResetPreviews();
+        startSwipe(object, "clipBot");
+        popupMenu(undefined);
+    } else if (object.userData.type == "clipTopGrip") {
+        tryResetPreviews();
+        startSwipe(object, "clipTopGrip");
+        popupMenu(undefined);
+    } else if (object.userData.type == "clipBotGrip") {
+        tryResetPreviews();
+        startSwipe(object, "clipBotGrip");
+        popupMenu(undefined);
+    } else if (object.userData.type == "scrollNub") {
+        tryResetPreviews();
+        startSwipe(object, "scroll");
+        popupMenu(undefined);
+    } else if (object.userData.type == "scrollDown" || object.userData.type == "scrollUp") {
+        const docGroup = object.parent;
+        const totalHeight = docGroup.userData.totalHeight;
+        const clippingStart = docGroup.userData.clippingStart;
+        const clippingEnd = docGroup.userData.clippingEnd;
+
+        var scrollValue = {scroll: docGroup.userData.scrollPercent};
+        var scrollPercent;
+
+        if (object.userData.type == "scrollDown") {
+            scrollPercent = clamp(docGroup.userData.scrollPercent - (((clippingEnd.position.y - clippingStart.position.y) / totalHeight) / 2),0,1);
+        } else if (object.userData.type == "scrollUp") {
+            scrollPercent = clamp(docGroup.userData.scrollPercent + (((clippingEnd.position.y - clippingStart.position.y) / totalHeight) / 2),0,1);
+        }
+
+        docGroup.userData.scrollPercent = scrollPercent;
+
+        const scrollTween = new TWEEN.Tween( scrollValue )
+        .to( { scroll: scrollPercent }, 400 )
+        .easing( TWEEN.Easing.Cubic.InOut )
+        .start()
+        .onUpdate(() => {
+            consoleLog('Scrolling... ' + scrollValue.scroll);
+            docGroup.userData.scrollPercent = scrollValue.scroll;
+            scrollDocument(docGroup);
+            reclipDocument(docGroup);
+        });
+
+        popupMenu(undefined);
+    } else if (object.userData.type == "background") {
+        const nearby = object.userData.nearby;
+        for (var i = nearby.length - 1; i >= 0; i--) {
+            nearby[i].getWorldPosition(tempWorldPos);
+            toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+            var howfar = toolSelectorDotWorld.distanceTo(tempWorldPos) / nearby[i].parent.scale.x;
+            if (howfar <= closeEnough) {
+                tryPointerSelect(nearby[i]);
+                consoleLog(i);
+                break;
+            }
+        }
         popupMenu(undefined);
     }
 }
@@ -1538,6 +1604,7 @@ function tryPointerSelect(intersect) {
 
 
 var newPopup;
+var tempWorldPos = new THREE.Vector3();
 
 var popupMat = new THREE.MeshStandardMaterial({ 
     color: 0x7c7c7c,
@@ -1779,7 +1846,6 @@ function popupMenu(target, variation = "citation") {
         popupItems.push(popupClose);
 
         // display and position popup
-        var tempWorldPos = new THREE.Vector3();
         toolSelectorDot.getWorldPosition(tempWorldPos);
         newPopup.position.set( tempWorldPos.x, tempWorldPos.y, tempWorldPos.z );
 
@@ -2194,13 +2260,13 @@ function displayTextBlock(head, text, source) {
         tempText.addEventListener("synccomplete", function passHandle() {
             totalPostInstance++;
             if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
-                createHandleTimeout(tempText, true);
+                createHandleTimeout(tempText, "useParentY");
                 var allTexts = this.parent.userData.textBlock;
                 for (var i = allTexts.length - 1; i >= 0; i--) {
                     allTexts[i]._listeners = undefined;
                     allTexts[i].visible = false;
                 }
-                focusThisTimout(textGroup);
+                // focusThisTimout(textGroup);
             }
         });
 
@@ -2230,6 +2296,413 @@ function displayTextBlock(head, text, source) {
     snapDistanceOne.push(textGroup);
 
 }
+
+
+
+
+
+
+
+var destinationClippingStart = 0;
+var destinationClippingEnd = -2.0;
+var documentMaxWidth = 1.25;
+
+
+function findDocumentContent(url,title=" ",author=" ") {
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'html',
+        success: function(data) {
+            var $html = $(data);
+            generateDocumentContent($html,title,author);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching HTML: ', error);
+        }
+    });
+}
+ 
+
+
+       
+
+function generateDocumentContent(content,title,author) {
+    var allHeaders = [];
+    var fullText = [];
+    // var title = content.find('.title').first().text();
+    // var authors = content.find('.authorGroup').first().text().replace(/( )+/g, ' ');
+    console.log(author);
+    var body = content.find('.body').first();
+    var baseText = body.text();
+
+    var headers = body.find('header');
+    headers.each(function() {
+        allHeaders.push($(this).text());
+    });
+
+    for (var i = 0; i <= allHeaders.length - 1; i++) {
+        var result = baseText.split(allHeaders[i]);
+        fullText.push(result[0]);
+        fullText.push(allHeaders[i]);
+        baseText = result[1];
+    }
+    fullText.push(baseText);
+    fullText.splice(0,1,author);
+    fullText.splice(0,0,title);
+    // console.log(fullText);
+
+    let docGroup = new THREE.Group();
+    let txtGroup = new THREE.Group();
+    txtGroup.userData.type = "txtgroup";
+    docGroup.userData.textBlock = [];
+    docGroup.userData.txtGroup = txtGroup;
+    docGroup.userData.type = "document";
+    scene.add(docGroup);
+    docGroup.add(txtGroup);
+
+    let specialReaderOffset = Math.random(0.001, -0.001);
+    docGroup.userData.specialReaderOffset = specialReaderOffset;
+
+    generateDocumentContentStep(docGroup, fullText, 0);
+
+}
+
+
+
+function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined) {
+
+    const tempBox = new THREE.Box3().setFromObject(docGroup);
+    tempBox.getSize(tempSize);
+    var totalHeight = tempSize.y;
+    docGroup.userData.totalHeight = totalHeight;
+
+    // set the bounds for clipRect of the previous text
+    if (lastText != undefined) {
+        lastText.userData.bounds = [lastText.position.y, -totalHeight];
+    }
+
+    let specialReaderOffset = docGroup.userData.specialReaderOffset;
+    const txtGroup = docGroup.userData.txtGroup;
+
+    if (fullText[i] != undefined) {
+
+        let newText = new Text();
+        txtGroup.add(newText);
+        
+        // newText.position.set( 0, 0.0, -snapDistanceOneValue - specialReaderOffset );
+        newText.position.set(0, -totalHeight, 0);
+
+        newText.text = fullText[i];
+        newText.color = 0x000000;
+        newText.anchorX = 'left';
+        newText.anchorY = 'top';
+        newText.maxWidth = documentMaxWidth;
+        newText.textAlign = 'justify';
+        newText.curveRadius = snapDistanceOneValue + specialReaderOffset;
+        newText.position.z = - snapDistanceOneValue - specialReaderOffset;
+
+        newText.userData.specialReaderOffset = docGroup.userData.specialReaderOffset;
+        newText.userData.type = 'doccontent';
+        newText.userData.text = newText.text;
+        newText.userData.color = newText.color;
+        newText.userData.anchorX = newText.anchorX;
+        newText.userData.anchorY = newText.anchorY;
+        newText.userData.maxWidth = newText.maxWidth;
+        newText.userData.textAlign = newText.textAlign;
+        newText.userData.curveRadius = newText.curveRadius;
+
+
+        docGroup.userData.textBlock.push(newText);
+
+        // newText.outlineWidth = 1;
+        // newText.outlineColor = 0xffffff * Math.random();
+
+        if (i == 0 ) {
+            newText.fontSize = 0.05;
+            newText.fontWeight = 'bold';
+            newText.fontWeight = newText.fontWeight;
+        } else if (i == 1 ) {
+            newText.fontSize = 0.03;
+        } else if (i % 2 > 0) {
+            newText.fontSize = 0.02;
+        } else {
+            newText.fontSize = 0.035;
+        }
+        newText.userData.fontSize = newText.fontSize;
+
+        let iteration = i + 1;
+
+        if (iteration <= fullText.length) {
+            // console.log(newText);
+            newText.userData.sync = 'generateDocumentContent';
+            newText.userData.syncDocGroup = docGroup;
+            newText.userData.syncFullText = fullText;
+            newText.userData.syncIteration = iteration;
+            syncCheck.push(newText);
+        }
+
+        newText.sync();
+    } else {
+        // We have generated the last text
+
+        // Add top/bottom border lines for visualization
+        const borderGeo = new THREE.CylinderGeometry(
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+            0.01, 32, 1, true, -0.005,
+            (documentMaxWidth + 0.11) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            );
+
+        const borderBox = new THREE.CylinderGeometry(
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+            0.03, 32, 1, true, (documentMaxWidth + 0.1) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)/4,
+            (documentMaxWidth + 0.1) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)/2
+            );
+        const topBorder = new THREE.Mesh( borderGeo, boundingMat );
+        docGroup.add(topBorder);
+        topBorder.scale.set(1,1,-1);
+        topBorder.position.y = destinationClippingStart;
+        topBorder.layers.enable( 3 );
+        topBorder.userData.type = "clipTop";
+        const botBorder = new THREE.Mesh( borderGeo, boundingMat );
+        docGroup.add(botBorder);
+        botBorder.scale.set(1,1,-1);
+        botBorder.position.y = destinationClippingEnd;
+        botBorder.layers.enable( 3 );
+        botBorder.userData.type = "clipBot";
+
+        const topBox = new THREE.Mesh( borderBox, boundingMat );
+        topBorder.add(topBox);
+        topBox.position.y = 0.015;
+        topBox.layers.enable( 3 );
+        topBox.userData.type = "clipTopGrip";
+        const botBox = new THREE.Mesh( borderBox, boundingMat );
+        botBorder.add(botBox);
+        botBox.position.y = -0.015;
+        botBox.layers.enable( 3 );
+        botBox.userData.type = "clipBotGrip";
+
+        docGroup.userData.clippingStart = topBorder;
+        docGroup.userData.clippingEnd = botBorder;
+
+        // Create a scrollbar
+        const scrollCir = new THREE.BoxGeometry(0.03,0.15,0.03);
+        const scrollNub = new THREE.Mesh( scrollCir, boundingMat );
+        const scrollBox = new THREE.BoxGeometry(0.005,1,0.005);
+        const scrollBar = new THREE.Mesh( scrollBox, boundingMat );
+
+        const clippingStart = docGroup.userData.clippingStart.position.y;
+        const clippingEnd = docGroup.userData.clippingEnd.position.y;
+
+        docGroup.add(scrollBar);
+        docGroup.add(scrollNub);
+        docGroup.userData.scrollNub = scrollNub;
+        docGroup.userData.scrollBar = scrollBar;
+        scrollNub.layers.enable( 3 );
+        scrollNub.userData.type = "scrollNub";
+        scrollBar.userData.type = "scrollBar";
+        docGroup.userData.scrollPercent = 0;
+       
+        scrollNub.rotation.y = (documentMaxWidth + 0.1) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollNub.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
+        scrollNub.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+
+        scrollBar.rotation.y = scrollNub.rotation.y;
+        scrollBar.position.set( scrollNub.position.x, scrollNub.position.y, scrollNub.position.z );
+
+        // Create scroll buttons
+        const scrollBtnGeo = new THREE.CircleGeometry( 0.03, 3 );
+        const scrollUp = new THREE.Mesh( scrollBtnGeo, boundingMat );
+        const scrollDown = new THREE.Mesh( scrollBtnGeo, boundingMat );
+        docGroup.add(scrollUp);
+        docGroup.add(scrollDown);
+
+        scrollUp.rotation.y = (documentMaxWidth + 0.05) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollUp.position.y = clippingStart - 0.07;
+        scrollUp.rotation.z = Math.PI/2;
+        scrollUp.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+        docGroup.userData.scrollUp = scrollUp;
+        scrollUp.layers.enable( 3 );
+        scrollUp.userData.type = "scrollUp";
+
+        scrollDown.rotation.y = (documentMaxWidth + 0.05) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollDown.position.y = clippingEnd + 0.07;
+        scrollDown.rotation.z = -Math.PI/2;
+        scrollDown.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+        docGroup.userData.scrollDown = scrollDown;
+        scrollDown.layers.enable( 3 );
+        scrollDown.userData.type = "scrollDown";
+
+        // Create background
+        const backgroundGeo = new THREE.CylinderGeometry(
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.001),
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.001),
+            1, 32, 1, true, -0.005,
+            (documentMaxWidth + 0.11) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            );
+
+        const background = new THREE.Mesh( backgroundGeo, focusBGmat );
+        docGroup.add(background);
+        background.scale.set(1,clippingEnd - clippingStart,-1);
+        background.position.y = destinationClippingStart + (clippingEnd - clippingStart)/2;
+        background.layers.enable( 3 );
+        docGroup.userData.background = background;
+        background.userData.type = "background";
+        background.userData.nearby = [scrollUp, scrollDown, scrollNub];
+
+        // Final organization and presentation of the document
+
+        scrollDocument(docGroup);
+
+        createHandle(lastText, "document");
+
+        reclipDocument(docGroup);
+
+        // focusThisTimout(docGroup);
+
+        workspace.add(docGroup);
+        
+    }
+}
+
+
+let syncCheck = [];
+function trySync() {
+
+    if (syncCheck.length > 0) {
+        for (var i = syncCheck.length - 1; i >= 0; i--) {
+            // console.log(syncCheck[i]._needsSync + ' | ' + syncCheck[i]._isSyncing);
+            if (!syncCheck[i]._needsSync && !syncCheck[i]._isSyncing) {
+
+                let funct = syncCheck[i].userData.sync;
+
+                if (funct == 'generateDocumentContent') {
+                    var docGroup = syncCheck[i].userData.syncDocGroup;
+                    var fullText = syncCheck[i].userData.syncFullText;
+                    var iteration = syncCheck[i].userData.syncIteration;
+                    generateDocumentContentStep(docGroup, fullText, iteration, syncCheck[i]);
+                    syncCheck[i].userData.syncDocGroup = undefined;
+                    syncCheck[i].userData.syncFullText = undefined;
+                    syncCheck[i].userData.syncIteration = undefined;
+                    syncCheck.splice(i,1);
+                }
+
+            }
+        }
+    }
+
+}
+
+
+
+function reclipDocument(docGroup) {
+
+    const textBlock = docGroup.userData.textBlock;
+    var clippingStart = docGroup.userData.clippingStart.position.y;
+    var clippingEnd = docGroup.userData.clippingEnd.position.y;
+    const scrollBar = docGroup.userData.scrollBar;
+    const scrollNub = docGroup.userData.scrollNub;
+    const scrollPercent = docGroup.userData.scrollPercent;
+    const totalHeight = docGroup.userData.totalHeight;
+    const handle = docGroup.userData.handle;
+    const scrollUp = docGroup.userData.scrollUp;
+    const scrollDown = docGroup.userData.scrollDown;
+    const background = docGroup.userData.background;
+
+    // scrollBar.position.set(documentMaxWidth + 0.1, (clippingEnd - clippingStart)/2 + clippingStart, 0);
+    scrollBar.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
+    var scrollScale = clippingEnd - clippingStart;
+    var scrollClamp = clamp(scrollScale, 0.5, 50);
+    scrollBar.scale.y = scrollScale;
+    scrollNub.scale.set(scrollClamp,1,scrollClamp);
+
+    if (handle != undefined) {
+        handle.position.y = scrollBar.position.y;
+        handle.scale.y = scrollScale;
+    }
+
+    var scrollPos = lerp( scrollPercent, clippingStart - 0.1, clippingEnd + 0.1 );
+    scrollNub.position.y = scrollPos;
+
+    scrollUp.position.y = clippingStart - 0.07;
+    scrollDown.position.y = clippingEnd + 0.07;
+
+    background.scale.y = clippingEnd - clippingStart;
+    background.position.y = clippingStart + (clippingEnd - clippingStart)/2;
+
+    clippingStart = clippingStart - (totalHeight * scrollPercent);
+    clippingEnd = clippingEnd - (totalHeight * scrollPercent);
+
+    for (var i = textBlock.length - 1; i >= 0; i--) {
+
+        var thisText = textBlock[i];
+        var bounds = thisText.userData.bounds;
+
+        if ( clippingStart <= bounds[0] && bounds[1] <= clippingEnd) {
+            // The clipping both starts and ends in this text
+            thisText.clipRect = [0, clippingEnd-bounds[0], documentMaxWidth, clippingStart-bounds[0]];
+            // thisText.outlineWidth = 1;
+
+        } else if ( clippingStart <= bounds[0] && bounds[1] <= clippingStart ) {
+            // The clipping starts in the middle of this text
+            thisText.clipRect = [0, bounds[1]-bounds[0], documentMaxWidth, clippingStart-bounds[0]];
+
+        } else if ( clippingEnd <= bounds[0] && bounds[1] <= clippingEnd ) {
+            // The clipping ends in the middle of this text
+            thisText.clipRect = [0, clippingEnd-bounds[0], documentMaxWidth, 0];
+
+        } else if ( clippingStart >= bounds[0] && bounds[1] >= clippingEnd ) {
+            // The text is within both clipping bounds
+            thisText.clipRect = [0, bounds[1]-bounds[0], documentMaxWidth, 0];
+
+        } else {
+            thisText.clipRect = [0, 0, documentMaxWidth, 0];
+        }
+
+    }
+
+}
+
+
+
+function scrollDocument(docGroup) {
+    // const scrollNub = docGroup.userData.scrollNub;
+    const scrollPercent = docGroup.userData.scrollPercent;
+    // const textBlock = docGroup.userData.textBlock;
+    const txtGroup = docGroup.userData.txtGroup;
+    // const clippingStart = docGroup.userData.clippingStart;
+    // const clippingEnd = docGroup.userData.clippingEnd;
+    const totalHeight = docGroup.userData.totalHeight;
+
+    // console.log(totalHeight * scrollPercent);
+    txtGroup.position.y = totalHeight * scrollPercent;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2294,42 +2767,47 @@ function focusThis(object) {
     snapDistanceFocus.push(object);
 
     // calculate width & height
-    changeDistance(object, 1);
+    if (object.userData.type != "document") {
 
-    rememberedFocusRotation = object.rotation.y;
-    object.rotation.set(0,0,0);
+        changeDistance(object, 1);
 
-    if (object.userData.previewText != undefined) {
-        var previewText = object.userData.previewText;
-        previewText.curveRadius = 0;
+        rememberedFocusRotation = object.rotation.y;
+        object.rotation.set(0,0,0);
+
+        if (object.userData.previewText != undefined) {
+            var previewText = object.userData.previewText;
+            previewText.curveRadius = 0;
+        }
+
+        const tempTarget = object.userData.previewText;
+        // tempTarget.fontWeight = "bold";
+        const tempBox = new THREE.Box3().setFromObject(object);
+        tempBox.getSize(tempSize);
+        var height = tempSize.y + 0.1;
+        var width = tempSize.x + 0.22;
+        // tempTarget.fontWeight = "normal";
+        console.log(width);
+
+        // add a solid background
+        const focusBGgeo = new THREE.CylinderGeometry( 1 + 0.01, 1 + 0.01, height, 32, 1, true, -0.12, width/2);
+        const focusBG = new THREE.Mesh( focusBGgeo, focusBGmat );
+        object.add(focusBG);
+        focusBG.scale.set(1,1,-1);
+        focusBG.translateY(-height/2 + 0.04 + 0.05);
+        focusBG.layers.enable( 3 );
+        focusBG.userData.type = "focusBG";
+
+        // set userdata of focusBG
+        object.userData.focusBG = focusBG;
+
+        // reset the rotation back to what it was before calculations
+        object.rotation.y = rememberedFocusRotation;
+
+        // set the distance and curve radius to snapDistanceFocusValue
+        changeDistance(object, snapDistanceFocusValue);
     }
 
-    const tempTarget = object.userData.previewText;
-    // tempTarget.fontWeight = "bold";
-    const tempBox = new THREE.Box3().setFromObject(object);
-    tempBox.getSize(tempSize);
-    var height = tempSize.y + 0.1;
-    var width = tempSize.x + 0.22;
-    // tempTarget.fontWeight = "normal";
-    console.log(width);
-
-    // add a solid background
-    const focusBGgeo = new THREE.CylinderGeometry( 1 + 0.01, 1 + 0.01, height, 32, 1, true, -0.12, width/2);
-    const focusBG = new THREE.Mesh( focusBGgeo, focusBGmat );
-    object.add(focusBG);
-    focusBG.scale.set(1,1,-1);
-    focusBG.translateY(-height/2 + 0.04 + 0.05);
-    focusBG.layers.enable( 3 );
-    focusBG.userData.type = "focusBG";
-
-    // set userdata of focusBG
-    object.userData.focusBG = focusBG;
-
-    // reset the rotation back to what it was before calculations
-    object.rotation.y = rememberedFocusRotation;
-
-    // set the distance and curve radius to snapDistanceFocusValue
-    changeDistance(object, snapDistanceFocusValue);
+    
 
     // change the scale so it is a bit smaller
     object.scale.set(0.3, 0.3, 0.4);
@@ -2447,20 +2925,35 @@ function startPos(mesh) {
 
 
 
+const boundingMat = new THREE.MeshBasicMaterial({
+        color: 0x555555,
+        transparent: false,
+        opacity: 0.5,
+        side: THREE.DoubleSide
+    });
+const invisMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    visible: false
+});
 
-
-
-
-function createHandleTimeout(object, useParentY = false, delay = 500) {
-    setTimeout(() => {createHandle(object, useParentY)},delay);
+function createHandleTimeout(object, variant = undefined, delay = 500) {
+    setTimeout(() => {createHandle(object, variant)},delay);
 }
 
-function createHandle(object, useParentY = false) {
+function createHandle(object, variant = undefined) {
     var width = 0.10;
+    var clippingStart, clippingEnd;
 
-    const tempBox = new THREE.Box3().setFromObject(object.parent);
-    tempBox.getSize(tempSize);
-    var height = tempSize.y;
+    if (variant != "document") {
+        const tempBox = new THREE.Box3().setFromObject(object.parent);
+        tempBox.getSize(tempSize);
+        var height = tempSize.y;
+    } else if (variant == "document") {
+        clippingStart = object.parent.parent.userData.clippingStart.position.y;
+        clippingEnd = object.parent.parent.userData.clippingEnd.position.y;
+        // var height = (-clippingEnd + clippingStart);
+        var height = 1;
+    }
 
     if (height <= 0.00001 ) {
         height = 0.027;
@@ -2469,35 +2962,33 @@ function createHandle(object, useParentY = false) {
     const boundingGeo = new THREE.PlaneGeometry( width, height );
     // const boundingWire = new THREE.EdgesGeometry( boundingGeo, 90 );
     // const boundingLine = new THREE.LineSegments( boundingWire );
-    var boundingMat = new THREE.MeshBasicMaterial({
-        color: 0x555555,
-        transparent: false,
-        opacity: 0.5,
-        side: THREE.DoubleSide
-    });
-    var invisMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        visible: false
-    });
     const boundingMesh = new THREE.Mesh( boundingGeo, invisMat );
     const childMesh = new THREE.Mesh( boundingGeo, boundingMat );
 
-    workspace.add( boundingMesh );
+    if (variant != "document") {
+        object.parent.add( boundingMesh );
+        object.parent.userData.handle = boundingMesh;
+    } else if (variant == "document") {
+        object.parent.parent.add( boundingMesh );
+        object.parent.parent.userData.handle = boundingMesh;
+    }
+
     boundingMesh.add( childMesh );
-    object.parent.attach( boundingMesh );
     boundingMesh.layers.enable( 3 );
     boundingMesh.userData.layers = 3;
     boundingMesh.userData.type = "handle";
     childMesh.userData.type = "handlebar";
-    object.parent.userData.handle = boundingMesh;
     boundingMesh.userData.handlebar = childMesh;
+    
 
     childMesh.scale.x = 0.1;
     childMesh.translateX( 0.045 );
     childMesh.translateZ( 0.001 );
 
-    if ( useParentY ) {
+    if ( variant == "useParentY" ) {
         boundingMesh.position.set( object.position.x, object.parent.position.y - height/2 + 0.036, object.position.z );
+    } else if ( variant == "document" ) {
+        boundingMesh.position.set( object.position.x, object.parent.parent.position.y + clippingStart + (clippingEnd - clippingStart)/2, object.position.z );
     } else {
         boundingMesh.position.set( object.position.x, object.position.y - height/2 - 0.002, object.position.z );
     }
@@ -2708,6 +3199,10 @@ function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
+function lerp(alpha, a, b) {
+    return a + alpha * ( b - a );
+}
+
 
 
 
@@ -2791,14 +3286,26 @@ var wrist2Roll, wrist2Pitch;
 var curObjDir = new THREE.Vector3();
 var swipeRayLengthBase = 0.75;
 var rSwipeObj = undefined;
+var rSwipeVar = 0;
 
 var toolSelectorDotWorld = new THREE.Vector3();
 var curObjDir = new THREE.Vector3();
 var swipeInverter = 1;
 
-function startSwipe(object) {
+function startSwipe(object, type = undefined) {
     consoleLog("==== drag started on " + object + " ====", 0x5500aa);
-    rSwipeObj = object.parent;
+    rSwipeVar = type;
+    if (type == undefined) {
+        rSwipeObj = object.parent;
+    } else if (type == "clipTop" || type == "clipBot") {
+        rSwipeObj = object;
+        rSwipeVar = "clip";
+    } else if (type == "clipTopGrip" || type == "clipBotGrip") {
+        rSwipeObj = object.parent;
+        rSwipeVar = "clip";
+    } else if (type == "scroll") {
+        rSwipeObj = object;
+    }
 }
 
 
@@ -2806,6 +3313,8 @@ function stopSwipe() {
     // consoleLog("==== drag stopped ====");
     rSwipeObj = undefined;
 }
+
+var swipeClipLock = false;
 
 function trySwipe() {
     if ( rSwipeObj != undefined ) {
@@ -2817,34 +3326,83 @@ function trySwipe() {
         toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
 
         // Vertical movement
-        if (!offsetPositionY) {
+        if (rSwipeVar == undefined || rSwipeVar == "clip" || rSwipeVar == "scroll") {
+            if (!offsetPositionY) {
+                offsetPositionY = toolSelectorDotWorld.y;
+            }
+
+            var movement = toolSelectorDotWorld.y - offsetPositionY;
+            var scale = 1;
+
+            if (rSwipeVar == "clip" || rSwipeVar == "scroll") {
+                const docGroup = rSwipeObj.parent;
+                const clippingStart = docGroup.userData.clippingStart;
+                const clippingEnd = docGroup.userData.clippingEnd;
+                const scrollNub = docGroup.userData.scrollNub;
+
+                // consoleLog(clippingStart.position.y - clippingEnd.position.y + movement);
+
+                if (rSwipeObj == clippingStart && 
+                    clippingStart.position.y - clippingEnd.position.y + movement < 0.3) {
+                        rSwipeObj.position.y = clippingEnd.position.y + 0.3;
+                        movement = 0;
+                } else if (rSwipeObj == clippingEnd &&
+                    clippingStart.position.y - clippingEnd.position.y - movement < 0.3) {
+                        rSwipeObj.position.y = clippingStart.position.y - 0.3;
+                        movement = 0;
+                } else if (rSwipeObj == scrollNub &&
+                    clippingStart.position.y - scrollNub.position.y - movement < 0.1) {
+                        rSwipeObj.position.y = clippingStart.position.y - 0.1;
+                        movement = 0;
+                } else if (rSwipeObj == scrollNub &&
+                    scrollNub.position.y - clippingEnd.position.y + movement < 0.1) {
+                        rSwipeObj.position.y = clippingEnd.position.y + 0.1;
+                        movement = 0;
+                }
+
+                scale = rSwipeObj.parent.scale.x;
+
+                // update scroll percentage
+                if (rSwipeObj == scrollNub) {
+                    var scrollPercent = norm( rSwipeObj.position.y, clippingStart.position.y - 0.1, clippingEnd.position.y + 0.1 );
+                    docGroup.userData.scrollPercent = scrollPercent;
+                    scrollDocument(docGroup);
+                    reclipDocument(docGroup);
+                    // consoleLog(scrollPercent);
+                }
+
+            }
+
+            if (movement) {
+                rSwipeObj.position.y += movement / scale;
+            }
+
             offsetPositionY = toolSelectorDotWorld.y;
+            
         }
-
-        var movement = toolSelectorDotWorld.y - offsetPositionY;
-
-        if (movement) {
-            rSwipeObj.position.y += movement;
-        }
-
-        offsetPositionY = toolSelectorDotWorld.y;
 
         // Horizontal movement
-        curObjDir.subVectors(toolSelectorDotWorld, rSwipeObj.position).normalize();
-        var angle = Math.atan2(curObjDir.x, curObjDir.z);
+        if (rSwipeVar == undefined) {
+            curObjDir.subVectors(toolSelectorDotWorld, rSwipeObj.position).normalize();
+            var angle = Math.atan2(curObjDir.x, curObjDir.z);
 
-        if (!offsetAngle) {
+            if (!offsetAngle) {
+                offsetAngle = angle;
+            }
+
+            var rotation = angle - offsetAngle;
+
+            if (rotation) {
+                rSwipeObj.rotation.y += rotation * swipeInverter;
+                rSwipeObj.userData.swipeRot = rSwipeObj.rotation.y;
+            }
+
             offsetAngle = angle;
         }
 
-        var rotation = angle - offsetAngle;
-
-        if (rotation) {
-            rSwipeObj.rotation.y += rotation * swipeInverter;
-            rSwipeObj.userData.swipeRot = rSwipeObj.rotation.y;
+        if (rSwipeVar == "clip") {
+            reclipDocument(rSwipeObj.parent);
         }
-
-        offsetAngle = angle;
 
     }
     else if (offsetPositionY || offsetAngle) {
@@ -3188,6 +3746,14 @@ function loadWorkspace() {
             newText.curveRadius = child.userData.curveRadius;
             newText.visible = child.visible;
 
+            if (child.userData.textAlign != undefined) {
+                newText.textAlign = child.textAlign;
+            }
+
+            if (child.userData.clipRect != undefined) {
+                newText.clipRect = child.userData.clipRect;
+            }
+
             if (child.userData.lineHeight != undefined) {
                 newText.lineHeight = child.userData.lineHeight;
             }
@@ -3215,12 +3781,9 @@ function loadWorkspace() {
             }
 
             if (child.parent.userData.textBlock != undefined && child.userData.type == "citation") {
-                // var textBlock = child.parent.userData.textBlock;
-                // var index = textBlock.indexOf(child);
-                // textBlock.splice(index, 1, newText);
-                // splice doesn't work, because the index fails to find the indexOf
                 child.parent.userData.textBlock.push(newText);
-                // console.log(child.parent.userData.textBlock);
+            } else if (child.parent.parent.userData.textBlock != undefined && child.userData.type == "doccontent") {
+                child.parent.parent.userData.textBlock.push(newText);
             }
 
             if (child.userData.lines != undefined) {
@@ -3260,11 +3823,11 @@ function loadWorkspace() {
             }
 
             if (child.userData.textBlock != undefined) {
-                // var tempTextBlock = child.userData.textBlock;
                 child.userData.textBlock = [];
-                // for (var i = tempTextBlock.length - 1; i >= 0; i--) {
-                //     child.userData.textBlock.push(tempTextBlock[i].object);
-                // }
+            }
+
+            if (child.userData.type == "txtgroup") {
+                child.parent.userData.txtGroup = child;
             }
 
         }
@@ -3280,6 +3843,39 @@ function loadWorkspace() {
         if (child.userData.type == "focusBG") {
             child.parent.userData.focusBG = child;
         }
+
+        if (child.userData.type == "clipTop") {
+            child.parent.userData.clippingStart = child;
+        }
+
+        if (child.userData.type == "clipBot") {
+            child.parent.userData.clippingEnd = child;
+        }
+
+        if (child.userData.type == "scrollNub") {
+            child.parent.userData.scrollNub = child;
+        }
+
+        if (child.userData.type == "scrollBar") {
+            child.parent.userData.scrollBar = child;
+        }
+
+        if (child.userData.type == "scrollUp") {
+            child.parent.userData.scrollUp = child;
+        }
+
+        if (child.userData.type == "scrollDown") {
+            child.parent.userData.scrollDown = child;
+        }
+
+        if (child.userData.type == "background") {
+            child.parent.userData.background = child;
+            if (child.userData.nearby != undefined) {
+                child.userData.nearby = [];
+            }
+        }
+        
+
  
     });
 
@@ -3371,12 +3967,9 @@ function loadWorkspace() {
                 catch { }
             }
 
-
-            // if (child.name != "workspace") {
-            //     disablePreviews(child);
-            // }
-
-
+            if (child.userData.type == "document") {
+                reclipDocument(child);
+            }
 
         }
 
@@ -3664,6 +4257,7 @@ if ( WebGL.isWebGLAvailable() ) {
         timer.update();
         deltaTime = timer.getDelta();
         animateRays();
+        trySync();
 
         if (renderer.xr.isPresenting && !firstInit && loadDelay > 0) {
             // When the VR mode is first launched
@@ -3734,7 +4328,8 @@ function testAnim(object,n=0.2) {
 camera.position.z = 1;
 
 
-
+// findDocumentContent('./_ref/htconference/2022/3511095.3531270.html','Placeholder Title','Author Name');
+// sphereHelper.visible=false;
 
 
 
@@ -3751,9 +4346,8 @@ camera.position.z = 1;
 // word wrap for citation block
 // Save files are way too large - find a way to trim troika text geometry
 // redesign energy lines
-// read entire document content
 // slightly darker background everywhere
-// change text of "upload Library" to "upload workspace"
+
 // remove links from citation page?
 // focused objects popups should focus as well
 // multiple focused objects at once
@@ -3764,18 +4358,8 @@ camera.position.z = 1;
 
 // WIP:
 
-
 // COMPLETE THIS UPDATE:
-// reduced max width on library abstract
-// adjusted menu start position
-// use the default 'select' function for pinching rather than a custom distance check - improves reliability
-// loading workspace skips the library screen - opens directly into the workspace
-// indicator when a workspace is done loading
-// changed styling of the upload library button to make it clearer
-// popup menu to move document into or out of 'focus'
-// 'focus' snap view distance that can hold one active document
-// loading documents from the library 'focus' them
-// rotate library so it is always facing the user when it opens
-// Orange energy lines in the library view - plan to redesign these in the future
-// Favicon added to page
-// save and load system for focused objects
+// change text of "upload Library" to "upload workspace"
+// full document (with minimal styling) can be read in the headset - includes scroll controls and document bounds
+// save/load workspace now supports documents
+// library loads in full document view by default
