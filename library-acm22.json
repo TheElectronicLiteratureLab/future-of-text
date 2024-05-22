@@ -1,9 +1,9 @@
 {
   "library": "ACM Hypertext 2022 Library",
-  "version": 1,
+  "version": 1.2,
   "user": "Andrew Thompson",
   "generator": "objgen.com",
-  "generatedOn": "2024-04-03T00:00:00.000Z",
+  "generatedOn": "2024-05-16T00:00:00.000Z",
   "documents": [
     {
       "title": "Towards Proactively Forecasting Sentence-Specific Information Popularity within Online News Documents",
@@ -23,7 +23,53 @@
             "Sentence Popularity Forecasting",
             "Sentence Salience Prediction",
             "Supervised Transfer Learning"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Sayar Ghosh Roy",
+            "Anshul Padhi",
+            "Risubh Jain",
+            "Manish Gupta",
+            "Vasudeva Varma"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -46,7 +92,54 @@
             "domain variation",
             "adaptation",
             "instant weighting"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Xiaolei Huang",
+            "Alexandra Wormley",
+            "Adam Cohen"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -67,7 +160,47 @@
             "Horror",
             "World Wide Web",
             "Literary Hypertext"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Mark Bernstein",
+            "Stee McMorris"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -96,7 +229,71 @@
             "keywording",
             "visualisation",
             "analysis"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Mark Anderson",
+            "David Millard"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -104,7 +301,8 @@
       "title": "The Impact of Non-Verbalization in Think-Aloud: Understanding Knowledge Gain Indicators Considering Think-Aloud Web Searches",
       "author": [
         "Marcelo Tibau",
-        "Sean Wolfgand Matsui Siqueira",
+        "Sean Wolfgand",
+        "Matsui Siqueira",
         "Bernardo Pereira Nunes"
       ],
       "year": "2022",
@@ -118,7 +316,55 @@
             "knowledge gain indicators",
             "hypertext theory",
             "Web search"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Marcelo Tibau",
+            "Sean Wolfgand",
+            "Matsui Siqueira",
+            "Bernardo Pereira Nunes"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -143,7 +389,62 @@
             "Visual Impairment",
             "Accessibility",
             "Assistive Technology"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Hae-Na Lee",
+            "Yash Prakash",
+            "Mohan Sunkara",
+            "I.V. Ramakrishnan",
+            "Vikas Ashok"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -152,7 +453,8 @@
       "author": [
         "Caglar Demir",
         "Julian Lienen",
-        "Axel-Cyrille Ngonga Ngomo"
+        "Axel-Cyrille",
+        "Ngonga Ngomo"
       ],
       "year": "2022",
       "source": "./_ref/htconference/2022/3511095.3531276.html",
@@ -163,7 +465,49 @@
             "Knowledge Graph Embedding",
             "Kronecker Decomposition",
             "Link Prediction"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Caglar Demir",
+            "Julian Lienen",
+            "Axel-Cyrille",
+            "Ngonga Ngomo"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -184,7 +528,48 @@
             "multilingual",
             "detection",
             "social media"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Mithun Das",
+            "Somnath Banerjee",
+            "Animesh Mukherjee"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -201,10 +586,56 @@
         {
           "isFavorite": false,
           "keywords": [
-            "Recommender Systems; Carousel-based interface; Human-AI collaboration",
+            "Recommender Systems",
+            "Carousel-based interface",
+            "Human-AI collaboration",
             "Navigability",
             "Click Models"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Behnam Rahdari",
+            "Branislav Kveton",
+            "Peter Brusilovsky"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -224,7 +655,44 @@
             "multilingual retrieval",
             "social media",
             "emergency management"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Fedor Vitiugin",
+            "Carlos Castillo"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -247,7 +715,56 @@
             "professional development",
             "algorithm aversion",
             "justification"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Lijie Guo",
+            "Christopher Flathmann",
+            "Reza Anaraky",
+            "Nathan McNeese",
+            "Bart Knijnenburg"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -271,7 +788,58 @@
             "Crowdsourcing",
             "Human Computation",
             "Corpus Annotation"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Sara Salimzadeh",
+            "Ujwal Gadiraju",
+            "Claudia Hauff",
+            "Arie van Deursen"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -292,7 +860,49 @@
             "social media",
             "vaccination movements",
             "textual analysis"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Marcelo Sartori Locatelli",
+            "Josemar Caetano",
+            "Wagner Meira Jr.",
+            "Virgilio Almeida"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -313,7 +923,49 @@
             "Knowledge Graph Embedding",
             "Link Prediction",
             "Non-Injective Relations"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Jinxing Yu",
+            "Yunfeng Cai",
+            "Mingming Sun",
+            "Ping Li"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -331,14 +983,44 @@
             "Hypertext",
             "Links",
             "Literary Hypertext"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Sam Brooker"
+          ],
+          "namesPosY": [
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
     {
       "title": "The Effects of Spatial Visualization versus Ranked Lists on Quality, Time Efficiency, and Interaction",
       "author": [
-        "Daniel Roßner",
+        "Daniel Robner",
         "Claus Atzenbeck",
         "Tom Gross"
       ],
@@ -354,7 +1036,54 @@
             "spatial layout",
             "ranked list",
             "user study"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Daniel Robner",
+            "Claus Atzenbeck",
+            "Tom Gross"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -377,7 +1106,54 @@
             "Machine learning",
             "Genetic programming",
             "Multi expression programming"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Kevin Dressler",
+            "Mohamed Ahmed Sherif",
+            "Axel-Cyrille Ngonga Ngomo"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -400,7 +1176,55 @@
             "influencer marketing",
             "Instagram",
             "Facebook"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Emanuelle Azevedo Martins",
+            "Isadora Salles",
+            "Fabricio Benevenuto",
+            "Olga Goussevskaia"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -421,7 +1245,48 @@
             "sensors",
             "topic detection",
             "data mining"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Luigi Di Caro",
+            "Claudio Schifanella",
+            "Mario Cataldi"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -441,7 +1306,44 @@
             "Decentralization",
             "Blockchain",
             "AI for Social Media"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Barbara Guidi",
+            "Laura Ricci"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -473,7 +1375,80 @@
             "digital humanities",
             "adaptive hypertext",
             "intercultural aspects"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Claus Atzenbeck",
+            "Jessica Rubart"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -495,7 +1470,50 @@
             "Authoring Tools",
             "Narrative Games",
             "Interactive Narrative"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Charlie Hargood",
+            "David Millard"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -517,7 +1535,49 @@
             "peer review",
             "article abstract",
             "authorship attribution"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Salim Sazzed"
+          ],
+          "namesPosY": [
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -539,7 +1599,49 @@
             "physical media",
             "Visual-Meta",
             "Metaverse"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Frode Hegland"
+          ],
+          "namesPosY": [
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -559,51 +1661,107 @@
           "isFavorite": false,
           "keywords": [
             "web",
-            "dominant",
-            "epistemic",
             "environment",
-            "beliefs",
             "global",
-            "scale",
             "online",
-            "polluted",
-            "impairing",
             "societies",
-            "ability",
-            "coordinate",
-            "effectively",
-            "face",
             "crises",
             "centralized",
             "platforms",
-            "source",
             "pollution",
-            "healthier",
-            "redesigning",
-            "collectively",
-            "govern",
-            "attention",
-            "inspired",
             "decentralization",
             "open source software",
-            "movements",
-            "propose",
-            "Open Source Attention",
             "socio-technical",
-            "framework",
-            "freeing",
             "human",
-            "control",
-            "decentralized",
             "ecosystem",
-            "creating",
-            "storing",
-            "querying",
             "stigmergic",
-            "markers",
-            "digital",
-            "traces"
-          ]
+            "digital"
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Ronen Tamari",
+            "Daniel Friedman",
+            "William Fischer",
+            "Lauren Hebert",
+            "Dafna Shahaf"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -624,7 +1782,47 @@
             "Twitter",
             "Multimodal Framework",
             "2022 Ukrainian Refugee Crisis"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Aparup Khatua",
+            "Wolfgang Nejdl"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -650,7 +1848,63 @@
             "storytelling",
             "long-distance relationships",
             "hypertext"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Claus Atzenbeck",
+            "Mark Bernstein",
+            "Sarah Diefenbach"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -678,7 +1932,70 @@
             "biases",
             "longitudinal study",
             "pandemic"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Afra Mashhadi",
+            "Sana Suse",
+            "Susan Ammiri",
+            "Spencer Wood"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -697,7 +2014,40 @@
             "Social Media",
             "Politics",
             "War"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Mark Bernstein"
+          ],
+          "namesPosY": [
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -720,7 +2070,49 @@
             "hypertext models",
             "mobile guides",
             "Cultural Heritage"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Afra Mashhadi",
+            "Sana Suse",
+            "Susan Ammiri",
+            "Spencer Wood"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -740,7 +2132,43 @@
             "sentiment analysis",
             "sentiment lexicon",
             "context sensitivity"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Salim Sazzed"
+          ],
+          "namesPosY": [
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -764,7 +2192,61 @@
             "Google Play",
             "Dark Patterns",
             "Fraud"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Ashwin Singh",
+            "Arvindh Arun",
+            "Pulak Malhotra",
+            "Pooja Desur",
+            "Ayushi Jain",
+            "Duen Horng Chau",
+            "Ponnurangam Kumaraguru"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -786,7 +2268,51 @@
             "personalization",
             "user modeling",
             "social media"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Stefano Cresci",
+            "Amaury Trujillo",
+            "Tiziano Fagni"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -809,7 +2335,54 @@
             "Information Behaviour",
             "Search",
             "Hypertext"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Dana McKay",
+            "Stephann Makri",
+            "George Buchanan"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -831,7 +2404,52 @@
             "Crisis",
             "Information Warfare",
             "Information Divide"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Ehsan-Ul Haq",
+            "Gareth Tyson",
+            "Tristan Braud",
+            "Pan Hui"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -849,7 +2467,37 @@
             "digital ownership",
             "distributed ledger technology",
             "non-fungible tokens"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Amaury Trujillo"
+          ],
+          "namesPosY": [
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -874,7 +2522,63 @@
             "misinformation",
             "fake news",
             "politics"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Manoel Júnior",
+            "Philipe Melo",
+            "Daniel Kansaon",
+            "Vitor Mafra",
+            "Kaio Sa",
+            "Fabricio Benevenuto"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -902,7 +2606,75 @@
             "Early Electoral Ads",
             "Political Advertisement",
             "Propaganda"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Marcelo M. R. Araújo",
+            "Samuel Guimarães",
+            "Marcio Silva",
+            "Josemar Caetano",
+            "Jonatas Santos",
+            "Julio C. S. Reis",
+            "Ana P. C. Silva",
+            "Fabricio Benevenuto",
+            "Jussara M. Almeida"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     },
@@ -927,7 +2699,62 @@
             "youtube",
             "regression discontinuity",
             "fake news"
-          ]
+          ],
+          "keywordsPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "keywordsDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "names": [
+            "Gabriel Luis Santos Freire",
+            "Tales Panoutsos",
+            "Lucas Perez",
+            "Fabricio Benevenuto",
+            "Flavio Figueiredo"
+          ],
+          "namesPosY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesRotY": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "namesDist": [
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000",
+            "0.000"
+          ],
+          "titlePosY": "0.000",
+          "titleRotY": "0.000",
+          "titleDist": "0.000"
         }
       ]
     }

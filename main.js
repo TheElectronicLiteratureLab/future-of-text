@@ -8,6 +8,33 @@ import { Text, getCaretAtPoint, getSelectionRects } from 'troika-three-text';
 import { Timer } from 'three/addons/misc/Timer.js';
 import TWEEN from '@tweenjs/tween.js';
 
+// Palette ================================================================================
+// Main environment background color
+    const _colorBGmain = 0xbbbbbb;
+// Library background and prism menu color
+    const _colorBGmenu = 0x5c5c5c;
+// Focus and document background color
+    const _colorBGread = 0xeeeeee;
+// Highlight point light color
+    const _colorLIhigh = 0xffbd66;
+// Main directional light color
+    const _colorLImain = 0xffffff;
+// Library text color
+    const _colorTXlibr = 0xffffff;
+// Main body text color
+    const _colorTXmain = 0x000000;
+// Popup menu text color
+    const _colorTXpopu = 0xffffff;
+// Document menu bar text color
+    const _colorTXmbar = 0xeeeeee;
+// Popup menu background color
+    const _colorBGpopu = 0x7c7c7c;
+// Debug log text color
+    const _colorTXclog = 0xffffff;
+// Text markup highlight colors
+    const _colorHImark = [0xE6DE54, 0x4FE362, 0x55BBE6, 0xE08DE5, 0xE6556F];
+
+
 // Set up the scene and camera for three.js
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -21,13 +48,13 @@ const timer = new Timer();
 var deltaTime;
 
 // Create and add a light to the scene
-const topLight = new THREE.DirectionalLight( 0xC3E3F0, Math.PI * 0.15 );
+const topLight = new THREE.DirectionalLight( _colorLIhigh, Math.PI * 0.15 );
 scene.add( topLight );
 topLight.position.x = 50;
 topLight.position.z = 30;
 
 // Create a center light and add it to the scene
-const centerLight = new THREE.PointLight( 0xffffff, 1, Math.PI * 0.2 );
+const centerLight = new THREE.PointLight( _colorLImain, 1, Math.PI * 0.2 );
 centerLight.distance = 100;
 scene.add( centerLight );
 centerLight.position.y = -0.25;
@@ -52,7 +79,7 @@ window.addEventListener('resize', () => {
 });
 
 // Set background
-scene.background = new THREE.Color ( 0xdddddd );
+scene.background = new THREE.Color ( _colorBGmain );
 
 // Add a floor axis for testing
 var floorAxisGeo = new THREE.PlaneGeometry(0.5, 0.5);
@@ -133,13 +160,13 @@ const menuGroup = new THREE.Group();
 
 var menuGeo = new THREE.CylinderGeometry( 0.1, 0.1, 0.6, 3, 1, false );
 var menuMat = new THREE.MeshStandardMaterial({ 
-    color: 0x7c7c7c,
+    color: _colorBGmenu,
     transparent: false,
     opacity: 0.75,
     roughness: 0.32,
     metalness: 0.1,
     normalScale: new THREE.Vector2( 1, 1 ),
-    emissive: 0xeeeeee,
+    emissive: _colorBGmenu,
     emissiveIntensity: 0.1,
     normalMap: normalNone
 });
@@ -1228,7 +1255,7 @@ function tryPointerOver(object) {
         }
     // When pointing at a preview text block, hide it and show the individual texts instead
     } else if (object.userData.type == "preview") {
-        if (object.parent.userData.previewText != undefined && intersect.object.parent.userData.previewText.visible != false) {
+        if (object.parent.userData.previewText != undefined && object.parent.userData.previewText.visible != false) {
             
             tryResetPreviews();
 
@@ -1241,6 +1268,7 @@ function tryPointerOver(object) {
 
 
 function tryPointerSelect(object) {
+    consoleLog("Select: " + object.userData.type);
     if (object.userData.type == "citation") {
         popupMenu(object);
     } else if (object.userData.type == "popup-find") {
@@ -1595,6 +1623,105 @@ function tryPointerSelect(object) {
             }
         }
         popupMenu(undefined);
+    } else if (object.userData.type == "menubarTags") {
+        consoleLog("Menubar: Tags");
+        popupMenu(undefined);
+    } else if (object.userData.type == "menubarRead") {
+        // consoleLog("Menubar: Read");
+        const docGroup = object.parent.parent.parent;
+        docGroup.userData.outlineGroup.visible = false;
+        docGroup.userData.outlineGroup.scale.set(0,0,0);
+        docGroup.userData.txtGroup.visible = true;
+        docGroup.userData.txtGroup.scale.set(1,1,1);
+        popupMenu(undefined);
+    } else if (object.userData.type == "menubarOutline") {
+        // consoleLog("Menubar: Outline");
+        const docGroup = object.parent.parent.parent;
+        docGroup.userData.outlineGroup.visible = true;
+        docGroup.userData.outlineGroup.scale.set(1,1,1);
+        docGroup.userData.txtGroup.visible = false;
+        docGroup.userData.txtGroup.scale.set(0,0,0);
+        console.log(docGroup);
+
+        // This shouldn't be necessary - remove once problem is fixed
+        for (var i = docGroup.userData.outlineBlock.length - 1; i >= 0; i--) {
+            console.log(docGroup.userData.outlineBlock[i].text);
+            docGroup.userData.outlineBlock[i].sync();
+        }
+
+
+        popupMenu(undefined);
+    } else if (object.userData.type == "menubarMap") {
+        consoleLog("Menubar: Map");
+        popupMenu(undefined);
+    } else if (object.userData.type == "menubarFocus") {
+        const docGroup = object.parent.parent.parent;
+        if (docGroup.userData.isFocused != undefined) {
+            // consoleLog("Menubar: Unfocus");
+            unfocusThis(docGroup);
+        } else {
+            // consoleLog("Menubar: Focus");
+            focusThis(docGroup);
+        }
+        popupMenu(undefined);
+    } else if (object.userData.type.slice(0,11) == "docoutline-") {
+        const docGroup = object.parent.parent;
+        const textBlock = docGroup.userData.textBlock;
+        const targetValue = object.userData.type.slice(11,13);
+        const totalHeight = docGroup.userData.totalHeight
+        var headers = [];
+        var thisValue = 0;
+
+        console.log(targetValue);
+
+        // get all the texts but only check the headers (every other text after the first two)
+        for (var i = 0; i <= textBlock.length - 1; i++) {
+            if (i >= 2 && i % 2 == 0) {
+                thisValue++;
+                // from the headers, get the nth header where n is the number sliced off the end of 'docoutline-'
+                if (thisValue == targetValue) {
+                    // get the position of that nth header, calculate it against the total height to get scroll percent
+                    const thisText = textBlock[i];
+                    var scrollPercent;
+
+                    if (i == 2) {
+                        scrollPercent = 0;
+                    } else {
+                        const clippingStart = docGroup.userData.clippingStart.position.y;
+                        const clippingEnd = docGroup.userData.clippingEnd.position.y;
+                        const viewHeight = clippingEnd - clippingStart + 0.05;
+
+                        scrollPercent = norm( thisText.position.y, textBlock[0].position.y - 0.1, -totalHeight - viewHeight + 0.1 );
+                        scrollPercent = clamp(scrollPercent, 0, 1);
+                    }
+
+                    // scroll to that position before switching back to read view
+                    docGroup.userData.scrollPercent = scrollPercent;
+                    scrollDocument(docGroup);
+                    reclipDocument(docGroup);
+
+                    docGroup.userData.outlineGroup.visible = false;
+                    docGroup.userData.outlineGroup.scale.set(0,0,0);
+                    docGroup.userData.txtGroup.visible = true;
+                    docGroup.userData.txtGroup.scale.set(1,1,1);
+
+                    // briefly tween the header
+                    const targetPos = thisText.position.y;
+                    thisText.position.y = thisText.position.y + 0.05;
+
+                    new TWEEN.Tween( thisText.position )
+                        .to( {y: targetPos}, 1000 )
+                        .easing( TWEEN.Easing.Elastic.Out )
+                        .start()
+                    ;
+                    
+                }
+
+            }
+
+        }
+
+        popupMenu(undefined);
     }
 }
 
@@ -1607,7 +1734,7 @@ var newPopup;
 var tempWorldPos = new THREE.Vector3();
 
 var popupMat = new THREE.MeshStandardMaterial({ 
-    color: 0x7c7c7c,
+    color: _colorBGpopu,
     transparent: false,
     roughness: 0.92,
     metalness: 0,
@@ -1633,7 +1760,7 @@ function popupMenu(target, variation = "citation") {
         const popupHead = new Text();
         scene.add(popupHead);
         popupHead.fontSize = 0.015;
-        popupHead.color = 0xffffff;
+        popupHead.color = _colorTXpopu;
         popupHead.anchorX = 'center';
         if (target.text.length >= 30) {
             popupHead.text = target.text.slice(0,28) + '...';
@@ -1659,7 +1786,7 @@ function popupMenu(target, variation = "citation") {
             }
             popupDetach.fontSize = 0.02;
             popupDetach.userData.fontSize = 0.02;
-            popupDetach.color = 0xffffff;
+            popupDetach.color = _colorTXpopu;
             popupDetach.anchorX = 'left';
             popupDetach.anchorY = 'middle';
             newPopup.attach(popupDetach);
@@ -1683,7 +1810,7 @@ function popupMenu(target, variation = "citation") {
             }
             popupClone.fontSize = 0.02;
             popupClone.userData.fontSize = 0.02;
-            popupClone.color = 0xffffff;
+            popupClone.color = _colorTXpopu;
             popupClone.anchorX = 'left';
             popupClone.anchorY = 'middle';
             newPopup.attach(popupClone);
@@ -1699,7 +1826,7 @@ function popupMenu(target, variation = "citation") {
             popupFind.text = "Find in Document";
             popupFind.fontSize = 0.02;
             popupFind.userData.fontSize = 0.02;
-            popupFind.color = 0xffffff;
+            popupFind.color = _colorTXpopu;
             popupFind.anchorX = 'left';
             popupFind.anchorY = 'middle';
             newPopup.attach(popupFind);
@@ -1724,7 +1851,7 @@ function popupMenu(target, variation = "citation") {
             }
             popupMark.fontSize = 0.02;
             popupMark.userData.fontSize = 0.02;
-            popupMark.color = 0xffffff;
+            popupMark.color = _colorTXpopu;
             popupMark.anchorX = 'left';
             popupMark.anchorY = 'middle';
             newPopup.attach(popupMark);
@@ -1748,7 +1875,7 @@ function popupMenu(target, variation = "citation") {
             }
             popupFocus.fontSize = 0.02;
             popupFocus.userData.fontSize = 0.02;
-            popupFocus.color = 0xffffff;
+            popupFocus.color = _colorTXpopu;
             popupFocus.anchorX = 'left';
             popupFocus.anchorY = 'middle';
             newPopup.attach(popupFocus);
@@ -1766,7 +1893,7 @@ function popupMenu(target, variation = "citation") {
             popupRemove.userData.type = "popup-remove";
             popupRemove.fontSize = 0.02;
             popupRemove.userData.fontSize = 0.02;
-            popupRemove.color = 0xffffff;
+            popupRemove.color = _colorTXpopu;
             popupRemove.anchorX = 'left';
             popupRemove.anchorY = 'middle';
             newPopup.attach(popupRemove);
@@ -1790,7 +1917,7 @@ function popupMenu(target, variation = "citation") {
             }
             popupConnections.fontSize = 0.02;
             popupConnections.userData.fontSize = 0.02;
-            popupConnections.color = 0xffffff;
+            popupConnections.color = _colorTXpopu;
             popupConnections.anchorX = 'left';
             popupConnections.anchorY = 'middle';
             newPopup.attach(popupConnections);
@@ -1801,10 +1928,9 @@ function popupMenu(target, variation = "citation") {
             popupItems.push(popupConnections);
 
         } else if (variation == "markup") { //======================================================
-            const popupColors = [0xE6DE54, 0x4FE362, 0x55BBE6, 0xE08DE5, 0xE6556F];
 
     // COLOR / REMOVE HIGHLIGHTS popup buttons
-            for (var i = popupColors.length - 1; i >= 0; i--) {
+            for (var i = _colorHImark.length - 1; i >= 0; i--) {
                 var popupColor = new Text();
                 scene.add(popupColor);
                 popupColor.text = "Highlight Text";
@@ -1816,10 +1942,10 @@ function popupMenu(target, variation = "citation") {
                 popupColor.position.x = -0.11;
                 popupColor.layers.enable( 3 );
                 popupColor.userData.target = target;
-                popupColor.userData.color = popupColors[i];
+                popupColor.userData.color = _colorHImark[i];
                 target.userData.hasMarkup = true;
                 popupColor.userData.type = "popup-color";
-                popupColor.color = popupColors[i];
+                popupColor.color = _colorHImark[i];
                 popupColor.position.y = 0.1 - (0.05 * i);
 
                 popupItems.push(popupColor);
@@ -1835,7 +1961,7 @@ function popupMenu(target, variation = "citation") {
         popupClose.text = "Close";
         popupClose.fontSize = 0.02;
         popupClose.userData.fontSize = 0.02;
-        popupClose.color = 0xffffff;
+        popupClose.color = _colorTXpopu;
         popupClose.anchorX = 'left';
         popupClose.anchorY = 'middle';
         newPopup.attach(popupClose);
@@ -2016,7 +2142,7 @@ function displayCitation(text, object) {
     temporaryCitation.text = text;
     // temporaryCitation.userData.text = text;
     temporaryCitation.fontSize = 0.015;
-    temporaryCitation.color = 0x000000;
+    temporaryCitation.color = _colorTXmain;
     temporaryCitation.anchorX = 'left';
     temporaryCitation.anchorY = 'top';
     temporaryCitation.maxWidth = 1;
@@ -2051,11 +2177,9 @@ function displayCitation(text, object) {
     temporaryCitationGroup.userData.textBlock = newArray;
     temporaryCitation.userData.type = "reference";
 
-    temporaryCitation.addEventListener("synccomplete", function passHandle() {
-        createHandle(temporaryCitation);
-        this.removeEventListener("synccomplete", passHandle);
-        // console.log("%%%%%%%%%%%% temporaryCitation event removed");
-    });
+    // Pass to check and wait for sync to complete
+    temporaryCitation.userData.sync = 'createHandle';
+    syncCheck.push(temporaryCitation);
     
     // Citation line
     createLine(object, temporaryCitation);
@@ -2169,6 +2293,8 @@ function animateCitationLines() {
 }
 
 var tempSize = new THREE.Vector3();
+let totalPreInstance = 0;
+let totalPostInstance = 0;
 
 function displayTextBlock(head, text, source) {
     // Create:
@@ -2182,8 +2308,8 @@ function displayTextBlock(head, text, source) {
     let textOffset = -0.03;
     let totalTextOffset = textOffset;
 
-    let totalPreInstance = 0;
-    let totalPostInstance = 0;
+    totalPreInstance = 0;
+    totalPostInstance = 0;
 
     // Generate the large block of text as a single Troika element
     let tempTextString = text[0];
@@ -2202,7 +2328,7 @@ function displayTextBlock(head, text, source) {
 
     tempTextBlock.text = tempTextString;
     tempTextBlock.fontSize = 0.02;
-    tempTextBlock.color = 0x000000;
+    tempTextBlock.color = _colorTXmain;
     tempTextBlock.anchorX = 'left';
     tempTextBlock.anchorY = 'top';
     tempTextBlock.lineHeight = 1.5;
@@ -2232,7 +2358,7 @@ function displayTextBlock(head, text, source) {
 
         tempText.text = text[i];
         tempText.fontSize = 0.02;
-        tempText.color = 0x000000;
+        tempText.color = _colorTXmain;
         tempText.anchorX = 'left';
         tempText.anchorY = 'top';
         tempText.curveRadius = snapDistanceOneValue + specialReaderOffset;
@@ -2257,24 +2383,28 @@ function displayTextBlock(head, text, source) {
 
         totalPreInstance++;
 
-        tempText.addEventListener("synccomplete", function passHandle() {
-            totalPostInstance++;
-            if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
-                createHandleTimeout(tempText, "useParentY");
-                var allTexts = this.parent.userData.textBlock;
-                for (var i = allTexts.length - 1; i >= 0; i--) {
-                    allTexts[i]._listeners = undefined;
-                    allTexts[i].visible = false;
-                }
-                // focusThisTimout(textGroup);
-            }
-        });
+        // Pass to check and wait for sync to complete
+        tempText.userData.sync = 'textBlockBuilder';
+        syncCheck.push(tempText);
+
+        // tempText.addEventListener("synccomplete", function passHandle() {
+        //     totalPostInstance++;
+        //     if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
+        //         createHandleTimeout(tempText, "useParentY");
+        //         var allTexts = this.parent.userData.textBlock;
+        //         for (var i = allTexts.length - 1; i >= 0; i--) {
+        //             allTexts[i]._listeners = undefined;
+        //             allTexts[i].visible = false;
+        //         }
+        //         focusThisTimout(textGroup);
+        //     }
+        // });
 
     }
 
     headText.text = head;
     headText.fontSize = 0.03;
-    headText.color = 0x000000;
+    headText.color = _colorTXmain;
     headText.anchorX = 'left';
     headText.anchorY = 'bottom';
     headText.curveRadius = snapDistanceOneValue + specialReaderOffset;
@@ -2303,9 +2433,10 @@ function displayTextBlock(head, text, source) {
 
 
 
-var destinationClippingStart = 0;
+var destinationClippingStart = 0.5;
 var destinationClippingEnd = -2.0;
 var documentMaxWidth = 1.25;
+var startingScrollPercent = 0.0;
 
 
 function findDocumentContent(url,title=" ",author=" ") {
@@ -2326,13 +2457,12 @@ function findDocumentContent(url,title=" ",author=" ") {
 
 
        
-
+var allHeaders = [];
 function generateDocumentContent(content,title,author) {
-    var allHeaders = [];
+    allHeaders = [];
     var fullText = [];
     // var title = content.find('.title').first().text();
     // var authors = content.find('.authorGroup').first().text().replace(/( )+/g, ' ');
-    console.log(author);
     var body = content.find('.body').first();
     var baseText = body.text();
 
@@ -2394,7 +2524,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         newText.position.set(0, -totalHeight, 0);
 
         newText.text = fullText[i];
-        newText.color = 0x000000;
+        newText.color = _colorTXmain;
         newText.anchorX = 'left';
         newText.anchorY = 'top';
         newText.maxWidth = documentMaxWidth;
@@ -2411,7 +2541,6 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         newText.userData.maxWidth = newText.maxWidth;
         newText.userData.textAlign = newText.textAlign;
         newText.userData.curveRadius = newText.curveRadius;
-
 
         docGroup.userData.textBlock.push(newText);
 
@@ -2454,6 +2583,13 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             (documentMaxWidth + 0.11) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
             );
 
+        const menubarGeo = new THREE.CylinderGeometry(
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+            0.08, 32, 1, true, -0.005,
+            (documentMaxWidth + 0.11) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            );
+
         const borderBox = new THREE.CylinderGeometry(
             (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
             (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
@@ -2465,14 +2601,49 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         topBorder.scale.set(1,1,-1);
         topBorder.position.y = destinationClippingStart;
         topBorder.layers.enable( 3 );
+        topBorder.userData.layers = 3;
         topBorder.userData.type = "clipTop";
         const botBorder = new THREE.Mesh( borderGeo, boundingMat );
         docGroup.add(botBorder);
         botBorder.scale.set(1,1,-1);
         botBorder.position.y = destinationClippingEnd;
         botBorder.layers.enable( 3 );
+        botBorder.userData.layers = 3;
         botBorder.userData.type = "clipBot";
 
+
+        // Create the document menu bar
+        const menuBar = new THREE.Mesh( menubarGeo, boundingMat );
+        botBorder.add(menuBar);
+        menuBar.position.y = - 0.04;
+        menuBar.layers.enable( 3 );
+        menuBar.userData.layers = 3;
+        menuBar.userData.type = "menuBar";
+
+        // Tags             Read / Outline / Map             Focus
+
+        let tagText = newMenuBarText( 'Tags', 0.02, menuBar, 'menubarTags', docGroup );
+        tagText.layers.enable( 3 );
+        tagText.userData.layers = 3;
+
+        let readText = newMenuBarText( 'Read', (documentMaxWidth + 0.09)/2 - 0.10, menuBar, 'menubarRead', docGroup, 'right' );
+        readText.layers.enable( 3 );
+        readText.userData.layers = 3;
+        let leftDividerText = newMenuBarText( '/', (documentMaxWidth + 0.09)/2 - 0.08, menuBar, undefined, docGroup, 'left' );
+        let outlineText = newMenuBarText( 'Outline', (documentMaxWidth + 0.09)/2, menuBar, 'menubarOutline', docGroup, 'center' );
+        outlineText.layers.enable( 3 );
+        outlineText.userData.layers = 3;
+        let rightDividerText = newMenuBarText( '/', (documentMaxWidth + 0.09)/2 + 0.08, menuBar, undefined, docGroup, 'right' );
+        let mapText = newMenuBarText( 'Map', (documentMaxWidth + 0.09)/2 + 0.10, menuBar, 'menubarMap', docGroup, 'left' );
+        mapText.layers.enable( 3 );
+        mapText.userData.layers = 3;
+
+        let focusText = newMenuBarText( 'Focus', documentMaxWidth + 0.09 - 0.02, menuBar, 'menubarFocus', docGroup, 'right' );
+        focusText.layers.enable( 3 );
+        focusText.userData.layers = 3;
+        docGroup.userData.menubarFocus = focusText;
+
+        // Add grip handles for the top and bottom
         const topBox = new THREE.Mesh( borderBox, boundingMat );
         topBorder.add(topBox);
         topBox.position.y = 0.015;
@@ -2480,12 +2651,14 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         topBox.userData.type = "clipTopGrip";
         const botBox = new THREE.Mesh( borderBox, boundingMat );
         botBorder.add(botBox);
-        botBox.position.y = -0.015;
+        botBox.position.y = - 0.08 - 0.015;
         botBox.layers.enable( 3 );
+        botBox.userData.layers = 3;
         botBox.userData.type = "clipBotGrip";
 
         docGroup.userData.clippingStart = topBorder;
         docGroup.userData.clippingEnd = botBorder;
+        docGroup.userData.menuBar = menuBar;
 
         // Create a scrollbar
         const scrollCir = new THREE.BoxGeometry(0.03,0.15,0.03);
@@ -2501,9 +2674,10 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         docGroup.userData.scrollNub = scrollNub;
         docGroup.userData.scrollBar = scrollBar;
         scrollNub.layers.enable( 3 );
+        scrollNub.userData.layers = 3;
         scrollNub.userData.type = "scrollNub";
         scrollBar.userData.type = "scrollBar";
-        docGroup.userData.scrollPercent = 0;
+        docGroup.userData.scrollPercent = startingScrollPercent;
        
         scrollNub.rotation.y = (documentMaxWidth + 0.1) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
         scrollNub.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
@@ -2525,6 +2699,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         scrollUp.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
         docGroup.userData.scrollUp = scrollUp;
         scrollUp.layers.enable( 3 );
+        scrollUp.userData.layers = 3;
         scrollUp.userData.type = "scrollUp";
 
         scrollDown.rotation.y = (documentMaxWidth + 0.05) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
@@ -2533,6 +2708,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         scrollDown.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
         docGroup.userData.scrollDown = scrollDown;
         scrollDown.layers.enable( 3 );
+        scrollDown.userData.layers = 3;
         scrollDown.userData.type = "scrollDown";
 
         // Create background
@@ -2548,9 +2724,90 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         background.scale.set(1,clippingEnd - clippingStart,-1);
         background.position.y = destinationClippingStart + (clippingEnd - clippingStart)/2;
         background.layers.enable( 3 );
+        background.userData.layers = 3;
         docGroup.userData.background = background;
         background.userData.type = "background";
         background.userData.nearby = [scrollUp, scrollDown, scrollNub];
+
+
+
+        // Create the outline view from headers
+        let outlineGroup = new THREE.Group();
+        outlineGroup.userData.type = "outlinegroup";
+        docGroup.userData.outlineGroup = outlineGroup;
+        docGroup.userData.outlineBlock = [];
+        docGroup.add(outlineGroup);
+        let totalHeight = 0.035;
+
+        for (var i = 0; i <= allHeaders.length; i++) {
+
+            let newText = new Text();
+            outlineGroup.add(newText);
+            
+            newText.position.set(0, -totalHeight, 0);
+
+            totalHeight += 0.05;
+
+            if (i == 0) {
+                var titleText = fullText[0];
+                if (titleText.length > 40) {
+                    newText.text = titleText.slice(0,37) + '...';
+                } else {
+                    newText.text = fullText[0];
+                }
+                newText.fontSize = 0.05;
+                newText.fontWeight = 'bold';
+                newText.fontWeight = newText.fontWeight;
+                newText.userData.type = 'docoutline-0';
+            } else {
+                var headerText = allHeaders[i-1].replace(/[\n\r]/g, "");
+                if (headerText.length > 70) {
+                    newText.text = headerText.slice(0,67) + '...';
+                } else {
+                    newText.text = headerText;
+                }
+                newText.fontSize = 0.035;
+                newText.layers.enable( 3 );
+                newText.userData.layers = 3;
+                newText.userData.type = 'docoutline-' + i;
+            }
+
+            newText.color = _colorTXmain;
+            newText.anchorX = 'left';
+            newText.anchorY = 'middle';
+            
+            // newText.maxWidth = documentMaxWidth;
+            newText.textAlign = 'left';
+            newText.curveRadius = snapDistanceOneValue + specialReaderOffset;
+            newText.position.z = - snapDistanceOneValue - specialReaderOffset;
+
+            newText.userData.specialReaderOffset = specialReaderOffset;
+            newText.userData.text = newText.text;
+            newText.userData.color = newText.color;
+            newText.userData.anchorX = newText.anchorX;
+            newText.userData.anchorY = newText.anchorY;
+            newText.userData.fontSize = newText.fontSize;
+            // newText.userData.maxWidth = newText.maxWidth;
+            newText.userData.textAlign = newText.textAlign;
+            newText.userData.curveRadius = newText.curveRadius;
+
+            newText.userData.bounds = [newText.position.y - 0.0, newText.position.y - 0.04];
+
+            docGroup.userData.outlineBlock.push( newText );
+
+            newText.sync();
+
+            // newText.outlineColor = 0xffffff * Math.random();
+            // newText.outlineWidth = 1.5;
+            
+        }
+
+
+
+        // Hide the outline group
+        outlineGroup.visible = false;
+        outlineGroup.scale.set(0,0,0);
+
 
         // Final organization and presentation of the document
 
@@ -2560,39 +2817,11 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         reclipDocument(docGroup);
 
-        // focusThisTimout(docGroup);
+        focusThisTimout(docGroup);
 
         workspace.add(docGroup);
         
     }
-}
-
-
-let syncCheck = [];
-function trySync() {
-
-    if (syncCheck.length > 0) {
-        for (var i = syncCheck.length - 1; i >= 0; i--) {
-            // console.log(syncCheck[i]._needsSync + ' | ' + syncCheck[i]._isSyncing);
-            if (!syncCheck[i]._needsSync && !syncCheck[i]._isSyncing) {
-
-                let funct = syncCheck[i].userData.sync;
-
-                if (funct == 'generateDocumentContent') {
-                    var docGroup = syncCheck[i].userData.syncDocGroup;
-                    var fullText = syncCheck[i].userData.syncFullText;
-                    var iteration = syncCheck[i].userData.syncIteration;
-                    generateDocumentContentStep(docGroup, fullText, iteration, syncCheck[i]);
-                    syncCheck[i].userData.syncDocGroup = undefined;
-                    syncCheck[i].userData.syncFullText = undefined;
-                    syncCheck[i].userData.syncIteration = undefined;
-                    syncCheck.splice(i,1);
-                }
-
-            }
-        }
-    }
-
 }
 
 
@@ -2610,6 +2839,9 @@ function reclipDocument(docGroup) {
     const scrollUp = docGroup.userData.scrollUp;
     const scrollDown = docGroup.userData.scrollDown;
     const background = docGroup.userData.background;
+
+    const outlineGroup = docGroup.userData.outlineGroup;
+    const outlineBlock = docGroup.userData.outlineBlock;
 
     // scrollBar.position.set(documentMaxWidth + 0.1, (clippingEnd - clippingStart)/2 + clippingStart, 0);
     scrollBar.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
@@ -2632,37 +2864,56 @@ function reclipDocument(docGroup) {
     background.scale.y = clippingEnd - clippingStart;
     background.position.y = clippingStart + (clippingEnd - clippingStart)/2;
 
-    clippingStart = clippingStart - (totalHeight * scrollPercent);
-    clippingEnd = clippingEnd - (totalHeight * scrollPercent);
+    outlineGroup.position.y = clippingStart - 0.0;
 
+    const viewHeight = clippingEnd - clippingStart + 0.05;
+
+    var simpleClippingEnd = clippingEnd - ((totalHeight + viewHeight) * 0) - clippingStart;
+    var simpleClippingStart = 0;
+
+    var calcdClippingEnd = clippingEnd - ((totalHeight + viewHeight) * scrollPercent) - clippingStart;
+    var calcdClippingStart = - ((totalHeight + viewHeight) * scrollPercent);
+
+    reclipDocumentCalc(outlineBlock, simpleClippingStart, simpleClippingEnd, 0.025);
+    reclipDocumentCalc(textBlock, calcdClippingStart, calcdClippingEnd);
+    
+}
+
+
+
+function reclipDocumentCalc(textBlock, clippingStart, clippingEnd, ymod = 0) {
     for (var i = textBlock.length - 1; i >= 0; i--) {
 
         var thisText = textBlock[i];
         var bounds = thisText.userData.bounds;
 
+        // var ymod = 1.025
+
         if ( clippingStart <= bounds[0] && bounds[1] <= clippingEnd) {
             // The clipping both starts and ends in this text
             thisText.clipRect = [0, clippingEnd-bounds[0], documentMaxWidth, clippingStart-bounds[0]];
-            // thisText.outlineWidth = 1;
+            // thisText.outlineWidth = 0;
 
-        } else if ( clippingStart <= bounds[0] && bounds[1] <= clippingStart ) {
+        } else if ( clippingStart <= bounds[0] + ymod && bounds[1] <= clippingStart ) {
             // The clipping starts in the middle of this text
             thisText.clipRect = [0, bounds[1]-bounds[0], documentMaxWidth, clippingStart-bounds[0]];
+            // thisText.outlineWidth = 1;
 
-        } else if ( clippingEnd <= bounds[0] && bounds[1] <= clippingEnd ) {
+        } else if ( clippingEnd <= bounds[0] + ymod && bounds[1] <= clippingEnd ) {
             // The clipping ends in the middle of this text
-            thisText.clipRect = [0, clippingEnd-bounds[0], documentMaxWidth, 0];
+            thisText.clipRect = [0, clippingEnd-bounds[0], documentMaxWidth, 0 + ymod];
+            // thisText.outlineWidth = 1;
 
         } else if ( clippingStart >= bounds[0] && bounds[1] >= clippingEnd ) {
             // The text is within both clipping bounds
-            thisText.clipRect = [0, bounds[1]-bounds[0], documentMaxWidth, 0];
+            thisText.clipRect = [0, bounds[1]-bounds[0], documentMaxWidth, 0 + ymod];
+            // thisText.outlineWidth = 0;
 
         } else {
             thisText.clipRect = [0, 0, documentMaxWidth, 0];
         }
 
     }
-
 }
 
 
@@ -2672,13 +2923,45 @@ function scrollDocument(docGroup) {
     const scrollPercent = docGroup.userData.scrollPercent;
     // const textBlock = docGroup.userData.textBlock;
     const txtGroup = docGroup.userData.txtGroup;
-    // const clippingStart = docGroup.userData.clippingStart;
-    // const clippingEnd = docGroup.userData.clippingEnd;
+    const clippingStart = docGroup.userData.clippingStart;
+    const clippingEnd = docGroup.userData.clippingEnd;
     const totalHeight = docGroup.userData.totalHeight;
-
+    const viewHeight = clippingEnd.position.y - clippingStart.position.y + 0.05;
     // console.log(totalHeight * scrollPercent);
-    txtGroup.position.y = totalHeight * scrollPercent;
+    txtGroup.position.y = clippingStart.position.y + (totalHeight + viewHeight) * scrollPercent;
 
+}
+
+
+function newMenuBarText(text, xpos, parent, type, docGroup, align = 'left') {
+    const specialReaderOffset = docGroup.userData.specialReaderOffset;
+    let newText = new Text();
+    parent.add(newText);
+    newText.text = text;
+    newText.color = _colorTXmbar;
+    newText.fontSize = 0.03;
+    newText.anchorX = align;
+    newText.anchorY = 'middle';
+    newText.textAlign = 'left';
+    newText.curveRadius = - snapDistanceOneValue - specialReaderOffset - 0.005;
+    // tagText.position.z = snapDistanceOneValue + specialReaderOffset - 0.005;
+    newText.position.y = 0.01;
+    newText.rotation.y = -(xpos) / -(snapDistanceOneValue + specialReaderOffset);
+    newText.translateZ( (snapDistanceOneValue + specialReaderOffset) *1 -0.005);
+
+    newText.userData.specialReaderOffset = docGroup.userData.specialReaderOffset;
+    newText.userData.type = type;
+    newText.userData.text = newText.text;
+    newText.userData.color = newText.color;
+    newText.userData.anchorX = newText.anchorX;
+    newText.userData.anchorY = newText.anchorY;
+    newText.userData.fontSize = newText.fontSize;
+    newText.userData.textAlign = newText.textAlign;
+    newText.userData.curveRadius = newText.curveRadius;
+
+    newText.sync();
+
+    return newText;
 }
 
 
@@ -2703,10 +2986,45 @@ function scrollDocument(docGroup) {
 
 
 
+let syncCheck = [];
+function trySync() {
 
+    if (syncCheck.length > 0) {
+        for (var i = syncCheck.length - 1; i >= 0; i--) {
+            // console.log(syncCheck[i]._needsSync + ' | ' + syncCheck[i]._isSyncing);
+            if (!syncCheck[i]._needsSync && !syncCheck[i]._isSyncing) {
 
+                let funct = syncCheck[i].userData.sync;
 
+                if (funct == 'generateDocumentContent') {
+                    var docGroup = syncCheck[i].userData.syncDocGroup;
+                    var fullText = syncCheck[i].userData.syncFullText;
+                    var iteration = syncCheck[i].userData.syncIteration;
+                    generateDocumentContentStep(docGroup, fullText, iteration, syncCheck[i]);
+                    syncCheck[i].userData.syncDocGroup = undefined;
+                    syncCheck[i].userData.syncFullText = undefined;
+                    syncCheck[i].userData.syncIteration = undefined;
 
+                } else if (funct == 'createHandle') {
+                    createHandle(syncCheck[i]);
+
+                } else if (funct == 'textBlockBuilder') {
+                    totalPostInstance++;
+                    if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
+                        createHandleTimeout(tempText, "useParentY");
+                        var allTexts = syncCheck[i].parent.userData.textBlock;
+                        for (var i = allTexts.length - 1; i >= 0; i--) {
+                            allTexts[i].visible = false;
+                        }
+                        // focusThisTimout(textGroup);
+                    }
+
+                }
+                syncCheck.splice(i,1);
+            }
+        }
+    }
+}
 
 
 function changeDistance(object, value) {
@@ -2748,7 +3066,7 @@ function changeDistance(object, value) {
 
 
 const focusBGmat = new THREE.MeshBasicMaterial( {
-    color: 0xeeeeee,
+    color: _colorBGread,
     side: THREE.DoubleSide
 } );
 
@@ -2760,6 +3078,15 @@ function focusThis(object) {
     for (var i = snapDistanceFocus.length - 1; i >= 0; i--) {
         unfocusThis(snapDistanceFocus[i]);
     }
+
+    // change the focus text on a document
+    const menubarFocus = object.userData.menubarFocus;
+    if (menubarFocus != undefined) {
+        menubarFocus.text = "Unfocus";
+    }
+
+    // set userdata for focused
+    object.userData.isFocused = true;
 
     // remove from snapDistanceOne and add to snapDistanceFocus
     const index = snapDistanceOne.indexOf(object);
@@ -2805,9 +3132,10 @@ function focusThis(object) {
 
         // set the distance and curve radius to snapDistanceFocusValue
         changeDistance(object, snapDistanceFocusValue);
+    } else if (object.userData.type == "document") {
+        changeDistance(object, snapDistanceFocusValue + object.userData.specialReaderOffset);
+        // changeDocDistance(object, snapDistanceFocusValue + object.userData.specialReaderOffset);
     }
-
-    
 
     // change the scale so it is a bit smaller
     object.scale.set(0.3, 0.3, 0.4);
@@ -2825,6 +3153,15 @@ function focusThis(object) {
 
 
 function unfocusThis(object) {
+    // unset userdata for focused
+    object.userData.isFocused = undefined;
+
+    // change the focus text on a document
+    const menubarFocus = object.userData.menubarFocus;
+    if (menubarFocus != undefined) {
+        menubarFocus.text = "Focus";
+    }
+
     // remove from snapDistanceFocus and add to snapDistanceOne
     const index = snapDistanceFocus.indexOf(object);
     snapDistanceFocus.splice(index,1);
@@ -3401,6 +3738,7 @@ function trySwipe() {
         }
 
         if (rSwipeVar == "clip") {
+            scrollDocument(rSwipeObj.parent);
             reclipDocument(rSwipeObj.parent);
         }
 
@@ -3562,7 +3900,7 @@ function initconsoleLog() {
     scene.add(debugLogGroup);
     for (var i = debugLogLines.length - 1; i >= 0; i--) {
         debugLogLines[i].text = "";
-        debugLogLines[i].color = 0xffffff;
+        debugLogLines[i].color = _colorTXclog;
         debugLogLines[i].fontSize = 0.02;
         debugLogLines[i].anchorX = 'right';
         debugLogLines[i].anchorY = 'bottom';
@@ -3575,7 +3913,7 @@ function initconsoleLog() {
 }
 
 
-function consoleLog(argument, color = 0xffffff) {
+function consoleLog(argument, color = _colorTXclog) {
     var argument = argument.toString();
     console.log(">> " + argument);
 
@@ -3738,7 +4076,6 @@ function loadWorkspace() {
             newText.position.set( child.position.x, child.position.y, child.position.z );
             newText.rotation.set( child.rotation.x, child.rotation.y, child.rotation.z );
             newText.scale.set( child.scale.x, child.scale.y, child.scale.z );
-            newText.text = child.userData.text;
             newText.fontSize = child.userData.fontSize;
             newText.color = child.userData.color;
             newText.anchorX = child.userData.anchorX;
@@ -3746,13 +4083,19 @@ function loadWorkspace() {
             newText.curveRadius = child.userData.curveRadius;
             newText.visible = child.visible;
 
+            if (child.userData.text != undefined) {
+                newText.text = child.userData.text;
+            } else {
+                newText.text = "undefined";
+            }
+
             if (child.userData.textAlign != undefined) {
                 newText.textAlign = child.textAlign;
             }
 
-            if (child.userData.clipRect != undefined) {
-                newText.clipRect = child.userData.clipRect;
-            }
+            // if (child.userData.clipRect != undefined) {
+            //     newText.clipRect = child.userData.clipRect;
+            // }
 
             if (child.userData.lineHeight != undefined) {
                 newText.lineHeight = child.userData.lineHeight;
@@ -3784,6 +4127,10 @@ function loadWorkspace() {
                 child.parent.userData.textBlock.push(newText);
             } else if (child.parent.parent.userData.textBlock != undefined && child.userData.type == "doccontent") {
                 child.parent.parent.userData.textBlock.push(newText);
+            } 
+
+            if (child.userData.type != undefined && child.userData.type.slice(0,11) == "docoutline-") {
+                child.parent.parent.userData.outlineBlock.push(newText);
             }
 
             if (child.userData.lines != undefined) {
@@ -3809,7 +4156,13 @@ function loadWorkspace() {
 
             if (child.name == "header") {
                 child.parent.userData.header = newText;
-                console.log(child.parent.userData);
+            }
+
+            if (child.userData.type == "menubarFocus") {
+                child.parent.parent.parent.userData.menubarFocus = newText;
+                if (child.parent.parent.parent.userData.isFocused != undefined) {
+                    newText.text = "Unfocus";
+                }
             }
 
             pendingRemove.push(child);
@@ -3826,8 +4179,17 @@ function loadWorkspace() {
                 child.userData.textBlock = [];
             }
 
+            if (child.userData.outlineBlock != undefined) {
+                console.log(child.userData.outlineBlock);
+                child.userData.outlineBlock = [];
+            }
+
             if (child.userData.type == "txtgroup") {
                 child.parent.userData.txtGroup = child;
+            }
+
+            if (child.userData.type == "outlinegroup") {
+                child.rotation.set( 0, 0, 0 );
             }
 
         }
@@ -3852,6 +4214,10 @@ function loadWorkspace() {
             child.parent.userData.clippingEnd = child;
         }
 
+        if (child.userData.type == "menuBar") {
+            child.parent.parent.userData.menuBar = child;
+        }
+
         if (child.userData.type == "scrollNub") {
             child.parent.userData.scrollNub = child;
         }
@@ -3874,6 +4240,12 @@ function loadWorkspace() {
                 child.userData.nearby = [];
             }
         }
+
+        if (child.userData.type == "outlinegroup") {
+            child.parent.userData.outlineGroup = child;
+        }
+
+
         
 
  
@@ -3881,7 +4253,7 @@ function loadWorkspace() {
 
     // REMOVE PENDING ELEMENTS =========================================================
     for (var i = pendingRemove.length - 1; i >= 0; i--) {
-        console.log("REMOVE: " + pendingRemove[i]);
+        // console.log("REMOVE: " + pendingRemove[i]);
         pendingRemove[i].parent.remove(pendingRemove[i]);
         pendingRemove.splice(i,1);
     }
@@ -4017,8 +4389,9 @@ function initLibrary(source) {
         myText.userData.title = json.documents[i].title;
         myText.userData.year = json.documents[i].year;
         myText.userData.source = json.documents[i].source;
-        for (var j = 0; j <= json.documents[i].author.length - 1; j++) {
-            if(j==0){ myText.userData.author = json.documents[i].author[j] }
+
+        for (var j = json.documents[i].author.length - 1; j >= 0; j--) {
+            if(j==json.documents[i].author.length - 1){ myText.userData.author = json.documents[i].author[j] }
             else{
                 myText.userData.author = myText.userData.author.concat(", ", json.documents[i].author[j]);
             }
@@ -4030,7 +4403,7 @@ function initLibrary(source) {
         myText.text = json.documents[i].title;
         myText.fontSize = 0.0002;
         myText.userData.fontSize = myText.fontSize;
-        myText.color = 0xffffff;
+        myText.color = _colorTXlibr;
         myText.anchorX = 'right';
         myText.anchorY = 'middle';
 
@@ -4047,7 +4420,7 @@ function initLibrary(source) {
 
         // Library divider line
         const lineGeo = new THREE.BoxGeometry( 0.00002, 0.01, 0.00002 );
-        const lineMat = new THREE.MeshBasicMaterial( { color: 0xffffff } );
+        const lineMat = new THREE.MeshBasicMaterial( { color: _colorTXlibr } );
         var dividerLine = new THREE.Mesh( lineGeo, lineMat );
         library.add(dividerLine);
         dividerLine.position.set( 0, 0, -0.02);
@@ -4058,7 +4431,7 @@ function initLibrary(source) {
         libraryTitle.text = "";
         libraryTitle.fontSize = 0.0004;
         libraryTitle.fontWeight = 'bold';
-        libraryTitle.color = 0xffffff;
+        libraryTitle.color = _colorTXlibr;
         libraryTitle.position.set(0.0003, 0.005, -0.0198);
         libraryTitle.curveRadius = -libraryTitle.position.z;
         libraryTitle.sync();
@@ -4068,7 +4441,7 @@ function initLibrary(source) {
         library.add(libraryAuthor);
         libraryAuthor.text = "";
         libraryAuthor.fontSize = 0.0003;
-        libraryAuthor.color = 0xffffff;
+        libraryAuthor.color = _colorTXlibr;
         libraryAuthor.position.set(0.0003, 0.0045, -0.0199);
         libraryAuthor.curveRadius = -libraryTitle.position.z;
         libraryAuthor.sync();
@@ -4078,7 +4451,7 @@ function initLibrary(source) {
         library.add(libraryYear);
         libraryYear.text = "";
         libraryYear.fontSize = 0.00015;
-        libraryYear.color = 0xffffff;
+        libraryYear.color = _colorTXlibr;
         libraryYear.position.set(0.0003, 0.0052, -0.02);
         libraryYear.curveRadius = -libraryYear.position.z;
         libraryYear.sync();
@@ -4090,7 +4463,7 @@ function initLibrary(source) {
         libraryAbstract.anchorY = 'top';
         libraryAbstract.maxWidth = 0.010;
         libraryAbstract.fontSize = 0.0002;
-        libraryAbstract.color = 0xffffff;
+        libraryAbstract.color = _colorTXlibr;
         libraryAbstract.position.set(0.0003, 0.004, -0.02);
         libraryAbstract.curveRadius = -libraryAbstract.position.z;
         libraryAbstract.sync();
@@ -4234,7 +4607,6 @@ $('#urlin').change(function(){
 var firstInit = false;
 var secondInit = false;
 var loadDelay = 1.0;
-// let xrSession;
 
 // Check if WebGL is available on this browser
 if ( WebGL.isWebGLAvailable() ) {
@@ -4328,6 +4700,7 @@ function testAnim(object,n=0.2) {
 camera.position.z = 1;
 
 
+// loadTextBlock('./_ref/htconference/2022/3511095.3531270.html');
 // findDocumentContent('./_ref/htconference/2022/3511095.3531270.html','Placeholder Title','Author Name');
 // sphereHelper.visible=false;
 
@@ -4337,29 +4710,41 @@ camera.position.z = 1;
 
 // BUGS:
 // Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
+// nearby select feature of the document background doesn't work on loaded workspaces
 
 // NOTES:
-// popup menu to change snap distance
-// larger selection zone for each button
-// tags and sticky notes for document content
 // pass info to llm (chatgpt or claude) and return
-// word wrap for citation block
+// word wrap for citation block?
 // Save files are way too large - find a way to trim troika text geometry
+// tags and sticky notes for document content
 // redesign energy lines
-// slightly darker background everywhere
-
 // remove links from citation page?
 // focused objects popups should focus as well
 // multiple focused objects at once
 // close popup menu by tapping anywhere
-// library generates in a backward order?
 // history feature
+// memory leaks from not disposiing of THREE objects?
+
 
 
 // WIP:
+// map view
+
+
 
 // COMPLETE THIS UPDATE:
-// change text of "upload Library" to "upload workspace"
-// full document (with minimal styling) can be read in the headset - includes scroll controls and document bounds
-// save/load workspace now supports documents
-// library loads in full document view by default
+// acm library json file updated to include map position data - not yet used by system
+// library now displays in the same order as the json
+// slightly darker background everywhere
+// code now supports color palettes for most things
+// focus now supports documents
+// menubar added to the bottom of documents
+// focus/unfocus functionality added to menubar
+// document view can be toggled between read and outline
+// document outline lists all headers, each of which can be selected to jump to it in the document
+// fixed some potential memory leaks: removed some event listeners and created a custom function
+// fixed bug: scrolling only works at the default size, changing the clipping breaks the scroll
+// update save system for documents
+// outline text sticks to top of page when moving the top clip bounds
+// document text scroll only goes to the bottom of the text now (avoids empty space)
+// document text now moves when moving the clipping bounds
