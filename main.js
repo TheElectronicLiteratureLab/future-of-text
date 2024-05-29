@@ -25,6 +25,8 @@ import TWEEN from '@tweenjs/tween.js';
     const _colorTXmain = 0x000000;
 // Popup menu text color
     const _colorTXpopu = 0xffffff;
+// Bounding box text color - for document bounds and UI
+    const _colorBounds = 0x555555;
 // Document menu bar text color
     const _colorTXmbar = 0xeeeeee;
 // Popup menu background color
@@ -33,6 +35,14 @@ import TWEEN from '@tweenjs/tween.js';
     const _colorTXclog = 0xffffff;
 // Text markup highlight colors
     const _colorHImark = [0xE6DE54, 0x4FE362, 0x55BBE6, 0xE08DE5, 0xE6556F];
+// Map text color
+    const _colorTXmap = 0x000000;
+// Map background color
+    const _colorBGmap = 0xbbbbbb;
+// Map highlight/selector color
+    const _colorHImap = 0xffbd66;
+// Selector/pointer color
+    const _colorTool = 0xffffff;
 
 
 // Set up the scene and camera for three.js
@@ -42,6 +52,10 @@ const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.inner
 // Set up the default workspace
 var workspace = new THREE.Group();
 scene.add(workspace);
+
+// Set up the mapspace
+var mapspace = new THREE.Group();
+scene.add(mapspace);
 
 // Create a timer to track delta time
 const timer = new Timer();
@@ -717,7 +731,7 @@ function subMenu(v) {
 let toolSelector, toolSelectorCore, toolSelectorCast, toolSelectorTip, toolSelectorTip2, toolSelectorBeam, toolSelectorDot, toolSelectorDotFX, toolSelectorFloatingPoint;
 
 const toolColorMat = new THREE.MeshBasicMaterial( {
-    color: 0xffffff,
+    color: _colorTool,
     transparent: true,
     opacity: 0,
     depthWrite: true
@@ -743,13 +757,13 @@ function initTools() {
     });
     const colorMat = new THREE.MeshBasicMaterial( {
         // color: 0x659fe6,
-        color: 0xffffff,
+        color: _colorTool,
         transparent: true,
         opacity: 1,
         depthWrite: true
     } );
     var fxMat = new THREE.MeshBasicMaterial( {
-        color: 0xffffff,
+        color: _colorTool,
         transparent: true,
         opacity: 0.75,
         depthWrite: false
@@ -1263,7 +1277,25 @@ function tryPointerOver(object) {
 
             // consoleLog("Preview text toggled off");
         }
+    // When pointing at a close buton, tween it
+    } else if (object.userData.type == "closeBtn") {
+        var child = object.children[0];
+
+        if ( child.userData.opening != true && child.scale.x < 1 ) {
+            child.userData.opening = true;
+
+            var tempClosebtnScale = new TWEEN.Tween( child.scale )
+            .to( {x: 1, y: 1}, 250 )
+            .easing( TWEEN.Easing.Quadratic.InOut )
+            .start()
+            .onComplete(() => {
+                child.userData.opening = false;
+                tryCloseButton(child);
+            });
+        }
+
     }
+               
 }
 
 
@@ -1722,6 +1754,36 @@ function tryPointerSelect(object) {
         }
 
         popupMenu(undefined);
+    } else if (object.userData.type == "closeBtn") {
+        const docGroup = object.parent;
+        const clippingStart = docGroup.userData.clippingStart;
+        const clippingEnd = docGroup.userData.clippingEnd;
+        const centerPoint = (clippingEnd.position.y - clippingStart.position.y)/2 + clippingStart.position.y;
+
+        // tween the top clip bounds
+        new TWEEN.Tween( clippingStart.position )
+            .to( {y: centerPoint}, 1000 )
+            .easing( TWEEN.Easing.Back.In )
+            .start()
+            .onUpdate(() => {
+                scrollDocument(docGroup);
+                reclipDocument(docGroup);
+            })
+            .onComplete(() => {
+                docGroup.parent.remove(docGroup);
+            });
+
+        // tween the bottom clip bounds
+        new TWEEN.Tween( clippingEnd.position )
+            .to( {y: centerPoint}, 1000 )
+            .easing( TWEEN.Easing.Back.In )
+            .start();
+    } else if (object.userData.type.slice(0,11) == "mapcontent-") {
+        const group = object.parent;
+        const targetValue = object.userData.type.slice(11,13);
+        startSwipe(object);
+    } else if (object.userData.type == "mapbg") {
+        startMapSelector();
     }
 }
 
@@ -2031,6 +2093,7 @@ const snapDistanceOne = [];
 const snapDistanceFocus = [];
 var snapDistanceOneValue = readerStartDistance;
 var snapDistanceFocusValue = 2.00;
+var snapDistanceMapValue = 4.00;
 
 function loadTextBlock(url) {
 
@@ -2494,6 +2557,10 @@ function generateDocumentContent(content,title,author) {
     let specialReaderOffset = Math.random(0.001, -0.001);
     docGroup.userData.specialReaderOffset = specialReaderOffset;
 
+    const centerPoint = (destinationClippingEnd - destinationClippingStart)/2 + destinationClippingStart;
+
+    addLoader(docGroup, [documentMaxWidth/2, centerPoint, - snapDistanceOneValue - specialReaderOffset]);
+
     generateDocumentContentStep(docGroup, fullText, 0);
 
 }
@@ -2730,6 +2797,32 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         background.userData.nearby = [scrollUp, scrollDown, scrollNub];
 
 
+        // Create close button
+        var closeBtnMat = new THREE.MeshBasicMaterial( {
+            color: _colorBounds,
+            map: new THREE.TextureLoader().load(
+                './icon-close.png'
+            ),
+            transparent: true
+        } );
+
+        const closeBtnGeo = new THREE.CircleGeometry( 0.06, 16 );
+        const closeBtnShell = new THREE.Mesh( closeBtnGeo, invisMat );
+        const closeBtn = new THREE.Mesh( closeBtnGeo, closeBtnMat );
+        closeBtnShell.add(closeBtn);
+        docGroup.add(closeBtnShell);
+
+        closeBtn.scale.set(0.25,0.25,0.25);
+
+        closeBtnShell.rotation.y = (documentMaxWidth + 0.15) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        closeBtnShell.position.y = clippingStart + 0.075;
+        closeBtnShell.rotation.z = Math.PI/2;
+        closeBtnShell.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+        docGroup.userData.closeBtn = closeBtnShell;
+        closeBtnShell.layers.enable( 3 );
+        closeBtnShell.userData.layers = 3;
+        closeBtnShell.userData.type = "closeBtn";
+
 
         // Create the outline view from headers
         let outlineGroup = new THREE.Group();
@@ -2817,10 +2910,32 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         reclipDocument(docGroup);
 
-        focusThisTimout(docGroup);
+        focusThis(docGroup);
 
         workspace.add(docGroup);
-        
+
+        removeLoader(docGroup);
+
+        // Animate document in
+        const centerPoint = (destinationClippingEnd - destinationClippingStart)/2 + destinationClippingStart;
+
+        topBorder.position.y = centerPoint + 0.1;
+        botBorder.position.y = centerPoint - 0.1;
+
+        new TWEEN.Tween( topBorder.position )
+            .to( {y: destinationClippingStart}, 1000 )
+            .easing( TWEEN.Easing.Back.Out )
+            .start()
+            .onUpdate(() => {
+                scrollDocument(docGroup);
+                reclipDocument(docGroup);
+            })
+
+        new TWEEN.Tween( botBorder.position )
+            .to( {y: destinationClippingEnd}, 1000 )
+            .easing( TWEEN.Easing.Back.Out )
+            .start();
+
     }
 }
 
@@ -2839,6 +2954,7 @@ function reclipDocument(docGroup) {
     const scrollUp = docGroup.userData.scrollUp;
     const scrollDown = docGroup.userData.scrollDown;
     const background = docGroup.userData.background;
+    const closeBtn = docGroup.userData.closeBtn;
 
     const outlineGroup = docGroup.userData.outlineGroup;
     const outlineBlock = docGroup.userData.outlineBlock;
@@ -2863,6 +2979,8 @@ function reclipDocument(docGroup) {
 
     background.scale.y = clippingEnd - clippingStart;
     background.position.y = clippingStart + (clippingEnd - clippingStart)/2;
+
+    closeBtn.position.y = clippingStart + 0.075;
 
     outlineGroup.position.y = clippingStart - 0.0;
 
@@ -3193,7 +3311,26 @@ function focusThisTimout(object,delay = 500) {
 }
 
 
+function tryCloseButton(child) {
+    setTimeout(() => {
 
+        const maxDistance = 0.1;
+        child.getWorldPosition(tempWorldPos);
+        toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+
+        if (toolSelectorDotWorld.distanceTo(tempWorldPos) <= maxDistance) {
+            // the pointer is still too close, try again later
+            tryCloseButton(child)
+        } else {
+            // the pointer is far enough away, tween down and don't try again
+            var tempClosebtnScale = new TWEEN.Tween( child.scale )
+            .to( {x: 0.25, y: 0.25}, 250 )
+            .easing( TWEEN.Easing.Quadratic.InOut )
+            .start()
+        }
+
+    },300);
+}
 
 
 
@@ -3263,13 +3400,13 @@ function startPos(mesh) {
 
 
 const boundingMat = new THREE.MeshBasicMaterial({
-        color: 0x555555,
+        color: _colorBounds,
         transparent: false,
         opacity: 0.5,
         side: THREE.DoubleSide
     });
 const invisMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
+    color: _colorBounds,
     visible: false
 });
 
@@ -3524,7 +3661,11 @@ function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77, li
         // Draw a placeholder arrow to visualize the raycast
         const arrowTest = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, length, color);
         scene.add(arrowTest);
-        setTimeout(() => {scene.remove(arrowTest);}, life);
+        setTimeout(() => {
+            scene.remove(arrowTest);
+            arrowTest.mesh.dispose();
+            arrowTest.material.dispose();
+        }, life);
     }
 }
 
@@ -3927,7 +4068,7 @@ function consoleLog(argument, color = _colorTXclog) {
 }
 
 
-function animateconsoleLog() {
+function animateConsoleLog() {
     if (debugMode) {
         debugLogGroup.position.set( wrist1.position.x, wrist1.position.y, wrist1.position.z );
         var newRot = new THREE.Quaternion().setFromRotationMatrix(
@@ -4245,6 +4386,10 @@ function loadWorkspace() {
             child.parent.userData.outlineGroup = child;
         }
 
+        if (child.userData.type == "closeBtn") {
+            child.parent.userData.closeBtn = child;
+        }
+
 
         
 
@@ -4367,6 +4512,7 @@ function loadWorkspace() {
 
 var libraryTitle, libraryAuthor, libraryYear, libraryAbstract;
 const library = new THREE.Group();
+var globalLIB;
 
 function initLibrary(source) {
 
@@ -4377,6 +4523,8 @@ function initLibrary(source) {
     fetch('./library-acm22.json')
     .then((response) => response.json())
     .then((json) => {
+        globalLIB = json;
+
         for (var i = json.documents.length - 1; i >= 0; i--) {
         
         // Create:
@@ -4536,18 +4684,45 @@ function animateRays() {
 }
 
 
+const loaderSize = 0.8;
+var loaderGeo = new THREE.PlaneGeometry(loaderSize, loaderSize);
+var loaderMat = new THREE.MeshBasicMaterial( {
+        map: new THREE.TextureLoader().load(
+            './ray-2.png'
+    ),
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false
+} );
+var allLoaders = [];
 
 
+function addLoader(object, position = [0,0,0]) {
+    object.visible = false;
+    const spinner = new THREE.Mesh(loaderGeo, loaderMat);
+    scene.add(spinner);
+    object.userData.loader = spinner;
+    spinner.position.set(object.position.x + position[0] - (loaderSize / 4), object.position.y + position[1], object.position.z + position[2]);
+    allLoaders.push(spinner);
+}
+
+function removeLoader(object) {
+    object.visible = true;
+    const spinner = object.userData.loader;
+    object.userData.loader = undefined;
+    scene.remove(spinner);
+    const index = allLoaders.indexOf(spinner);
+    allLoaders.splice(index,1);
+}
 
 
-
-
-
-
-
-
-
-
+function animateLoader() {
+    if (allLoaders.length > 0) {
+        for (var i = allLoaders.length - 1; i >= 0; i--) {
+            allLoaders[i].rotateZ(-5 * deltaTime);
+        }
+    }
+}
 
 
 
@@ -4564,6 +4739,230 @@ function indicateLoaded() {
 
 
 
+
+
+
+function tryInitMap() {
+    if (globalLIB == undefined) {
+        console.log("waiting to load map...");
+        setTimeout(() => {tryInitMap();},200);
+    } else {
+        // initMap();
+    }
+}
+
+
+function initMap() {
+    const rndBoundsX = 1.5;
+    const rndBoundsY = 4;
+    var allTitles = [];
+    var allNames = [];
+    var allKeywords = [];
+    
+    for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
+        // get all the titles of every document in the json library
+        const title = globalLIB.documents[i].title;
+            // allTitles.push(title);
+
+        // get all the names from every document in the json library
+        var names = globalLIB.documents[i].customData[0].names;
+        for (var j = names.length - 1; j >= 0; j--) {
+            allNames.push(names[j]);
+        }
+
+        // get all keywords from every document in the json library
+        var keywords = globalLIB.documents[i].customData[0].keywords;
+        for (var j = keywords.length - 1; j >= 0; j--) {
+            // allKeywords.push(keywords[j]);
+        }
+
+    }
+
+    // generate troika text for every element listed above, tagging each with proper userData
+
+    // -------- Titles --------
+    for (var i = allTitles.length - 1; i >= 0; i--) {
+        let newGroup = new THREE.Group;
+        let newText = new Text();
+        
+        newText.position.y = Math.random() * rndBoundsY - (rndBoundsY/2);
+
+        newText.text = allTitles[i];
+        newText.color = _colorTXmap;
+        newText.fontSize = 0.05;
+        newText.userData.fontSize = newText.fontSize;
+        newText.layers.enable( 3 );
+        newText.anchorX = 'left';
+        newText.anchorY = 'middle';
+        newText.textAlign = 'left';
+        newText.curveRadius = snapDistanceMapValue;
+        newText.position.z = - snapDistanceMapValue;
+        newText.userData.type = 'mapcontent-title';
+
+        newGroup.add(newText);
+
+        newGroup.rotation.y = Math.random() * rndBoundsX - (rndBoundsX/2);
+        mapspace.add(newGroup);
+        newText.sync();
+    }
+
+    // -------- Names --------
+    for (var i = allNames.length - 1; i >= 0; i--) {
+        let newGroup = new THREE.Group;
+        let newText = new Text();
+        
+        newText.position.y = Math.random() * rndBoundsY - (rndBoundsY/2);
+
+        newText.text = allNames[i];
+        newText.color = _colorTXmap;
+        newText.fontSize = 0.05;
+        newText.userData.fontSize = newText.fontSize;
+        newText.layers.enable( 3 );
+        newText.anchorX = 'left';
+        newText.anchorY = 'middle';
+        newText.textAlign = 'left';
+        newText.curveRadius = snapDistanceMapValue;
+        newText.position.z = - snapDistanceMapValue;
+        newText.userData.type = 'mapcontent-name';
+
+        newGroup.add(newText);
+
+        newGroup.rotation.y = Math.random() * rndBoundsX - (rndBoundsX/2);
+
+        mapspace.add(newGroup);
+        newText.sync();
+    }
+
+    // -------- Keywords --------
+    for (var i = allKeywords.length - 1; i >= 0; i--) {
+        let newGroup = new THREE.Group;
+        let newText = new Text();
+        
+        newText.position.y = Math.random() * rndBoundsY - (rndBoundsY/2);
+
+        newText.text = allKeywords[i];
+        newText.color = _colorTXmap;
+        newText.fontSize = 0.05;
+        newText.userData.fontSize = newText.fontSize;
+        newText.layers.enable( 3 );
+        newText.anchorX = 'left';
+        newText.anchorY = 'middle';
+        newText.textAlign = 'left';
+        newText.curveRadius = snapDistanceMapValue;
+        newText.position.z = - snapDistanceMapValue;
+        newText.userData.type = 'mapcontent-keyword';
+
+        newGroup.add(newText);
+
+        newGroup.rotation.y = Math.random() * rndBoundsX - (rndBoundsX/2);
+        
+        mapspace.add(newGroup);
+        newText.sync();
+    }
+    
+    
+    // Create a background cylinder
+    var mapbgmat = new THREE.MeshBasicMaterial( {
+        color: _colorBGmap,
+        side: THREE.BackSide
+    } );
+    const mapbggeo = new THREE.CylinderGeometry(
+            (snapDistanceMapValue + 0.02),
+            (snapDistanceMapValue + 0.02),
+            10, 32, 1, true);
+    const mapbg = new THREE.Mesh( mapbggeo, mapbgmat );
+    mapbg.layers.enable( 3 );
+    mapbg.userData.type = 'mapbg';
+    mapspace.add(mapbg);
+    
+
+    
+
+
+    
+    // menu of some kind to select by type / show & hide / and organize text
+
+
+}
+
+
+let isMapSelecting = false;
+let mapSelectingStart = new THREE.Vector3( 0.0, 0.0, 0.0 );
+let mapSelectingEnd = new THREE.Vector3( 0.0, 0.0, 0.0 );
+let mapSelectingMesh;
+const mapSelectingMat = new THREE.MeshBasicMaterial( {
+    color: _colorHImap,
+    transparent: true,
+    opacity: 0.1,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+} );
+
+function startMapSelector() {
+    consoleLog("SELECTION BOX");
+    isMapSelecting = true;
+    toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+    mapSelectingStart.x = toolSelectorDotWorld.x;
+    mapSelectingStart.y = toolSelectorDotWorld.y;
+    mapSelectingStart.z = toolSelectorDotWorld.z;
+    mapSelectingEnd = toolSelectorDotWorld;
+}
+
+function tryMapSelector() {
+    if (isTwoPinching && isMapSelecting) {
+        // while selecting, update the cylinder geometry by disposing of the current mesh
+
+        updateMapSelectorGeo(mapSelectingStart, mapSelectingEnd);
+
+    } else if (isMapSelecting) {
+        // at end of selection, add all objects within the bounds to a selection array and color them
+        mapSelectingMesh.parent.remove(mapSelectingMesh);
+        mapSelectingMesh.geometry.dispose();
+        mapSelectingMesh = undefined;
+        isMapSelecting = false;
+    }
+}
+
+function updateMapSelectorGeo(start, end) {
+    // create a cylinder with the theta point centered on the start
+
+    toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+    mapSelectingEnd = toolSelectorDotWorld;
+
+    var angleStart = Math.atan2(start.x, start.z);
+    var angleEnd = Math.atan2(end.x, end.z);
+    var thetaLength = angleEnd-angleStart;
+    var thetaStart = 0;
+
+    if (thetaLength > Math.PI) {
+        thetaStart = thetaLength;
+        thetaLength = Math.PI*2 - thetaLength;
+    } else if (thetaLength < -Math.PI) {
+        thetaStart = thetaLength;
+        thetaLength = -Math.PI*2 - thetaLength;
+    }
+
+    const newGeo = new THREE.CylinderGeometry(
+        (snapDistanceMapValue - 0.01),
+        (snapDistanceMapValue - 0.01),
+        (end.y-start.y), 32, 1, true, thetaStart,
+        thetaLength
+    );
+
+    if (mapSelectingMesh == undefined) {
+        mapSelectingMesh = new THREE.Mesh(newGeo, mapSelectingMat);
+        mapspace.add(mapSelectingMesh);
+    } else {
+        mapSelectingMesh.geometry.dispose();
+        mapSelectingMesh.geometry = newGeo;
+    }
+    
+    mapSelectingMesh.position.y = start.y + (end.y-start.y)/2;
+    mapSelectingMesh.rotation.y = angleStart;
+
+
+}
 
 
 
@@ -4620,6 +5019,9 @@ if ( WebGL.isWebGLAvailable() ) {
     // Load the libarary and build it
     initLibrary('./library-acm22.json');
 
+    // Try to load the map content
+    tryInitMap();
+
     // navigator.xr.requestSession("immersive-vr").then( function(session) {
     //     xrSession = session;
     // });
@@ -4629,6 +5031,7 @@ if ( WebGL.isWebGLAvailable() ) {
         timer.update();
         deltaTime = timer.getDelta();
         animateRays();
+        animateLoader();
         trySync();
 
         if (renderer.xr.isPresenting && !firstInit && loadDelay > 0) {
@@ -4662,12 +5065,11 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryBtns();
                 tryRecenter();
                 tryPointer();
+                tryMapSelector();
 
                 animateCitationLines();
-                animateconsoleLog();
-                // animateRays();
-
-                // consoleLog(camera.rotation.y);
+                animateConsoleLog();
+                
             }
 
         };
@@ -4724,6 +5126,7 @@ camera.position.z = 1;
 // close popup menu by tapping anywhere
 // history feature
 // memory leaks from not disposiing of THREE objects?
+// library visible at all times?
 
 
 
@@ -4733,18 +5136,6 @@ camera.position.z = 1;
 
 
 // COMPLETE THIS UPDATE:
-// acm library json file updated to include map position data - not yet used by system
-// library now displays in the same order as the json
-// slightly darker background everywhere
-// code now supports color palettes for most things
-// focus now supports documents
-// menubar added to the bottom of documents
-// focus/unfocus functionality added to menubar
-// document view can be toggled between read and outline
-// document outline lists all headers, each of which can be selected to jump to it in the document
-// fixed some potential memory leaks: removed some event listeners and created a custom function
-// fixed bug: scrolling only works at the default size, changing the clipping breaks the scroll
-// update save system for documents
-// outline text sticks to top of page when moving the top clip bounds
-// document text scroll only goes to the bottom of the text now (avoids empty space)
-// document text now moves when moving the clipping bounds
+// Close button with animations
+// Documents are no longer visible while they are generated, instead showing a loading animation
+// Documents animate in when generated
