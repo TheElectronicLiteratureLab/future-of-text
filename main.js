@@ -117,6 +117,8 @@ const _yforward = new THREE.Vector3( 0, 1, 0 );
 const _zbackward = new THREE.Vector3( 0, 0, -1 );
 const _zforward = new THREE.Vector3( 0, 0, 1 );
 
+const _zero = new THREE.Vector3( 0, 0, 0 );
+
 
 var debugMode = false;
 const readerStartDistance = 2;
@@ -1025,8 +1027,13 @@ function tryPointer() {
             for (var i = textsToReset.length - 1; i >= 0; i--) {
                 var thisText = textsToReset[i];
                 thisText.fontSize = thisText.userData.fontSize;
-                thisText.fontWeight = "normal";
-                textsToReset.splice(i, 1);
+
+                // ...as long as they are not selected
+                if ( selectedObjects.indexOf(thisText) == -1 ) {
+                    thisText.fontWeight = "normal";
+                    textsToReset.splice(i, 1);
+                }
+ 
             }
         }
 
@@ -1781,7 +1788,16 @@ function tryPointerSelect(object) {
     } else if (object.userData.type.slice(0,11) == "mapcontent-") {
         const group = object.parent;
         const targetValue = object.userData.type.slice(11,13);
-        startSwipe(object);
+
+        if ( selectedObjects.indexOf(object) == -1 ) {
+            console.log("-1");
+            startSwipe(object);
+        } else {
+            console.log("1");
+            startSwipe(object.parent);
+        }
+
+        
     } else if (object.userData.type == "mapbg") {
         startMapSelector();
     }
@@ -3137,7 +3153,12 @@ function trySync() {
                         // focusThisTimout(textGroup);
                     }
 
+                } else if (funct == 'mapcontent') {
+                    updateMapTextBounds(syncCheck[i]);
+                    // setTimeout(() => {updateMapTextBounds(syncCheck[i])},500);
+                    
                 }
+
                 syncCheck.splice(i,1);
             }
         }
@@ -3663,8 +3684,19 @@ function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77, li
         scene.add(arrowTest);
         setTimeout(() => {
             scene.remove(arrowTest);
-            arrowTest.mesh.dispose();
-            arrowTest.material.dispose();
+        }, life);
+    }
+}
+
+const placeholderPointGeo = new THREE.BoxGeometry( 1, 1, 1 );
+function placeholderPoint( vectorx, vectory, vectorz, size=0.01, life = 500 ) {
+    if (debugMode) {
+        const pointMesh = new THREE.Mesh( placeholderPointGeo, testMat );
+        scene.add(pointMesh);
+        pointMesh.scale.set(size,size,size);
+        pointMesh.position.set(vectorx,vectory,vectorz);
+        setTimeout(() => {
+                scene.remove(pointMesh);
         }, life);
     }
 }
@@ -3783,7 +3815,8 @@ function startSwipe(object, type = undefined) {
         rSwipeVar = "clip";
     } else if (type == "scroll") {
         rSwipeObj = object;
-    }
+    } 
+
 }
 
 
@@ -4733,6 +4766,15 @@ function indicateLoaded() {
 }
 
 
+function getOccurance(array,value) {
+    var count = 0;
+    array.forEach((val) => (val === value && count++));
+    return count;
+}
+
+
+
+
 
 
 
@@ -4747,10 +4789,15 @@ function tryInitMap() {
         console.log("waiting to load map...");
         setTimeout(() => {tryInitMap();},200);
     } else {
-        // initMap();
+        initMap();
     }
 }
 
+let mapbg;
+let selectableArray = [];
+const hitTestPlane = new THREE.PlaneGeometry(1,1);
+const mapSelectionGroup = new THREE.Group();
+mapspace.add(mapSelectionGroup);
 
 function initMap() {
     const rndBoundsX = 1.5;
@@ -4762,18 +4809,30 @@ function initMap() {
     for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
         // get all the titles of every document in the json library
         const title = globalLIB.documents[i].title;
-            // allTitles.push(title);
+            allTitles.push(title);
 
         // get all the names from every document in the json library
         var names = globalLIB.documents[i].customData[0].names;
         for (var j = names.length - 1; j >= 0; j--) {
-            allNames.push(names[j]);
+
+            // check against duplicates
+            var num = getOccurance(allNames,names[j]);
+            if (num == 0) {
+                allNames.push(names[j]);
+            }
+ 
         }
 
         // get all keywords from every document in the json library
         var keywords = globalLIB.documents[i].customData[0].keywords;
         for (var j = keywords.length - 1; j >= 0; j--) {
-            // allKeywords.push(keywords[j]);
+
+            // check against duplicates
+            var num = getOccurance(allKeywords,keywords[j]);
+            if (num == 0) {
+                // allKeywords.push(keywords[j]);
+            }
+
         }
 
     }
@@ -4800,10 +4859,15 @@ function initMap() {
         newText.userData.type = 'mapcontent-title';
 
         newGroup.add(newText);
+        selectableArray.push(newText);
 
         newGroup.rotation.y = Math.random() * rndBoundsX - (rndBoundsX/2);
         mapspace.add(newGroup);
         newText.sync();
+
+        // Pass to check and wait for sync to complete
+        newText.userData.sync = 'mapcontent';
+        syncCheck.push(newText);
     }
 
     // -------- Names --------
@@ -4826,11 +4890,16 @@ function initMap() {
         newText.userData.type = 'mapcontent-name';
 
         newGroup.add(newText);
+        selectableArray.push(newText);
 
         newGroup.rotation.y = Math.random() * rndBoundsX - (rndBoundsX/2);
 
         mapspace.add(newGroup);
         newText.sync();
+
+        // Pass to check and wait for sync to complete
+        newText.userData.sync = 'mapcontent';
+        syncCheck.push(newText);
     }
 
     // -------- Keywords --------
@@ -4853,31 +4922,33 @@ function initMap() {
         newText.userData.type = 'mapcontent-keyword';
 
         newGroup.add(newText);
+        selectableArray.push(newText);
 
         newGroup.rotation.y = Math.random() * rndBoundsX - (rndBoundsX/2);
         
         mapspace.add(newGroup);
         newText.sync();
+
+        // Pass to check and wait for sync to complete
+        newText.userData.sync = 'mapcontent';
+        syncCheck.push(newText);
     }
     
     
     // Create a background cylinder
     var mapbgmat = new THREE.MeshBasicMaterial( {
         color: _colorBGmap,
-        side: THREE.BackSide
+        side: THREE.BackSide,
+        visible: false
     } );
     const mapbggeo = new THREE.CylinderGeometry(
             (snapDistanceMapValue + 0.02),
             (snapDistanceMapValue + 0.02),
             10, 32, 1, true);
-    const mapbg = new THREE.Mesh( mapbggeo, mapbgmat );
+    mapbg = new THREE.Mesh( mapbggeo, mapbgmat );
     mapbg.layers.enable( 3 );
     mapbg.userData.type = 'mapbg';
     mapspace.add(mapbg);
-    
-
-    
-
 
     
     // menu of some kind to select by type / show & hide / and organize text
@@ -4898,6 +4969,14 @@ const mapSelectingMat = new THREE.MeshBasicMaterial( {
     depthWrite: false,
     side: THREE.DoubleSide
 } );
+var mapSelectingDir = new THREE.Vector3();
+const mapSelectingOrigin = new THREE.Vector3(0,0,0);
+var vertexWorld = new THREE.Vector3();
+var mapSelectingRaycaster = new THREE.Raycaster();
+mapSelectingRaycaster.layers.set( 4 );
+
+var selectingAngleStart, selectingAngleEnd;
+var selectedObjects = [];
 
 function startMapSelector() {
     consoleLog("SELECTION BOX");
@@ -4909,6 +4988,7 @@ function startMapSelector() {
     mapSelectingEnd = toolSelectorDotWorld;
 }
 
+
 function tryMapSelector() {
     if (isTwoPinching && isMapSelecting) {
         // while selecting, update the cylinder geometry by disposing of the current mesh
@@ -4917,22 +4997,105 @@ function tryMapSelector() {
 
     } else if (isMapSelecting) {
         // at end of selection, add all objects within the bounds to a selection array and color them
+        updateMapSelectorGeo(mapSelectingStart, mapSelectingEnd, true);
+
+        var angleStart = Math.atan2(mapSelectingStart.x, mapSelectingStart.z);
+
+        const positionAttribute = mapSelectingMesh.geometry.getAttribute( 'position' );
+
+        const vertex = new THREE.Vector3();
+
+        const height = Math.abs( positionAttribute.array[1] * 2 );
+
+        // deselect all objects
+        if (selectedObjects.length > 0) {
+
+            for (var i = selectedObjects.length - 1; i >= 0; i--) {
+                selectedObjects[i].fontWeight = "normal";
+
+                mapspace.attach(selectedObjects[i].parent);
+            }
+
+            selectedObjects = [];
+        }
+
+        for ( let i = 0; i < positionAttribute.count; i ++ ) {
+
+            vertex.fromBufferAttribute( positionAttribute, i ); // read vertex
+            mapSelectingMesh.localToWorld( vertex );
+
+            if ( vertex.y > mapSelectingMesh.position.y ) { // this is the top of the bounding box
+
+                mapSelectingRaycaster.set(vertex, _ybackward);
+                mapSelectingRaycaster.far = height;
+                var intersects = mapSelectingRaycaster.intersectObjects( mapspace.children );
+
+                for (var j = intersects.length - 1; j >= 0; j--) {
+                    const intersect = intersects[j];
+                    const target = intersect.object.userData.target;
+
+                    if ( selectedObjects.indexOf(target) == -1 ) {
+                        selectedObjects.push(target);
+                        consoleLog(target.text);
+                    }
+                    
+                }
+                
+                placeholderArrow( mapSelectingRaycaster, height, _colorHImap, 200 );
+                placeholderPoint( vertex.x, vertex.y, vertex.z, 0.02, 200 + (i*10));
+            
+            } else {
+                // botVertices.push(vertex.clone());
+                placeholderPoint( vertex.x, vertex.y, vertex.z, 0.05, 200 + (i*10));
+            }
+
+        }
+
+        // select all objects
+        if (selectedObjects.length > 0) {
+            // console.log(selectedObjects);
+
+            for (var i = selectedObjects.length - 1; i >= 0; i--) {
+                selectedObjects[i].fontWeight = "bold";
+                mapSelectionGroup.attach(selectedObjects[i].parent);
+            }
+
+        }
+
         mapSelectingMesh.parent.remove(mapSelectingMesh);
         mapSelectingMesh.geometry.dispose();
         mapSelectingMesh = undefined;
         isMapSelecting = false;
+
     }
 }
 
-function updateMapSelectorGeo(start, end) {
+function updateMapTextBounds(object) {
+    const newBox = new THREE.Box3().setFromObject(object);
+
+    const dimensions = new THREE.Vector3().subVectors( newBox.max, newBox.min );
+    const boxGeo = new THREE.BoxGeometry( dimensions.x, dimensions.y, dimensions.z );
+
+    const matrix = new THREE.Matrix4().setPosition( dimensions.addVectors( newBox.min, newBox.max ).multiplyScalar( 0.5 ));
+    boxGeo.applyMatrix4( matrix );
+
+    const mesh = new THREE.Mesh( boxGeo, testMat );
+    mesh.userData.target = object;
+    scene.add(mesh);
+    object.parent.attach(mesh);
+
+    mesh.layers.enable( 4 );
+}
+
+function updateMapSelectorGeo(start, end, readout = false) {
     // create a cylinder with the theta point centered on the start
 
     toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
     mapSelectingEnd = toolSelectorDotWorld;
 
-    var angleStart = Math.atan2(start.x, start.z);
-    var angleEnd = Math.atan2(end.x, end.z);
-    var thetaLength = angleEnd-angleStart;
+    selectingAngleStart = Math.atan2(start.x, start.z);
+    selectingAngleEnd = Math.atan2(end.x, end.z);
+    var thetaLength = selectingAngleEnd-selectingAngleStart;
     var thetaStart = 0;
 
     if (thetaLength > Math.PI) {
@@ -4943,10 +5106,19 @@ function updateMapSelectorGeo(start, end) {
         thetaLength = -Math.PI*2 - thetaLength;
     }
 
+    var w,h;
+    if (readout) {
+        w = 64;
+        h = 1;
+    } else {
+        w = 16
+        h = 1;
+    }
+
     const newGeo = new THREE.CylinderGeometry(
-        (snapDistanceMapValue - 0.01),
-        (snapDistanceMapValue - 0.01),
-        (end.y-start.y), 32, 1, true, thetaStart,
+        (snapDistanceMapValue),
+        (snapDistanceMapValue),
+        (end.y-start.y), w, h, true, thetaStart,
         thetaLength
     );
 
@@ -4959,7 +5131,7 @@ function updateMapSelectorGeo(start, end) {
     }
     
     mapSelectingMesh.position.y = start.y + (end.y-start.y)/2;
-    mapSelectingMesh.rotation.y = angleStart;
+    mapSelectingMesh.rotation.y = selectingAngleStart;
 
 
 }
@@ -5019,9 +5191,6 @@ if ( WebGL.isWebGLAvailable() ) {
     // Load the libarary and build it
     initLibrary('./library-acm22.json');
 
-    // Try to load the map content
-    tryInitMap();
-
     // navigator.xr.requestSession("immersive-vr").then( function(session) {
     //     xrSession = session;
     // });
@@ -5056,7 +5225,8 @@ if ( WebGL.isWebGLAvailable() ) {
                 setToolPositions();
                 repositionWorld();
                 establishLibrary();
-                // toggleLibrary('open');
+                tryInitMap();
+                toggleLibrary('close');
             }
 
             if (firstInit && secondInit) { // This runs every frame after first initialization
@@ -5069,6 +5239,7 @@ if ( WebGL.isWebGLAvailable() ) {
 
                 animateCitationLines();
                 animateConsoleLog();
+
                 
             }
 
@@ -5136,6 +5307,7 @@ camera.position.z = 1;
 
 
 // COMPLETE THIS UPDATE:
-// Close button with animations
-// Documents are no longer visible while they are generated, instead showing a loading animation
-// Documents animate in when generated
+// title, names, and tags extracted from library .json
+// 'map' space generated
+// drag map content elements
+// selection box with group dragging
