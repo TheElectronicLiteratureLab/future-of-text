@@ -43,6 +43,8 @@ import TWEEN from '@tweenjs/tween.js';
     const _colorHImap = 0xffbd66;
 // Selector/pointer color
     const _colorTool = 0xffffff;
+// Manna circuit color
+    const _colorManna = 0xffbd66;
 
 
 // Set up the scene and camera for three.js
@@ -127,7 +129,27 @@ const closeEnough = 0.1;
 // Rotation order
 camera.rotation.order = 'YXZ';
 
+//  PLACEHOLDER CENTER BEAM =================================
+const testGeo = new THREE.BoxGeometry( 0.02, 0.02, 0.02 );
+const testMat = new THREE.MeshBasicMaterial( {
+    color: Math.random() * 0xffffff,
+    transparent: true,
+    opacity: 0.8
+} );
+const testCube = new THREE.Mesh( testGeo, testMat );
+testCube.geometry.computeBoundingSphere();
 
+testCube.position.set( 0, 0, 0 );
+// spawn.userData.grabbable = "true";
+// testCube.layers.enable( 1 );
+
+const testPillarGeo = new THREE.CylinderGeometry( 0.005, 0.005, 1.5, 4);
+const testPillar = new THREE.Mesh( testPillarGeo, testMat );
+scene.add( testCube );
+scene.add( testPillar );
+testPillar.position.set( 0, -0.75, 0 );
+testMat.visible = false;
+// =========================================================
 
 
 
@@ -947,7 +969,7 @@ function tryPointer() {
 
     if ( pinkyFingerTip2.position.distanceTo(wrist2.position) < 0.13 
     && ringFingerTip2.position.distanceTo(wrist2.position) < 0.13
-    && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13
+    && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13 && !isMannaActive
     ) {
 
         toolSelectorActive = true;
@@ -3541,8 +3563,8 @@ function createHandle(object, variant = undefined) {
 
 // -------------------- HAND TRACKING ----------------------
 let hand1, hand2;
-let controller1, controller2;
-let controllerGrip1, controllerGrip2;
+// let controller1, controller2;
+// let controllerGrip1, controllerGrip2;
 let wrist1, wrist2, thumbTip1, thumbTip2, thumbDistal1, thumbDistal2, indexFingerTip1, indexFingerTip2,
 indexDis1, indexDis2, middleFingerTip1, middleFingerTip2, middleDistal1, middleDistal2, ringFingerTip1, ringFingerTip2, 
 pinkyFingerTip1, pinkyFingerTip2, indexKnuckle1, indexKnuckle2;
@@ -3564,105 +3586,132 @@ const grabDistance = 0.095;
 var lHeldObj = THREE.object;
 var rHeldObj = THREE.object;
 
+const palmNormal = new THREE.Mesh( testGeo, testMat );
+var palmNormalWorld = new THREE.Vector3();
+
+var mainInit = false;
+
 function init() {
 
-    const controllerModelFactory = new XRControllerModelFactory();
-    const handModelFactory = new XRHandModelFactory();
+    if (!mainInit && !controller1enabled && !controller2enabled) {
+        mainInit = true;
 
-    // controllers
-    controller1 = renderer.xr.getController( 0 );
-    scene.add( controller1 );
+        console.log("========INIT========");
 
-    controller2 = renderer.xr.getController( 1 );
-    scene.add( controller2 );
+        const controllerModelFactory = new XRControllerModelFactory();
+        const handModelFactory = new XRHandModelFactory();
 
-    // Hand 1 - 'left' or non-dominant hand (menu sphere)
-    controllerGrip1 = renderer.xr.getControllerGrip( 0 );
-    controllerGrip1.add( controllerModelFactory.createControllerModel( controllerGrip1 ) );
-    scene.add( controllerGrip1 );
-    
-    hand1 = renderer.xr.getHand( 0 );
-    scene.add( hand1 );
+        // controllers
+        // controller1 = renderer.xr.getController( 0 );
+        // scene.add( controller1 );
 
-    handModels.left = [
-        handModelFactory.createHandModel( hand1, 'mesh' ),
-        handModelFactory.createHandModel( hand1, 'boxes' )
-        // handModelFactory.createHandModel( hand1, 'spheres' )
-    ];
+        // controller2 = renderer.xr.getController( 1 );
+        // scene.add( controller2 );
 
-    for ( let i = 0; i < 2; i ++) {
-        const model = handModels.left[ i ];
-        model.visible = i == 0;
-        hand1.add( model );
+        // Hand 1 - 'left' or non-dominant hand (menu sphere)
+        // controllerGrip1 = renderer.xr.getControllerGrip( 0 );
+        // controllerGrip1.add( controllerModelFactory.createControllerModel( controllerGrip1 ) );
+        // scene.add( controllerGrip1 );
+        
+        hand1 = renderer.xr.getHand( 0 );
+        scene.add( hand1 );
+
+        handModels.left = [
+            handModelFactory.createHandModel( hand1, 'mesh' ),
+            handModelFactory.createHandModel( hand1, 'boxes' )
+            // handModelFactory.createHandModel( hand1, 'spheres' )
+        ];
+
+        for ( let i = 0; i < 2; i ++) {
+            const model = handModels.left[ i ];
+            model.visible = i == 0;
+            hand1.add( model );
+        }
+
+        hand1.addEventListener( 'pinchstart', onPinchStartOne );
+        hand1.addEventListener( 'pinchend', onPinchEndOne );
+        
+        
+        // Hand 2 - 'right' or dominant hand (interactions)
+        // controllerGrip2 = renderer.xr.getControllerGrip( 1 );
+        // controllerGrip2.add( controllerModelFactory.createControllerModel( controllerGrip2 ) );
+        // scene.add( controllerGrip2 );
+
+        hand2 = renderer.xr.getHand( 1 );
+        scene.add( hand2 );
+        
+        handModels.right = [
+            handModelFactory.createHandModel( hand2, 'mesh' ),
+            handModelFactory.createHandModel( hand2, 'boxes' )
+            // handModelFactory.createHandModel( hand2, 'spheres' )
+        ];
+
+        for ( let i = 0; i < 2; i ++) {
+            const model = handModels.right[ i ];
+            model.visible = i == 0;
+            hand2.add( model );
+        }
+
+        hand2.addEventListener( 'pinchstart', onPinchStartTwo );
+        hand2.addEventListener( 'pinchend', onPinchEndTwo );
+
+        // Wait for the hand to connect, then get finger joints
+        hand1.addEventListener('connected', (event) => {
+            // Access finger joints
+            wrist1 = event.target.joints['wrist'];
+            thumbTip1 = event.target.joints['thumb-tip'];
+            thumbDistal1 = event.target.joints[ 'thumb-phalanx-distal' ];
+            indexFingerTip1 = event.target.joints['index-finger-tip'];
+            indexDis1 = event.target.joints[ 'index-finger-phalanx-distal' ];
+            indexKnuckle1 = event.target.joints['index-finger-phalanx-proximal'];
+            middleFingerTip1 = event.target.joints['middle-finger-tip'];
+            ringFingerTip1 = event.target.joints['ring-finger-tip'];
+            pinkyFingerTip1 = event.target.joints['pinky-finger-tip'];
+            middleDistal1 = event.target.joints['middle-finger-phalanx-distal'];
+
+            // Setup palm normal
+            wrist1.add( palmNormal );
+            palmNormal.position.set(0,0,0);
+            palmNormal.translateY( -0.1 );
+
+            controller1enabled = true;
+        });
+
+        // Wait for the hand to connect, then get finger joints
+        hand2.addEventListener('connected', (event) => {
+            // Access finger joints
+            wrist2 = event.target.joints['wrist'];
+            thumbTip2 = event.target.joints['thumb-tip'];
+            thumbDistal2 = event.target.joints[ 'thumb-phalanx-distal' ];
+            indexFingerTip2 = event.target.joints['index-finger-tip'];
+            indexDis2 = event.target.joints[ 'index-finger-phalanx-distal' ];
+            indexKnuckle2 = event.target.joints['index-finger-phalanx-proximal'];
+            middleFingerTip2 = event.target.joints['middle-finger-tip'];
+            ringFingerTip2 = event.target.joints['ring-finger-tip'];
+            pinkyFingerTip2 = event.target.joints['pinky-finger-tip'];
+            middleDistal2 = event.target.joints['middle-finger-phalanx-distal'];
+
+            controller2enabled = true;
+        });
+
+        setTimeout(() => {
+            if (handModels.right[0].children.length == 0) {
+                console.log("Hand models failed to load. Did you not give the page enough time to load before entering XR, or reload the page while in XR?");
+            }
+        }, 3000);
+
+
     }
-
-    hand1.addEventListener( 'pinchstart', onPinchStartOne );
-    hand1.addEventListener( 'pinchend', onPinchEndOne );
-    
-    
-    // Hand 2 - 'right' or dominant hand (interactions)
-    controllerGrip2 = renderer.xr.getControllerGrip( 1 );
-    controllerGrip2.add( controllerModelFactory.createControllerModel( controllerGrip2 ) );
-    scene.add( controllerGrip2 );
-
-    hand2 = renderer.xr.getHand( 1 );
-    scene.add( hand2 );
-    
-    handModels.right = [
-        handModelFactory.createHandModel( hand2, 'mesh' ),
-        handModelFactory.createHandModel( hand2, 'boxes' )
-        // handModelFactory.createHandModel( hand2, 'spheres' )
-    ];
-
-    for ( let i = 0; i < 2; i ++) {
-        const model = handModels.right[ i ];
-        model.visible = i == 0;
-        hand2.add( model );
-    }
-
-    hand2.addEventListener( 'pinchstart', onPinchStartTwo );
-    hand2.addEventListener( 'pinchend', onPinchEndTwo );
-
-    // Wait for the hand to connect, then get finger joints
-    hand1.addEventListener('connected', (event) => {
-        // Access finger joints
-        wrist1 = event.target.joints['wrist'];
-        thumbTip1 = event.target.joints['thumb-tip'];
-        thumbDistal1 = event.target.joints[ 'thumb-phalanx-distal' ];
-        indexFingerTip1 = event.target.joints['index-finger-tip'];
-        indexDis1 = event.target.joints[ 'index-finger-phalanx-distal' ];
-        indexKnuckle1 = event.target.joints['index-finger-phalanx-proximal'];
-        middleFingerTip1 = event.target.joints['middle-finger-tip'];
-        ringFingerTip1 = event.target.joints['ring-finger-tip'];
-        pinkyFingerTip1 = event.target.joints['pinky-finger-tip'];
-        middleDistal1 = event.target.joints['middle-finger-phalanx-distal'];
-
-        controller1enabled = true;
-    });
-
-    // Wait for the hand to connect, then get finger joints
-    hand2.addEventListener('connected', (event) => {
-        // Access finger joints
-        wrist2 = event.target.joints['wrist'];
-        thumbTip2 = event.target.joints['thumb-tip'];
-        thumbDistal2 = event.target.joints[ 'thumb-phalanx-distal' ];
-        indexFingerTip2 = event.target.joints['index-finger-tip'];
-        indexDis2 = event.target.joints[ 'index-finger-phalanx-distal' ];
-        indexKnuckle2 = event.target.joints['index-finger-phalanx-proximal'];
-        middleFingerTip2 = event.target.joints['middle-finger-tip'];
-        ringFingerTip2 = event.target.joints['ring-finger-tip'];
-        pinkyFingerTip2 = event.target.joints['pinky-finger-tip'];
-        middleDistal2 = event.target.joints['middle-finger-phalanx-distal'];
-
-        controller2enabled = true;
-    });
 }
 
 var isOnePinching = false;
+var isOnePinchConsumed = false;
 var isTwoPinching = false;
+var isTwoPinchConsumed = false;
 
 function onPinchStartOne( event ) {    
     isOnePinching = true;
+    isOnePinchConsumed = false;
 }
 
 function onPinchEndOne( event ) {
@@ -3671,6 +3720,7 @@ function onPinchEndOne( event ) {
 
 function onPinchStartTwo( event ) {    
     isTwoPinching = true;
+    isTwoPinchConsumed = false;
 }
 
 function onPinchEndTwo( event ) {
@@ -4010,28 +4060,6 @@ function tryRecenter() {
         recenterTimer = 0;
     }
 }
-
-//  PLACEHOLDER CENTER BEAM =================================
-const testGeo = new THREE.BoxGeometry( 0.02, 0.02, 0.02 );
-const testMat = new THREE.MeshBasicMaterial( {
-    color: Math.random() * 0xffffff,
-    transparent: true,
-    opacity: 0.8
-} );
-const testCube = new THREE.Mesh( testGeo, testMat );
-testCube.geometry.computeBoundingSphere();
-
-testCube.position.set( 0, 0, 0 );
-// spawn.userData.grabbable = "true";
-// testCube.layers.enable( 1 );
-
-const testPillarGeo = new THREE.CylinderGeometry( 0.005, 0.005, 1.5, 4);
-const testPillar = new THREE.Mesh( testPillarGeo, testMat );
-scene.add( testCube );
-scene.add( testPillar );
-testPillar.position.set( 0, -0.75, 0 );
-testMat.visible = false;
-// =========================================================
 
 function showDebug() {
     if (debugMode) {
@@ -4818,7 +4846,7 @@ function initMap() {
             // check against duplicates
             var num = getOccurance(allNames,names[j]);
             if (num == 0) {
-                allNames.push(names[j]);
+                // allNames.push(names[j]);
             }
  
         }
@@ -5154,6 +5182,500 @@ function updateMapSelectorGeo(start, end, readout = false) {
 
 
 
+
+
+// FINGER MANNA MENU ========================================================================
+
+// Dominant hand: Point/select
+// Non-Dominant hand: Menu host
+
+// Use hand axes to check if the palm is facing the camera
+    // if point extended from palm is closer than wrist joint, activate the manna menu
+
+// While the palm is facing, manna menu is active
+    // Rings appear on each finger tip
+    // Text lables appear alongside the rings and always face the camera (like the debug log)
+    // A 'magic' point appears on the opposite hand's index finger tip
+
+// The rings grow as the pointer gets closer - clamped by a min and max size
+
+// If the pointer touches the ring, give a visual feedback (maybe a color pulse)
+// Also reveal a circuit menu that branches out
+// The magic point is now stuck to the circuit unless the opposite hand moves too far away
+
+// Moving the finger moves the point along the circuit
+    // Branching paths in the circuit are handled by picking the route closest to the finger
+
+// At the end of the circuit paths are menu nodes
+    // If the magic point makes it to the node, the menu item is triggered and the circuit closes
+
+var isMannaActive = false;
+var isMannaSet = false;
+var mannaBases = [];
+var mannaNodes = [];
+var mannaDot = new THREE.Group();
+var mannaDotPoint = new THREE.Group();
+var mannaArray = [];
+var mannaPointDest = mannaDotPoint;
+var mannaPointLast = mannaPointDest;
+var mannaBreak = false;
+
+function initManna() {                                   // Connections             // Labels       // offset           // function
+    const manna10000 = newMannaRing( indexFingerTip1,    [32,0,1,2,3,4,5],          [32,4,5,1,2,3] );
+        const manna11000 = newMannaRing( manna10000,     [32,0,1,2,3,4,6,7],        [32,6,7,1,2,3],    [0.02,0.04,0] );
+            const manna11100 = newMannaRing( manna10000, [32,0,1,2,3,4,6],          [32,6,1,2,3],      [0.035,0.09,0],     'Select One (A)' );
+            const manna11200 = newMannaRing( manna10000, [32,0,1,2,3,4,7],          [32,7,1,2,3],      [0.075,0.05,0],     'Select Two (A)' );
+        const manna12000 = newMannaRing( manna10000,     [32,0,1,2,3,5,8,9,10],     [32,1,2,3,8,9,10], [0.04,0.02,0] );
+            const manna12100 = newMannaRing( manna10000, [32,0,1,2,3,5,8],          [32,8,1,2,3],      [0.07,0.08,0],      'Select One (B)' );
+            const manna12200 = newMannaRing( manna10000, [32,0,1,2,3,5,9],          [32,9,1,2,3],      [0.1,0.045,0],      'Select Two (B)' );
+            const manna12300 = newMannaRing( manna10000, [32,0,1,2,3,5,10],         [32,10,1,2,3],     [0.10,0.00,0],      'Select Three (B)' );
+    const manna20000 = newMannaRing( middleFingerTip1,   [32,0,1,2,3,11,12],        [32,0,11,12,2,3] );
+        const manna21000 = newMannaRing( manna20000,     [32,0,1,2,3,11,13,14],     [32,13,14,0,2,3],   [0.02,0.04,0] );
+            const manna21100 = newMannaRing( manna20000, [32,0,1,2,3,11,13],        [32,13,0,2,3],      [0.035,0.09,0],     'Select One (C)' );
+            const manna21200 = newMannaRing( manna20000, [32,0,1,2,3,11,14],        [32,14,0,2,3],      [0.075,0.05,0],     'Select Two (C)' );
+        const manna22000 = newMannaRing( manna20000,     [32,0,1,2,3,12,15,16,17],  [32,0,2,3,15,16,17],[0.04,0.02,0] );
+            const manna22100 = newMannaRing( manna20000, [32,0,1,2,3,12,15],        [32,15,0,2,3],      [0.07,0.08,0],      'Select One (D)' );
+            const manna22200 = newMannaRing( manna20000, [32,0,1,2,3,12,16],        [32,16,0,2,3],      [0.1,0.045,0],      'Select Two (D)' );
+            const manna22300 = newMannaRing( manna20000, [32,0,1,2,3,12,17],        [32,17,0,2,3],      [0.10,0.00,0],      'Select Three (D)' );
+    const manna30000 = newMannaRing( ringFingerTip1,     [32,0,1,2,3,18,19],        [32,0,1,18,19,3] );
+        const manna31000 = newMannaRing( manna30000,     [32,0,1,2,3,18,20,21],     [32,20,21,1,0,3],   [0.02,0.04,0] );
+            const manna31100 = newMannaRing( manna30000, [32,0,1,2,3,18,20],        [32,20,1,0,3],      [0.035,0.09,0],     'Select One (E)' );
+            const manna31200 = newMannaRing( manna30000, [32,0,1,2,3,18,21],        [32,21,1,0,3],      [0.075,0.05,0],     'Select Two (E)' );
+        const manna32000 = newMannaRing( manna30000,     [32,0,1,2,3,19,22,23,24],  [32,1,0,3,22,23,24],[0.04,0.02,0] );
+            const manna32100 = newMannaRing( manna30000, [32,0,1,2,3,19,22],        [32,22,1,0,3],      [0.07,0.08,0],      'Select One (F)' );
+            const manna32200 = newMannaRing( manna30000, [32,0,1,2,3,19,23],        [32,23,1,0,3],      [0.1,0.045,0],      'Select Two (F)' );
+            const manna32300 = newMannaRing( manna30000, [32,0,1,2,3,19,24],        [32,24,1,0,3],      [0.10,0.00,0],      'Select Three (F)' );
+    const manna40000 = newMannaRing( pinkyFingerTip1,    [32,0,1,2,3,25,26],        [32,0,1,2,25,26] );
+        const manna41000 = newMannaRing( manna40000,     [32,0,1,2,3,25,27,28],     [32,27,28,1,2,0],   [0.02,0.04,0] );
+            const manna41100 = newMannaRing( manna40000, [32,0,1,2,3,25,27],        [32,27,1,2,0],      [0.035,0.09,0],     'Select One (G)' );
+            const manna41200 = newMannaRing( manna40000, [32,0,1,2,3,25,28],        [32,28,1,2,0],      [0.075,0.05,0],     'Select Two (G)' );
+        const manna42000 = newMannaRing( manna40000,     [32,0,1,2,3,26,29,30,31],  [32,1,2,0,29,30,31],[0.04,0.02,0] );
+            const manna42100 = newMannaRing( manna40000, [32,0,1,2,3,26,29],        [32,29,1,2,0],      [0.07,0.08,0],      'Select One (H)' );
+            const manna42200 = newMannaRing( manna40000, [32,0,1,2,3,26,30],        [32,30,1,2,0],      [0.1,0.045,0],      'Select Two (H)' );
+            const manna42300 = newMannaRing( manna40000, [32,0,1,2,3,26,31],        [32,31,1,2,0],      [0.10,0.00,0],      'Select Three (H)' );
+    const manna50000 = newMannaRing( thumbTip1,          [32,0,1,2,3,33],           [0,1,2,3,33] );
+        const manna51000 = newMannaRing( manna50000,     [32,0,1,2,3,33],           [0,1,2,3,33],       [0.01,0.04,0],      'Settings');
+
+
+    newMannaDot(indexFingerTip2);
+    newMannaLabel(manna10000, "Index");
+    newMannaLabel(manna20000, "Middle");
+    newMannaLabel(manna30000, "Ring");
+    newMannaLabel(manna40000, "Pinky");
+    newMannaLabel(manna50000, "Thumb");
+
+    newMannaLabel(manna11000, "Option A", true);
+        newMannaLabel(manna11100, "Select One (A)", true);
+        newMannaLabel(manna11200, "Select Two (A)", true);
+
+    newMannaLabel(manna12000, "Option B", true);
+        newMannaLabel(manna12100, "Select One (B)", true);
+        newMannaLabel(manna12200, "Select Two (B)", true);
+        newMannaLabel(manna12300, "Select Three (B)", true);
+
+    newMannaLine(manna11000, 0.032, -28, [0.001,0,0]);
+    newMannaLine(manna12000, 0.032, -63, [0.002,-0.002,0]);
+    newMannaLine(manna11100, 0.040, -17, [0.021,0.04,0]);
+    newMannaLine(manna11200, 0.042, -80, [0.024,0.0385,0]);
+
+    newMannaLine(manna12100, 0.054, -27, [0.041,0.02,0]);
+    newMannaLine(manna12200, 0.052, -67, [0.044,0.0185,0]);
+    newMannaLine(manna12300, 0.050, -108,[0.043,0.016,0]);
+
+    newMannaLabel(manna21000, "Option C", true);
+        newMannaLabel(manna21100, "Select One (C)", true);
+        newMannaLabel(manna21200, "Select Two (C)", true);
+
+    newMannaLabel(manna22000, "Option D", true);
+        newMannaLabel(manna22100, "Select One (D)", true);
+        newMannaLabel(manna22200, "Select Two (D)", true);
+        newMannaLabel(manna22300, "Select Three (D)", true);
+
+    newMannaLine(manna21000, 0.032, -28, [0.001,0,0]);
+    newMannaLine(manna22000, 0.032, -63, [0.002,-0.002,0]);
+    newMannaLine(manna21100, 0.040, -17, [0.021,0.04,0]);
+    newMannaLine(manna21200, 0.042, -80, [0.024,0.0385,0]);
+
+    newMannaLine(manna22100, 0.054, -27, [0.041,0.02,0]);
+    newMannaLine(manna22200, 0.052, -67, [0.044,0.0185,0]);
+    newMannaLine(manna22300, 0.050, -108,[0.043,0.016,0]);
+
+    newMannaLabel(manna31000, "Option E", true);
+        newMannaLabel(manna31100, "Select One (E)", true);
+        newMannaLabel(manna31200, "Select Two (E)", true);
+
+    newMannaLabel(manna32000, "Option F", true);
+        newMannaLabel(manna32100, "Select One (F)", true);
+        newMannaLabel(manna32200, "Select Two (F)", true);
+        newMannaLabel(manna32300, "Select Three (F)", true);
+
+    newMannaLine(manna31000, 0.032, -28, [0.001,0,0]);
+    newMannaLine(manna32000, 0.032, -63, [0.002,-0.002,0]);
+    newMannaLine(manna31100, 0.040, -17, [0.021,0.04,0]);
+    newMannaLine(manna31200, 0.042, -80, [0.024,0.0385,0]);
+
+    newMannaLine(manna32100, 0.054, -27, [0.041,0.02,0]);
+    newMannaLine(manna32200, 0.052, -67, [0.044,0.0185,0]);
+    newMannaLine(manna32300, 0.050, -108,[0.043,0.016,0]);
+
+    newMannaLabel(manna41000, "Option G", true);
+        newMannaLabel(manna41100, "Select One (G)", true);
+        newMannaLabel(manna41200, "Select Two (G)", true);
+
+    newMannaLabel(manna42000, "Option H", true);
+        newMannaLabel(manna42100, "Select One (H)", true);
+        newMannaLabel(manna42200, "Select Two (H)", true);
+        newMannaLabel(manna42300, "Select Three (H)", true);
+
+    newMannaLine(manna41000, 0.032, -28, [0.001,0,0]);
+    newMannaLine(manna42000, 0.032, -63, [0.002,-0.002,0]);
+    newMannaLine(manna41100, 0.040, -17, [0.021,0.04,0]);
+    newMannaLine(manna41200, 0.042, -80, [0.024,0.0385,0]);
+
+    newMannaLine(manna42100, 0.054, -27, [0.041,0.02,0]);
+    newMannaLine(manna42200, 0.052, -67, [0.044,0.0185,0]);
+    newMannaLine(manna42300, 0.050, -108,[0.043,0.016,0]);
+
+    newMannaLabel(manna51000, "Settings", true);
+    newMannaLine(manna51000, 0.028, -14, [0.001,0,0]);
+
+    // Array of the base manna nodes
+    mannaBases = [manna10000,manna20000,manna30000,manna40000,manna50000];
+    mannaNodes = mannaBases;
+
+    // Array of all manna nodes, including inactive ones
+    mannaArray = [manna10000,manna20000,manna30000,manna40000,
+                    manna11000,manna12000,manna11100,manna11200,manna12100,manna12200,manna12300,
+                    manna21000,manna22000,manna21100,manna21200,manna22100,manna22200,manna22300,
+                    manna31000,manna32000,manna31100,manna31200,manna32100,manna32200,manna32300,
+                    manna41000,manna42000,manna41100,manna41200,manna42100,manna42200,manna42300,
+                    manna50000,manna51000];
+
+    // Hide all manna
+    mannaDot.visible = true;
+    for (var i = mannaArray.length - 1; i >= 0; i--) { mannaArray[i].visible = false; }
+
+}
+
+function newMannaRing(parent, nodes, labels = [], offset = [0,0,0], funct = 'none') {
+    const ringGroup = new THREE.Group();
+    const ring = new Text();
+    ring.text = "o";
+    ring.fontSize = 0.03;
+    ring.anchorX = 'center';
+    ring.anchorY = 'middle';
+    ring.outlineWidth = 0.0;
+    // ring.outlineBlur = 0.002;
+    ring.outlineColor = _colorTool;
+    ring.color = _colorManna;
+
+    ringGroup.add(ring);
+    parent.add(ringGroup);
+    ring.position.set(offset[0],offset[1],offset[2]);
+    ring.rotation.set(0,0,0);
+    ring.scale.y = 0.85;
+
+    ringGroup.userData.mannaNodes = nodes;
+    ringGroup.userData.labelNodes = labels;
+
+    ring.sync();
+    // ringGroup.visible = false;
+
+    if ( funct != 'none' ) {
+
+        ringGroup.userData.function = funct;
+
+        const dot = new Text();
+        dot.text = ".";
+        dot.fontSize = 0.05;
+        dot.anchorX = 'center';
+        dot.anchorY = 'middle';
+        dot.color = _colorTool;
+
+        ringGroup.add(dot);
+        dot.position.set(offset[0],offset[1],offset[2]);
+        dot.rotation.set(0,0,0);
+        dot.translateY(0.014);
+        dot.translateZ(-0.002);
+
+        dot.sync();
+
+    }
+
+    return ringGroup;
+}   
+
+function newMannaDot(parent) {
+    const dot = new Text();
+    dot.text = ".";
+    dot.fontSize = 0.05;
+    dot.anchorX = 'center';
+    dot.anchorY = 'middle';
+    dot.outlineWidth = 0.0;
+    // dot.outlineBlur = 0.002;
+    dot.outlineColor = _colorTool;
+    dot.color = _colorManna;
+
+    mannaDot.add(dot);
+    scene.add(mannaDot);
+    parent.add(mannaDotPoint);
+
+    dot.position.set(0,0,0);
+    dot.rotation.set(0,0,0);
+    dot.translateY(0.015);
+
+    mannaDotPoint.position.set(0,0,0);
+    mannaDotPoint.rotation.set(0,0,0);
+    mannaDotPoint.translateZ(-0.01);
+
+    dot.sync();
+    // mannaDot.visible = false;
+}
+
+function newMannaLabel(parent, label = "label", offsetObj = false) {
+    const newText = new Text();
+    newText.text = label;
+    newText.color = _colorTool;
+    newText.fontSize = 0.01;
+    newText.anchorX = 'left';
+    newText.anchorY = 'bottom';
+    if (offsetObj == false) {
+        newText.position.set(0.005,0.005,0);
+    } else {
+        const offset = parent.children[0];
+        newText.position.x = offset.position.x + 0.005;
+        newText.position.y = offset.position.y + 0.005;
+        newText.position.z = offset.position.z + 0.000;
+    }
+    
+    parent.add(newText);
+    parent.userData.mannaLabel = newText;
+    newText.sync();
+}
+
+var debugMannaLine;
+
+
+$( '#debugBtn' ).on( 'click', function() {
+    const length = $( '#length' ).val();
+    const rotation = $( '#rotation' ).val();
+    const offsetx = $( '#offsetx' ).val();
+    const offsety = $( '#offsety' ).val();
+
+    debugMannaLine.position.set(parseFloat(offsetx),parseFloat(offsety),0);
+
+    debugMannaLine.scale.z = length;
+
+    debugMannaLine.rotation.y = Math.PI/180 * rotation;
+
+    debugMannaLine.translateZ((-length/2) - 0.003);
+
+
+});
+
+function newMannaLine(object, length = 0.045, rotation = -28, offset = [0,0,0], mannaDebug = false) {
+    const lineGeo = new THREE.BoxGeometry( 0.003, 0.003, 1 );
+    const lineMat = new THREE.MeshBasicMaterial( { color: _colorManna } );
+    const thisLine = new THREE.Mesh( lineGeo, lineMat );
+
+    object.add(thisLine);
+
+    thisLine.position.set(offset[0],offset[1],offset[2]);
+
+    thisLine.scale.z = length;
+
+    thisLine.rotation.x = Math.PI/2;
+    thisLine.rotation.y = Math.PI/180 * rotation;
+
+    thisLine.translateZ((-length/2) - 0.003);
+
+    thisLine.visible = true;
+
+    if(mannaDebug){
+        debugMannaLine = thisLine;
+        $( '#length' ).val(length);
+        $( '#rotation' ).val(rotation);
+        $( '#offsetx' ).val(offset[0]);
+        $( '#offsety' ).val(offset[1]);
+    }
+}
+
+function tryManna() {
+    palmNormal.getWorldPosition(palmNormalWorld);
+    const d1 = camera.position.distanceTo(palmNormalWorld);
+    const d2 = camera.position.distanceTo(wrist1.position);
+
+    if ( d1 < d2 ) {
+        isMannaActive = true;
+    } else {
+        isMannaActive = false;
+    }
+
+
+    if ( isMannaActive && !mannaBreak) {
+        // The manna menu is active, run functions
+
+        // Finger pinched - trigger a function
+        if ( isTwoPinching && !isTwoPinchConsumed) {
+            isTwoPinchConsumed = true;
+            const funct = mannaPointDest.parent.userData.function;
+            if ( funct != undefined ) { triggerManna(funct); mannaBreak = true; }
+        }
+
+        // set rotations of the rings
+        for (var i = mannaBases.length - 1; i >= 0; i--) {
+            mannaBases[i].lookAt(camera.position);
+            mannaBases[i].position.set(0,0,0);
+            mannaBases[i].translateZ(0.02);
+        }
+
+        mannaDot.lookAt(camera.position);
+
+        if ( !isMannaSet ) {
+            // The manna menu has just been opened
+            isMannaSet = true;
+
+            // Make the components visible
+            for (var i = mannaBases.length - 1; i >= 0; i--) {
+                mannaBases[i].visible = true;
+            }
+
+            mannaDot.visible = true;
+
+        }
+
+        // Calculate the closest manna node
+        mannaPointDest = mannaDotPoint;
+        var mannaDistance = 0.08;
+
+        for (var i = mannaNodes.length - 1; i >= 0; i--) {
+            var thisNode = mannaNodes[i].children[0];
+            thisNode.getWorldPosition(tempWorldPos);
+            var thisDistance = tempWorldPos.distanceTo(indexFingerTip2.position);
+            if ( thisDistance < mannaDistance ) {
+                mannaDistance = thisDistance;
+                mannaPointDest = thisNode;
+            }
+        }
+
+        // Manna point is moved to the current destination point
+        mannaPointDest.getWorldPosition(tempWorldPos);
+        mannaDot.position.set(tempWorldPos.x,tempWorldPos.y,tempWorldPos.z);
+        mannaDot.translateY(-0.001);
+
+        // Check if the current node has changed
+        if (mannaPointLast != mannaPointDest) {
+            consoleLog("CHANGED MANNA", 0xff3333);
+            mannaPointLast = mannaPointDest;
+
+            for (var i = mannaArray.length - 1; i >= 0; i--) {
+                mannaArray[i].visible = false;
+                const label = mannaArray[i].userData.mannaLabel;
+                if ( label != undefined ) { label.visible = false; }
+            }
+
+            // Push the active nodes into the mannaNodes array
+            var newNodes = mannaPointDest.parent.userData.mannaNodes;
+            // console.log(mannaPointDest.parent);
+            if (newNodes != undefined) {
+                mannaNodes = [];
+                for (var i = newNodes.length - 1; i >= 0; i--) {
+                    mannaNodes.push(mannaArray[newNodes[i]]);
+                    mannaArray[newNodes[i]].visible = true;
+                }
+                const mannaLabels = mannaPointDest.parent.userData.labelNodes;
+                for (var i = mannaLabels.length - 1; i >= 0; i--) {
+                    const label = mannaArray[mannaLabels[i]].userData.mannaLabel;
+                    if ( label != undefined ) { label.visible = true; }
+                }
+            } else {
+                mannaNodes = mannaBases;
+                for (var i = mannaNodes.length - 1; i >= 0; i--) {
+                    mannaNodes[i].visible = true;
+                    const label = mannaNodes[i].userData.mannaLabel;
+                    if ( label != undefined ) { label.visible = true; console.log(label.visible);}
+                }
+            }
+
+        }
+
+
+    } else {
+        // The manna menu is no longer active
+
+        if ( isMannaSet ) {
+            // The manna menu has just been closed
+            isMannaSet = false;
+            mannaBreak = false;
+
+            // Make the components hidden
+            for (var i = mannaBases.length - 1; i >= 0; i--) {
+                mannaBases[i].visible = false;
+            }
+
+            mannaDot.visible = false;
+
+            // Reset the selected nodes
+            mannaNodes = mannaBases;
+            mannaPointDest = mannaDotPoint;
+
+        }
+    }
+}
+
+
+function triggerManna(funct) {
+    consoleLog(funct, 0x55aaff);
+
+
+    let newText = new Text();
+
+    newText.fontSize = 0.3;
+    newText.text = funct;
+    newText.color = _colorManna;
+    newText.anchorX = 'center';
+    newText.anchorY = 'middle';
+
+    scene.add(newText);
+    newText.position.set(wrist2.position.x,wrist2.position.y,wrist2.position.z);
+    newText.lookAt(camera.position.x,camera.position.y,camera.position.z);
+    newText.translateZ(-1);
+
+    newText.sync();
+
+    new TWEEN.Tween( newText.scale )
+        .to( {x: 0, y: 0, z: 0}, 2000 )
+        .easing( TWEEN.Easing.Back.In )
+        .start()
+        .onComplete(() => {
+            newText.parent.remove(newText);
+        });
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var currentURL = './3511095.3531271.html';
 
 // change the url of the document to load
@@ -5205,6 +5727,7 @@ if ( WebGL.isWebGLAvailable() ) {
 
         if (renderer.xr.isPresenting && !firstInit && loadDelay > 0) {
             // When the VR mode is first launched
+            init();
             browserSphereTransitionSetup();
         }
 
@@ -5218,6 +5741,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 initTools();
                 initconsoleLog();
                 initWorkspace();
+                initManna();
 
             } else if (firstInit && !secondInit && indexFingerTip2.position.distanceTo(wrist2.position) > 0.1 && indexFingerTip1.position.distanceTo(wrist1.position)){
                 // This runs once after the hands have properly loaded
@@ -5236,6 +5760,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryRecenter();
                 tryPointer();
                 tryMapSelector();
+                tryManna();
 
                 animateCitationLines();
                 animateConsoleLog();
@@ -5254,7 +5779,7 @@ if ( WebGL.isWebGLAvailable() ) {
     } );
     // ================================================================================================================== //
 
-    init();
+    
 
 } else {
 
@@ -5305,9 +5830,6 @@ camera.position.z = 1;
 // map view
 
 
-
 // COMPLETE THIS UPDATE:
-// title, names, and tags extracted from library .json
-// 'map' space generated
-// drag map content elements
-// selection box with group dragging
+finger manna menu
+initialization opimization to reduce performace issues
