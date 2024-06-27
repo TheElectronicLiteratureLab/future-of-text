@@ -5827,9 +5827,8 @@ camera.position.z = 1;
 
 
 // WIP:
-// map view
+// quick pinch to trigger function (open document, etc)
+// palm 'settings' button to swap finger tips
 
 
 // COMPLETE THIS UPDATE:
-finger manna menu
-initialization opimization to reduce performace issues
