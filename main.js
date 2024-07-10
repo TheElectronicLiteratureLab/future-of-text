@@ -25,8 +25,10 @@ import TWEEN from '@tweenjs/tween.js';
     const _colorTXmain = 0x000000;
 // Popup menu text color
     const _colorTXpopu = 0xffffff;
-// Bounding box text color - for document bounds and UI
+// Bounding box color - for document bounds and UI
     const _colorBounds = 0x555555;
+// Highlight for bounding box colors
+    const _colorHBound = 0xaaaaaa;
 // Document menu bar text color
     const _colorTXmbar = 0xeeeeee;
 // Popup menu background color
@@ -42,9 +44,11 @@ import TWEEN from '@tweenjs/tween.js';
 // Map highlight/selector color
     const _colorHImap = 0xffbd66;
 // Selector/pointer color
-    const _colorTool = 0xffffff;
+    const _colorTools = 0xffffff;
 // Manna circuit color
     const _colorManna = 0xffbd66;
+// Hand model color
+    const _colorHands = 0x000000;
 
 
 // Set up the scene and camera for three.js
@@ -150,6 +154,30 @@ scene.add( testPillar );
 testPillar.position.set( 0, -0.75, 0 );
 testMat.visible = false;
 // =========================================================
+
+
+// font
+const _fontserif = './Wittgenstein.ttf';
+// const _fontserif = './NotoSerif.ttf';
+// const _fontserif = 'https://fonts.google.com/share?selection.family=Noto+Serif:ital,wght@0,100..900;1,100..900';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -364,6 +392,9 @@ function tryMenu() {
             toggleLibrary('close');
             menuMode = 0;
             justClosedLibrary = true;
+
+            for (var i = allRays.length - 1; i >= 0; i--) { allRays[i].visible = true; }
+
         } else if (isMenuOpen && !isMenuActive && menuMode != 99) { // The menu is open: close it now
             consoleLog("MENU: Close");
             isMenuOpen = false;
@@ -372,12 +403,6 @@ function tryMenu() {
             subMenu(0);
         }
         else if (!isMenuActive && menuMode != 99) { // The menu is closed: open it now
-            consoleLog("MENU: Open");
-            isMenuOpen = true;
-            startPos(menuGroup);
-        }
-
-        if (libraryTimer >= libraryTimerHold && menuMode != 99 && !justClosedLibrary) { // The button has been held down: open the library
             consoleLog("LIBRARY: OPEN");
             toggleLibrary('open');
 
@@ -386,6 +411,15 @@ function tryMenu() {
             menuGroup.visibility = false;
             menuGroup.position.y = -999;
             menuMode = 99;
+
+            for (var i = allRays.length - 1; i >= 0; i--) { allRays[i].visible = false; }
+
+        }
+
+        if (libraryTimer >= libraryTimerHold && menuMode != 99 && !justClosedLibrary) { // The button has been held down: open the library
+            consoleLog("MENU: Open");
+            isMenuOpen = true;
+            startPos(menuGroup);
         }
 
         isMenuActive = true; // The menu is now active: don't trigger anything again until the gesture is changed
@@ -755,7 +789,7 @@ function subMenu(v) {
 let toolSelector, toolSelectorCore, toolSelectorCast, toolSelectorTip, toolSelectorTip2, toolSelectorBeam, toolSelectorDot, toolSelectorDotFX, toolSelectorFloatingPoint;
 
 const toolColorMat = new THREE.MeshBasicMaterial( {
-    color: _colorTool,
+    color: _colorTools,
     transparent: true,
     opacity: 0,
     depthWrite: true
@@ -781,13 +815,13 @@ function initTools() {
     });
     const colorMat = new THREE.MeshBasicMaterial( {
         // color: 0x659fe6,
-        color: _colorTool,
+        color: _colorTools,
         transparent: true,
         opacity: 1,
         depthWrite: true
     } );
     var fxMat = new THREE.MeshBasicMaterial( {
-        color: _colorTool,
+        color: _colorTools,
         transparent: true,
         opacity: 0.75,
         depthWrite: false
@@ -958,6 +992,7 @@ var toolSelectorTimeout = 3; // How long until the line fades in
 var toolSelectorFading = false;
 
 var raycaster = new THREE.Raycaster();
+raycaster.layers.set( 3 );
 
 function tryPointer() {
     animateTools();
@@ -1076,12 +1111,22 @@ function tryPointer() {
         // Check if the fingers are doing the point gesture, then raycast
         if (fingersNormalized >= 1) {
             toolSelectorPointing = true;
-            raycaster.layers.set( 3 );
             toolSelectorCast.getWorldQuaternion(tempSelectorQuat);
             var rayForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(tempSelectorQuat);
             raycaster.set(tempSelectorWorld, rayForward);
             var intersects = raycaster.intersectObjects(scene.children);
             var intersect = intersects[0];
+
+            if ( intersect.object.userData.type != "mapbg" ) {
+                lastIntersect = intersect;
+                lastIntersectBGtime = 0;
+            } else {
+                lastIntersectBGtime += deltaTime;
+                if (lastIntersectBGtime > pinchThreshold) {
+                    lastIntersect = intersect;
+                    lastIntersectBGtime = 0;
+                }
+            }
 
             // If the dot has been reset last time, give it a default distance
             if (toolSelectorDot.position.z >= -0.01) {
@@ -1710,11 +1755,16 @@ function tryPointerSelect(object) {
             docGroup.userData.outlineBlock[i].sync();
         }
 
-
         popupMenu(undefined);
     } else if (object.userData.type == "menubarMap") {
         consoleLog("Menubar: Map");
         popupMenu(undefined);
+    } else if (object.userData.type == "menubarRef") {
+        consoleLog("Menubar: Ref");
+        popupMenu(undefined);
+        const src = object.parent.parent.parent.userData.src;
+        // console.log(object.parent.parent.parent);
+        loadTextBlock(src);
     } else if (object.userData.type == "menubarFocus") {
         const docGroup = object.parent.parent.parent;
         if (docGroup.userData.isFocused != undefined) {
@@ -1812,16 +1862,34 @@ function tryPointerSelect(object) {
         const targetValue = object.userData.type.slice(11,13);
 
         if ( selectedObjects.indexOf(object) == -1 ) {
-            console.log("-1");
+            // console.log("-1");
             startSwipe(object);
         } else {
-            console.log("1");
+            // console.log("1");
             startSwipe(object.parent);
         }
-
-        
     } else if (object.userData.type == "mapbg") {
         startMapSelector();
+    } else if (object.userData.type == "menuBar") {
+        tryResetPreviews();
+        startSwipe(object.parent);
+        popupMenu(undefined);
+    } else if (object.userData.type == "triGrip") {
+        const clippingEnd = object.parent.parent.userData.clippingEnd;
+        startSwipe(clippingEnd, "clipBot");
+    } else if (object.userData.type == "docbg") {
+        const txtGroup = object.parent.userData.txtGroup;
+        startSwipe(txtGroup,"docbg");
+    }
+}
+
+function tryQuickPointerSelect(object) {
+    consoleLog("Quick Select: " + object.userData.type);
+    if (object.userData.type == "mapcontent-title") {
+        const source = object.userData.source;
+        const title = object.userData.title;
+        const author = object.userData.author;
+        findDocumentContent(source,title,author);
     }
 }
 
@@ -2129,6 +2197,8 @@ function popupMenu(target, variation = "citation") {
 
 const snapDistanceOne = [];
 const snapDistanceFocus = [];
+const snapDistanceMax = 10;
+const snapDistanceMin = 0.5;
 var snapDistanceOneValue = readerStartDistance;
 var snapDistanceFocusValue = 2.00;
 var snapDistanceMapValue = 4.00;
@@ -2405,6 +2475,7 @@ function displayTextBlock(head, text, source) {
 
     textGroup.add(headText)
     workspace.add(textGroup);
+    textGroup.rotation.y = camera.rotation.y;
 
     let textOffset = -0.03;
     let totalTextOffset = textOffset;
@@ -2488,19 +2559,6 @@ function displayTextBlock(head, text, source) {
         tempText.userData.sync = 'textBlockBuilder';
         syncCheck.push(tempText);
 
-        // tempText.addEventListener("synccomplete", function passHandle() {
-        //     totalPostInstance++;
-        //     if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
-        //         createHandleTimeout(tempText, "useParentY");
-        //         var allTexts = this.parent.userData.textBlock;
-        //         for (var i = allTexts.length - 1; i >= 0; i--) {
-        //             allTexts[i]._listeners = undefined;
-        //             allTexts[i].visible = false;
-        //         }
-        //         focusThisTimout(textGroup);
-        //     }
-        // });
-
     }
 
     headText.text = head;
@@ -2547,7 +2605,7 @@ function findDocumentContent(url,title=" ",author=" ") {
         dataType: 'html',
         success: function(data) {
             var $html = $(data);
-            generateDocumentContent($html,title,author);
+            generateDocumentContent($html,title,author,url);
         },
         error: function(xhr, status, error) {
             console.error('Error fetching HTML: ', error);
@@ -2559,7 +2617,7 @@ function findDocumentContent(url,title=" ",author=" ") {
 
        
 var allHeaders = [];
-function generateDocumentContent(content,title,author) {
+function generateDocumentContent(content,title,author,url) {
     allHeaders = [];
     var fullText = [];
     // var title = content.find('.title').first().text();
@@ -2591,6 +2649,8 @@ function generateDocumentContent(content,title,author) {
     docGroup.userData.type = "document";
     scene.add(docGroup);
     docGroup.add(txtGroup);
+
+    docGroup.userData.src = url;
 
     let specialReaderOffset = Math.random(0.001, -0.001);
     docGroup.userData.specialReaderOffset = specialReaderOffset;
@@ -2659,7 +2719,16 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         } else if (i == 1 ) {
             newText.fontSize = 0.03;
         } else if (i % 2 > 0) {
-            newText.fontSize = 0.02;
+            newText.fontSize = 0.025;
+
+            var str = fullText[i];
+            var whitespaceCheck = str.replace(/\s/g, '').length;
+            // as long as this isn't a whitespace break, set the font
+            if ( whitespaceCheck > 0 ) {
+                newText.font = _fontserif;
+            }
+
+
         } else {
             newText.fontSize = 0.035;
         }
@@ -2695,26 +2764,26 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             (documentMaxWidth + 0.11) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
             );
 
-        const borderBox = new THREE.CylinderGeometry(
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
-            0.03, 32, 1, true, (documentMaxWidth + 0.1) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)/4,
-            (documentMaxWidth + 0.1) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)/2
-            );
-        const topBorder = new THREE.Mesh( borderGeo, boundingMat );
+        // const borderBox = new THREE.CylinderGeometry(
+        //     (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+        //     (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+        //     0.03, 32, 1, true, (documentMaxWidth + 0.1) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)/4,
+        //     (documentMaxWidth + 0.1) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)/2
+        //     );
+        const topBorder = new THREE.Mesh( borderGeo, invisMat );
         docGroup.add(topBorder);
         topBorder.scale.set(1,1,-1);
         topBorder.position.y = destinationClippingStart;
-        topBorder.layers.enable( 3 );
-        topBorder.userData.layers = 3;
-        topBorder.userData.type = "clipTop";
-        const botBorder = new THREE.Mesh( borderGeo, boundingMat );
+        // topBorder.layers.enable( 3 );
+        // topBorder.userData.layers = 3;
+        // topBorder.userData.type = "clipTop";
+        const botBorder = new THREE.Mesh( borderGeo, invisMat );
         docGroup.add(botBorder);
         botBorder.scale.set(1,1,-1);
         botBorder.position.y = destinationClippingEnd;
-        botBorder.layers.enable( 3 );
-        botBorder.userData.layers = 3;
-        botBorder.userData.type = "clipBot";
+        // botBorder.layers.enable( 3 );
+        // botBorder.userData.layers = 3;
+        // botBorder.userData.type = "clipBot";
 
 
         // Create the document menu bar
@@ -2726,10 +2795,11 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         menuBar.userData.type = "menuBar";
 
         // Tags             Read / Outline / Map             Focus
+        // change menubar "Read | Outline | References"
 
-        let tagText = newMenuBarText( 'Tags', 0.02, menuBar, 'menubarTags', docGroup );
-        tagText.layers.enable( 3 );
-        tagText.userData.layers = 3;
+        let iText = newMenuBarText( 'i', 0.02, menuBar, 'menubarTags', docGroup );
+        iText.layers.enable( 3 );
+        iText.userData.layers = 3;
 
         let readText = newMenuBarText( 'Read', (documentMaxWidth + 0.09)/2 - 0.10, menuBar, 'menubarRead', docGroup, 'right' );
         readText.layers.enable( 3 );
@@ -2739,37 +2809,57 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         outlineText.layers.enable( 3 );
         outlineText.userData.layers = 3;
         let rightDividerText = newMenuBarText( '/', (documentMaxWidth + 0.09)/2 + 0.08, menuBar, undefined, docGroup, 'right' );
-        let mapText = newMenuBarText( 'Map', (documentMaxWidth + 0.09)/2 + 0.10, menuBar, 'menubarMap', docGroup, 'left' );
-        mapText.layers.enable( 3 );
-        mapText.userData.layers = 3;
+        let refText = newMenuBarText( 'References', (documentMaxWidth + 0.09)/2 + 0.10, menuBar, 'menubarRef', docGroup, 'left' );
+        refText.layers.enable( 3 );
+        refText.userData.layers = 3;
 
-        let focusText = newMenuBarText( 'Focus', documentMaxWidth + 0.09 - 0.02, menuBar, 'menubarFocus', docGroup, 'right' );
-        focusText.layers.enable( 3 );
-        focusText.userData.layers = 3;
-        docGroup.userData.menubarFocus = focusText;
+        // let focusText = newMenuBarText( 'Focus', documentMaxWidth + 0.09 - 0.02, menuBar, 'menubarFocus', docGroup, 'right' );
+        // focusText.layers.enable( 3 );
+        // focusText.userData.layers = 3;
+        // docGroup.userData.menubarFocus = focusText;
 
         // Add grip handles for the top and bottom
-        const topBox = new THREE.Mesh( borderBox, boundingMat );
-        topBorder.add(topBox);
-        topBox.position.y = 0.015;
-        topBox.layers.enable( 3 );
-        topBox.userData.type = "clipTopGrip";
-        const botBox = new THREE.Mesh( borderBox, boundingMat );
-        botBorder.add(botBox);
-        botBox.position.y = - 0.08 - 0.015;
-        botBox.layers.enable( 3 );
-        botBox.userData.layers = 3;
-        botBox.userData.type = "clipBotGrip";
+        // const topBox = new THREE.Mesh( borderBox, invisMat );
+        // topBorder.add(topBox);
+        // topBox.position.y = 0.015;
+        // topBox.layers.enable( 3 );
+        // topBox.userData.type = "clipTopGrip";
+        // const botBox = new THREE.Mesh( borderBox, invisMat );
+        // botBorder.add(botBox);
+        // botBox.position.y = - 0.08 - 0.015;
+        // botBox.layers.enable( 3 );
+        // botBox.userData.layers = 3;
+        // botBox.userData.type = "clipBotGrip";
 
         docGroup.userData.clippingStart = topBorder;
         docGroup.userData.clippingEnd = botBorder;
         docGroup.userData.menuBar = menuBar;
 
+        // Create corner resize handle
+        const triGripShape = new THREE.Shape();
+        triGripShape.moveTo(0,0);
+        triGripShape.lineTo(0.08,0.08);
+        triGripShape.lineTo(0.08,0);
+        const extrudeSettings = {
+            depth: 0.001,
+            bevelEnabled: false
+        };
+        const triGripGeo = new THREE.ExtrudeGeometry( triGripShape, extrudeSettings );
+        const triGrip = new THREE.Mesh( triGripGeo, triGripMat );
+        botBorder.add(triGrip);
+        triGrip.rotation.y = (documentMaxWidth + 0.02) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        triGrip.position.y = -0.08;
+        triGrip.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset - 0.01) *1 );
+        triGrip.layers.enable( 3 );
+        triGrip.userData.layers = 3;
+        triGrip.userData.type = "triGrip";
+        
+
         // Create a scrollbar
-        const scrollCir = new THREE.BoxGeometry(0.03,0.15,0.03);
-        const scrollNub = new THREE.Mesh( scrollCir, boundingMat );
+        const scrollCir = new THREE.BoxGeometry(0.03,0.06,0.01);
+        const scrollNub = new THREE.Mesh( scrollCir, scrollMat );
         const scrollBox = new THREE.BoxGeometry(0.005,1,0.005);
-        const scrollBar = new THREE.Mesh( scrollBox, boundingMat );
+        const scrollBar = new THREE.Mesh( scrollBox, invisMat );
 
         const clippingStart = docGroup.userData.clippingStart.position.y;
         const clippingEnd = docGroup.userData.clippingEnd.position.y;
@@ -2784,17 +2874,20 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         scrollBar.userData.type = "scrollBar";
         docGroup.userData.scrollPercent = startingScrollPercent;
        
-        scrollNub.rotation.y = (documentMaxWidth + 0.1) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollNub.rotation.y = (documentMaxWidth + 0.1 - 0.03) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
         scrollNub.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
         scrollNub.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
 
-        scrollBar.rotation.y = scrollNub.rotation.y;
-        scrollBar.position.set( scrollNub.position.x, scrollNub.position.y, scrollNub.position.z );
+        scrollBar.rotation.y = (documentMaxWidth + 0.1) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollBar.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
+        scrollBar.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+
+        scrollNub.rotateZ( Math.PI/2 );
 
         // Create scroll buttons
         const scrollBtnGeo = new THREE.CircleGeometry( 0.03, 3 );
-        const scrollUp = new THREE.Mesh( scrollBtnGeo, boundingMat );
-        const scrollDown = new THREE.Mesh( scrollBtnGeo, boundingMat );
+        const scrollUp = new THREE.Mesh( scrollBtnGeo, invisMat );
+        const scrollDown = new THREE.Mesh( scrollBtnGeo, invisMat );
         docGroup.add(scrollUp);
         docGroup.add(scrollDown);
 
@@ -2831,7 +2924,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         background.layers.enable( 3 );
         background.userData.layers = 3;
         docGroup.userData.background = background;
-        background.userData.type = "background";
+        background.userData.type = "docbg";
         background.userData.nearby = [scrollUp, scrollDown, scrollNub];
 
 
@@ -2944,13 +3037,15 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         scrollDocument(docGroup);
 
-        createHandle(lastText, "document");
+        // createHandle(lastText, "document");
 
         reclipDocument(docGroup);
 
-        focusThis(docGroup);
-
         workspace.add(docGroup);
+
+        // docGroup.rotation.y = camera.rotation.y;
+
+        focusThis(docGroup);
 
         removeLoader(docGroup);
 
@@ -3120,8 +3215,35 @@ function newMenuBarText(text, xpos, parent, type, docGroup, align = 'left') {
     return newText;
 }
 
+var scrollMat = new THREE.ShaderMaterial({
+  uniforms: {
+    color1: {
+      value: new THREE.Color(_colorBounds + 0x333333)
+    },
+    color2: {
+      value: new THREE.Color(_colorBGread)
+    }
+  },
+  vertexShader: `
+    varying vec2 vUv;
 
-
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 color1;
+    uniform vec3 color2;
+  
+    varying vec2 vUv;
+    
+    void main() {
+      
+      gl_FragColor = vec4(mix(color1, color2, vUv.y), 1.0);
+    }
+  `
+});
 
 
 
@@ -3167,7 +3289,7 @@ function trySync() {
                 } else if (funct == 'textBlockBuilder') {
                     totalPostInstance++;
                     if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
-                        createHandleTimeout(tempText, "useParentY");
+                        createHandleTimeout(syncCheck[i], "useParentY");
                         var allTexts = syncCheck[i].parent.userData.textBlock;
                         for (var i = allTexts.length - 1; i >= 0; i--) {
                             allTexts[i].visible = false;
@@ -3189,12 +3311,22 @@ function trySync() {
 
 
 function changeDistance(object, value) {
+    // Save the value as userData
+    object.userData.viewDistance = value;
+
+    // Set the curve radius and position of the textLine
+    if (object.userData.textLine != undefined) {
+        var lineText = object.userData.textLine;
+        lineText.curveRadius = value;
+        lineText.userData.curveRadius = value;
+        lineText.position.set( lineText.position.x, lineText.position.y, -value );
+    }
+
     // Set the curve radius and position of the header
     if (object.userData.header != undefined) {
         var headText = object.userData.header;
         headText.curveRadius = value;
         headText.userData.curveRadius = value;
-        console.log(headText);
         headText.position.set( headText.position.x, headText.position.y, -value );
     }
     // Set the curve radius and position of the preview text block
@@ -3302,7 +3434,7 @@ function focusThis(object) {
     object.scale.set(0.3, 0.3, 0.4);
 
     // set the height to an easy reading distance
-    object.position.y = camera.position.y;
+    object.position.y = camera.position.y + 0.3;
 
     // tween scale
     focusTransScale = new TWEEN.Tween( object.scale )
@@ -3395,7 +3527,7 @@ function tryCloseButton(child) {
 
 
 
-function startPos(mesh) {
+function startPos(mesh, look = false) {
     // Set position to the camera
     mesh.position.x = camera.position.x;
     mesh.position.y = camera.position.y - 0.3;
@@ -3410,11 +3542,15 @@ function startPos(mesh) {
     mesh.position.add(dir.clone().multiplyScalar(0.35));
 
     // Look at the camera
-    var newRot = new THREE.Quaternion().setFromRotationMatrix(
-        new THREE.Matrix4().lookAt( mesh.position, camera.position, new THREE.Vector3( 0, -1, 0 ) ) 
-    );
+    if (look) {
+        var newRot = new THREE.Quaternion().setFromRotationMatrix(
+            new THREE.Matrix4().lookAt( mesh.position, camera.position, new THREE.Vector3( 0, -1, 0 ) ) 
+        );
 
-    mesh.quaternion.copy( newRot );
+        mesh.quaternion.copy( newRot );
+    }
+
+    
 }
 
 
@@ -3447,10 +3583,14 @@ const boundingMat = new THREE.MeshBasicMaterial({
         transparent: false,
         opacity: 0.5,
         side: THREE.DoubleSide
-    });
+});
 const invisMat = new THREE.MeshBasicMaterial({
     color: _colorBounds,
     visible: false
+});
+const triGripMat = new THREE.MeshBasicMaterial({
+        color: _colorHBound,
+        side: THREE.DoubleSide
 });
 
 function createHandleTimeout(object, variant = undefined, delay = 500) {
@@ -3567,7 +3707,7 @@ let hand1, hand2;
 // let controllerGrip1, controllerGrip2;
 let wrist1, wrist2, thumbTip1, thumbTip2, thumbDistal1, thumbDistal2, indexFingerTip1, indexFingerTip2,
 indexDis1, indexDis2, middleFingerTip1, middleFingerTip2, middleDistal1, middleDistal2, ringFingerTip1, ringFingerTip2, 
-pinkyFingerTip1, pinkyFingerTip2, indexKnuckle1, indexKnuckle2;
+pinkyFingerTip1, pinkyFingerTip2, indexKnuckle1, indexKnuckle2, palm1, palm2;
 
 let controls;
 let controller1enabled = false;
@@ -3601,17 +3741,7 @@ function init() {
         const controllerModelFactory = new XRControllerModelFactory();
         const handModelFactory = new XRHandModelFactory();
 
-        // controllers
-        // controller1 = renderer.xr.getController( 0 );
-        // scene.add( controller1 );
-
-        // controller2 = renderer.xr.getController( 1 );
-        // scene.add( controller2 );
-
         // Hand 1 - 'left' or non-dominant hand (menu sphere)
-        // controllerGrip1 = renderer.xr.getControllerGrip( 0 );
-        // controllerGrip1.add( controllerModelFactory.createControllerModel( controllerGrip1 ) );
-        // scene.add( controllerGrip1 );
         
         hand1 = renderer.xr.getHand( 0 );
         scene.add( hand1 );
@@ -3633,9 +3763,6 @@ function init() {
         
         
         // Hand 2 - 'right' or dominant hand (interactions)
-        // controllerGrip2 = renderer.xr.getControllerGrip( 1 );
-        // controllerGrip2.add( controllerModelFactory.createControllerModel( controllerGrip2 ) );
-        // scene.add( controllerGrip2 );
 
         hand2 = renderer.xr.getHand( 1 );
         scene.add( hand2 );
@@ -3668,6 +3795,7 @@ function init() {
             ringFingerTip1 = event.target.joints['ring-finger-tip'];
             pinkyFingerTip1 = event.target.joints['pinky-finger-tip'];
             middleDistal1 = event.target.joints['middle-finger-phalanx-distal'];
+            palm1 = event.target.joints['middle-finger-phalanx-proximal'];
 
             // Setup palm normal
             wrist1.add( palmNormal );
@@ -3690,6 +3818,7 @@ function init() {
             ringFingerTip2 = event.target.joints['ring-finger-tip'];
             pinkyFingerTip2 = event.target.joints['pinky-finger-tip'];
             middleDistal2 = event.target.joints['middle-finger-phalanx-distal'];
+            palm2 = event.target.joints['middle-finger-phalanx-proximal'];
 
             controller2enabled = true;
         });
@@ -3704,10 +3833,37 @@ function init() {
     }
 }
 
+const handMaterial = new THREE.MeshStandardMaterial( {
+    color: _colorHands,
+    metalness: 0.9,
+    roughness: 0.5,
+    transparent: false,
+    opacity: 0.8
+} );
+
+function colorHands() {
+    try {
+        hand1.children[1].children[0].material = handMaterial;
+        hand1.children[0].children[0].children[0].material = handMaterial;
+
+        hand2.children[1].children[0].material = handMaterial;
+        hand2.children[0].children[0].children[0].material = handMaterial;
+    } catch {
+        console.log("Error setting hand material. Using default.")
+    }
+}
+
 var isOnePinching = false;
 var isOnePinchConsumed = false;
+var onePinchTime = 0.0;
 var isTwoPinching = false;
 var isTwoPinchConsumed = false;
+var twoPinchTime = 0.0;
+
+var lastIntersect;
+var lastIntersectBGtime = 0.0;
+
+const pinchThreshold = 0.25;
 
 function onPinchStartOne( event ) {    
     isOnePinching = true;
@@ -3721,10 +3877,26 @@ function onPinchEndOne( event ) {
 function onPinchStartTwo( event ) {    
     isTwoPinching = true;
     isTwoPinchConsumed = false;
+    if (lastIntersect != undefined) {
+        // scale mapbg to the selected object's current viewdistance
+
+        toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+        const endPoint = new THREE.Vector3(toolSelectorDotWorld.x,0,toolSelectorDotWorld.z);
+        const distance = _zero.distanceTo(endPoint);
+        mapbg.scale.set(distance,1,distance);
+        
+    }
 }
 
 function onPinchEndTwo( event ) {
     isTwoPinching = false;
+    if (twoPinchTime <= pinchThreshold && lastIntersect != undefined) { tryQuickPointerSelect(lastIntersect.object); }
+    twoPinchTime = 0;
+    if (mapbg != undefined) {
+        mapbg.scale.set(defaultMapScale,1,defaultMapScale);
+    }
+    raycaster.layers.set( 3 );
+    lastIntersect = undefined;
 }
 
 function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77, life = 50) {
@@ -3865,8 +4037,13 @@ function startSwipe(object, type = undefined) {
         rSwipeVar = "clip";
     } else if (type == "scroll") {
         rSwipeObj = object;
-    } 
+    } else if (type == "docbg") {
+        rSwipeObj = object;
+        velocityObjects = [];
+        velocityObjects.push( object.parent );
+    }
 
+    raycaster.layers.set( 5 );
 }
 
 
@@ -3887,7 +4064,7 @@ function trySwipe() {
         toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
 
         // Vertical movement
-        if (rSwipeVar == undefined || rSwipeVar == "clip" || rSwipeVar == "scroll") {
+        if (rSwipeVar == undefined || rSwipeVar == "clip" || rSwipeVar == "scroll" || rSwipeVar == "docbg") {
             if (!offsetPositionY) {
                 offsetPositionY = toolSelectorDotWorld.y;
             }
@@ -3895,11 +4072,12 @@ function trySwipe() {
             var movement = toolSelectorDotWorld.y - offsetPositionY;
             var scale = 1;
 
-            if (rSwipeVar == "clip" || rSwipeVar == "scroll") {
+            if (rSwipeVar == "clip" || rSwipeVar == "scroll" || rSwipeVar == "docbg") {
                 const docGroup = rSwipeObj.parent;
                 const clippingStart = docGroup.userData.clippingStart;
                 const clippingEnd = docGroup.userData.clippingEnd;
                 const scrollNub = docGroup.userData.scrollNub;
+                const txtGroup = docGroup.userData.txtGroup;
 
                 // consoleLog(clippingStart.position.y - clippingEnd.position.y + movement);
 
@@ -3930,6 +4108,28 @@ function trySwipe() {
                     scrollDocument(docGroup);
                     reclipDocument(docGroup);
                     // consoleLog(scrollPercent);
+                } else if (rSwipeObj == txtGroup ) {
+                    var moveMod = 1;
+
+                    if ( docGroup.userData.isFocused ) {
+                        console.log("FOCUSED");
+                        moveMod = 2.5;
+                    }
+
+                    const txtY = txtGroup.position.y + (movement * moveMod);
+                    const totalHeight = docGroup.userData.totalHeight;
+                    const viewHeight = clippingEnd.position.y - clippingStart.position.y + 0.55;
+
+                    var scrollPercent = norm( txtY, clippingStart.position.y, totalHeight + viewHeight );
+                    var result = clamp( scrollPercent, 0, 1 );
+                    
+                    docGroup.userData.scrollPercent = result;
+                    docGroup.userData.scrollVelocity = movement * moveMod;
+
+                    if ( result <= 0 || result >= 1 ) {
+                        movement = 0;
+                    }
+
                 }
 
             }
@@ -3961,7 +4161,7 @@ function trySwipe() {
             offsetAngle = angle;
         }
 
-        if (rSwipeVar == "clip") {
+        if (rSwipeVar == "clip" || rSwipeVar == "docbg") {
             scrollDocument(rSwipeObj.parent);
             reclipDocument(rSwipeObj.parent);
         }
@@ -3973,15 +4173,146 @@ function trySwipe() {
     }
 }
 
+function tryQuickGestures() {
+    if ( isTwoPinching ) {
+        // quick pinch
+        twoPinchTime += deltaTime;
+
+        // quick pull/push -- CURRENTLY DISABLED: GESTURE IS TOO AWKWARD TO USE
+        // if ( rSwipeObj ) {
+        //     const pushNum = 0.117;
+        //     const pullNum = 0.050;
+
+        //     // get distance
+        //     toolSelectorCore.getWorldPosition( toolSelectorCoreWorld );
+        //     var velocity = camera.position.distanceTo(toolSelectorCoreWorld) / deltaTime * 100;
+
+        //     pushGestureDistArray.push( velocity );
+        //     pushGestureDistArray.shift();
+
+        //     var runningTotal = 0.0;
+
+        //     // get average movement
+        //     for (var i = pushGestureDistArray.length - 1; i >= 0; i--) {
+        //         runningTotal += pushGestureDistArray[i];
+        //     }
+
+        //     runningTotal = runningTotal / pushGestureDistArray.length;
+
+        //     consoleLog( runningTotal.toFixed(3) );
+
+            
+        //     // if the movement is fast enough over enough distance, trigger
+
+        //     if ( runningTotal < pullNum ) {
+        //         consoleLog("PULL");
+        //     } else if ( runningTotal > pushNum ) {
+        //         consoleLog("PUSH");
+        //     }
+
+        //     // move the object to it's proper location again
+        //     pushGestureRef.position.set( toolSelectorCoreWorld.x, toolSelectorCoreWorld.y, toolSelectorCoreWorld.z );
+        //     // pushGestureRef.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
+        //     // pushGestureRef.translateZ( 0.05 );
+
+        // }
+    }
+}
+
+var offhandGrip = false;
+var offhandGripStarted = false;
+var offhandGripLastDist = 0.0;
+var pushGestureRef = new THREE.Mesh( testGeo, testMat );
+scene.add(pushGestureRef);
+
+function tryOffGestures() {
+
+    if ( pinkyFingerTip1.position.distanceTo(wrist1.position) < 0.13 
+    && ringFingerTip1.position.distanceTo(wrist1.position) < 0.13
+    && middleFingerTip1.position.distanceTo(wrist1.position) < 0.13
+    && indexFingerTip1.position.distanceTo(wrist1.position) < 0.13
+    && !isMannaActive && rSwipeObj != undefined) {
+
+        offhandGrip = true;
+        toolSelectorCore.getWorldPosition( toolSelectorCoreWorld );
+
+        // on start: point is set in space
+        if ( !offhandGripStarted ) {
+            pushGestureRef.position.set( wrist1.position.x, wrist1.position.y, wrist1.position.z );
+            offhandGripStarted = true;
+            offhandGripLastDist = 0.0;
+        }
+
+        var distanceRef = wrist1.position.distanceTo(pushGestureRef.position);
+
+        var distCheckWri = camera.position.distanceTo(wrist1.position);
+        var distCheckRef = camera.position.distanceTo(pushGestureRef.position);
+
+        var velocity = offhandGripLastDist - distanceRef;
+
+        if ( distCheckRef < distCheckWri ) {
+            velocity = velocity * -1;
+        }
+
+        velocity = velocity.toFixed(3) * 10;
+
+        offhandGripLastDist = distanceRef;
+
+        // consoleLog( velocity, 0x5c2ef7 );
+
+        var viewDistance = rSwipeObj.userData.viewDistance;
+        if ( viewDistance != undefined ) {
+            var newView = clamp(parseFloat(viewDistance) + parseFloat(velocity), snapDistanceMin, snapDistanceMax);
+            changeDistance( rSwipeObj, newView );
+            consoleLog( newView );
+        } else {
+            console.log("NO VIEW DISTANCE");
+        }
+
+    } else {
+        offhandGrip = false;
+        offhandGripStarted = false;
+    }
+}
 
 
+function tryVelocity() {
+    if ( velocityObjects.length > 0 && rSwipeObj == undefined ) {
+        for (var i = velocityObjects.length - 1; i >= 0; i--) {
+            var scrollVelocity = parseFloat(velocityObjects[i].userData.scrollVelocity);
+            scrollVelocity = scrollVelocity * 0.90;
 
+                const docGroup = velocityObjects[i];
+                const clippingStart = docGroup.userData.clippingStart;
+                const clippingEnd = docGroup.userData.clippingEnd;
+                const txtGroup = docGroup.userData.txtGroup;
+                
+                const txtY = txtGroup.position.y + scrollVelocity;
+                const totalHeight = docGroup.userData.totalHeight;
+                const viewHeight = clippingEnd.position.y - clippingStart.position.y + 0.55;
 
+                var scrollPercent = norm( txtY, clippingStart.position.y, totalHeight + viewHeight );
+                var result = clamp( scrollPercent, 0, 1 );
+                
+                docGroup.userData.scrollPercent = result;
 
+                if ( result <= 0 || result >= 1 ) {
+                    scrollVelocity = 0;
+                }
 
+                txtGroup.position.y += scrollVelocity;
 
-
-
+            if ( scrollVelocity > -0.0001 && scrollVelocity < 0.0001 ) {
+                velocityObjects[i].userData.scrollVelocity = 0;
+                velocityObjects.splice(i,1);
+            } else {
+                velocityObjects[i].userData.scrollVelocity = scrollVelocity;
+                scrollDocument(docGroup);
+                reclipDocument(docGroup);
+            }
+        }
+    }
+}
 
 
 
@@ -4617,7 +4948,7 @@ function initLibrary(source) {
         myText.anchorY = 'middle';
 
         myText.position.x = -0.0003;
-        myText.position.y = (i / 2000 - json.documents.length / 4000 + 0.001);
+        myText.position.y = (i / 2000 - json.documents.length / 4000 - 0.003);
         // myText.position.z = (Math.random()-0.5) * json.documents.length / 50000 - 0.02;
         myText.position.z = -0.02;
         myText.curveRadius = -myText.position.z;
@@ -4734,14 +5065,14 @@ function initRays(parent) {
 
 
 function animateRays() {
-    // if (menuMode == 99) {
-    for (var i = allRays.length - 1; i >= 0; i--) {
-        var ray = allRays[i];
-        var speed = ray.userData.speed;
+    if (menuMode != 99 || !firstInit) {
+        for (var i = allRays.length - 1; i >= 0; i--) {
+            var ray = allRays[i];
+            var speed = ray.userData.speed;
 
-        ray.rotateZ(-speed);
+            ray.rotateZ(-speed);
+        }
     }
-    // }
 }
 
 
@@ -4763,7 +5094,9 @@ function addLoader(object, position = [0,0,0]) {
     const spinner = new THREE.Mesh(loaderGeo, loaderMat);
     scene.add(spinner);
     object.userData.loader = spinner;
-    spinner.position.set(object.position.x + position[0] - (loaderSize / 4), object.position.y + position[1], object.position.z + position[2]);
+    // spinner.position.set(object.position.x + position[0] - (loaderSize / 4), object.position.y + position[1], object.position.z + position[2]);
+    spinner.rotation.y = camera.rotation.y;
+    spinner.translateZ( -3.0 );
     allLoaders.push(spinner);
 }
 
@@ -4771,6 +5104,7 @@ function removeLoader(object) {
     object.visible = true;
     const spinner = object.userData.loader;
     object.userData.loader = undefined;
+    object.rotation.y = spinner.rotation.y;
     scene.remove(spinner);
     const index = allLoaders.indexOf(spinner);
     allLoaders.splice(index,1);
@@ -4822,6 +5156,7 @@ function tryInitMap() {
 }
 
 let mapbg;
+var defaultMapScale = snapDistanceMapValue + 0.02;
 let selectableArray = [];
 const hitTestPlane = new THREE.PlaneGeometry(1,1);
 const mapSelectionGroup = new THREE.Group();
@@ -4865,6 +5200,8 @@ function initMap() {
 
     }
 
+    allTitles.reverse();
+
     // generate troika text for every element listed above, tagging each with proper userData
 
     // -------- Titles --------
@@ -4885,6 +5222,13 @@ function initMap() {
         newText.curveRadius = snapDistanceMapValue;
         newText.position.z = - snapDistanceMapValue;
         newText.userData.type = 'mapcontent-title';
+
+        newGroup.userData.viewDistance = snapDistanceMapValue;
+        newGroup.userData.textLine = newText;
+
+        newText.userData.source = globalLIB.documents[i].source;
+        newText.userData.title = globalLIB.documents[i].title;
+        newText.userData.author = globalLIB.documents[i].author;
 
         newGroup.add(newText);
         selectableArray.push(newText);
@@ -4916,6 +5260,7 @@ function initMap() {
         newText.curveRadius = snapDistanceMapValue;
         newText.position.z = - snapDistanceMapValue;
         newText.userData.type = 'mapcontent-name';
+        newGroup.userData.viewDistance = snapDistanceMapValue;
 
         newGroup.add(newText);
         selectableArray.push(newText);
@@ -4948,6 +5293,7 @@ function initMap() {
         newText.curveRadius = snapDistanceMapValue;
         newText.position.z = - snapDistanceMapValue;
         newText.userData.type = 'mapcontent-keyword';
+        newGroup.userData.viewDistance = snapDistanceMapValue;
 
         newGroup.add(newText);
         selectableArray.push(newText);
@@ -4965,21 +5311,24 @@ function initMap() {
     
     // Create a background cylinder
     var mapbgmat = new THREE.MeshBasicMaterial( {
-        color: _colorBGmap,
+        color: _colorBGmain,
         side: THREE.BackSide,
-        visible: false
+        transparent: true,
+        opacity: 0.5,
+        visible: false,
+        depthWrite: false,
+        depthTest: true
     } );
     const mapbggeo = new THREE.CylinderGeometry(
-            (snapDistanceMapValue + 0.02),
-            (snapDistanceMapValue + 0.02),
-            10, 32, 1, true);
+            (1),
+            (1),
+            10, 32, 1, false);
     mapbg = new THREE.Mesh( mapbggeo, mapbgmat );
     mapbg.layers.enable( 3 );
+    mapbg.layers.enable( 5 );
     mapbg.userData.type = 'mapbg';
     mapspace.add(mapbg);
-
-    
-    // menu of some kind to select by type / show & hide / and organize text
+    mapbg.scale.set(defaultMapScale,1,defaultMapScale);
 
 
 }
@@ -5220,136 +5569,77 @@ var mannaPointDest = mannaDotPoint;
 var mannaPointLast = mannaPointDest;
 var mannaBreak = false;
 
-function initManna() {                                   // Connections             // Labels       // offset           // function
-    const manna10000 = newMannaRing( indexFingerTip1,    [32,0,1,2,3,4,5],          [32,4,5,1,2,3] );
-        const manna11000 = newMannaRing( manna10000,     [32,0,1,2,3,4,6,7],        [32,6,7,1,2,3],    [0.02,0.04,0] );
-            const manna11100 = newMannaRing( manna10000, [32,0,1,2,3,4,6],          [32,6,1,2,3],      [0.035,0.09,0],     'Select One (A)' );
-            const manna11200 = newMannaRing( manna10000, [32,0,1,2,3,4,7],          [32,7,1,2,3],      [0.075,0.05,0],     'Select Two (A)' );
-        const manna12000 = newMannaRing( manna10000,     [32,0,1,2,3,5,8,9,10],     [32,1,2,3,8,9,10], [0.04,0.02,0] );
-            const manna12100 = newMannaRing( manna10000, [32,0,1,2,3,5,8],          [32,8,1,2,3],      [0.07,0.08,0],      'Select One (B)' );
-            const manna12200 = newMannaRing( manna10000, [32,0,1,2,3,5,9],          [32,9,1,2,3],      [0.1,0.045,0],      'Select Two (B)' );
-            const manna12300 = newMannaRing( manna10000, [32,0,1,2,3,5,10],         [32,10,1,2,3],     [0.10,0.00,0],      'Select Three (B)' );
-    const manna20000 = newMannaRing( middleFingerTip1,   [32,0,1,2,3,11,12],        [32,0,11,12,2,3] );
-        const manna21000 = newMannaRing( manna20000,     [32,0,1,2,3,11,13,14],     [32,13,14,0,2,3],   [0.02,0.04,0] );
-            const manna21100 = newMannaRing( manna20000, [32,0,1,2,3,11,13],        [32,13,0,2,3],      [0.035,0.09,0],     'Select One (C)' );
-            const manna21200 = newMannaRing( manna20000, [32,0,1,2,3,11,14],        [32,14,0,2,3],      [0.075,0.05,0],     'Select Two (C)' );
-        const manna22000 = newMannaRing( manna20000,     [32,0,1,2,3,12,15,16,17],  [32,0,2,3,15,16,17],[0.04,0.02,0] );
-            const manna22100 = newMannaRing( manna20000, [32,0,1,2,3,12,15],        [32,15,0,2,3],      [0.07,0.08,0],      'Select One (D)' );
-            const manna22200 = newMannaRing( manna20000, [32,0,1,2,3,12,16],        [32,16,0,2,3],      [0.1,0.045,0],      'Select Two (D)' );
-            const manna22300 = newMannaRing( manna20000, [32,0,1,2,3,12,17],        [32,17,0,2,3],      [0.10,0.00,0],      'Select Three (D)' );
-    const manna30000 = newMannaRing( ringFingerTip1,     [32,0,1,2,3,18,19],        [32,0,1,18,19,3] );
-        const manna31000 = newMannaRing( manna30000,     [32,0,1,2,3,18,20,21],     [32,20,21,1,0,3],   [0.02,0.04,0] );
-            const manna31100 = newMannaRing( manna30000, [32,0,1,2,3,18,20],        [32,20,1,0,3],      [0.035,0.09,0],     'Select One (E)' );
-            const manna31200 = newMannaRing( manna30000, [32,0,1,2,3,18,21],        [32,21,1,0,3],      [0.075,0.05,0],     'Select Two (E)' );
-        const manna32000 = newMannaRing( manna30000,     [32,0,1,2,3,19,22,23,24],  [32,1,0,3,22,23,24],[0.04,0.02,0] );
-            const manna32100 = newMannaRing( manna30000, [32,0,1,2,3,19,22],        [32,22,1,0,3],      [0.07,0.08,0],      'Select One (F)' );
-            const manna32200 = newMannaRing( manna30000, [32,0,1,2,3,19,23],        [32,23,1,0,3],      [0.1,0.045,0],      'Select Two (F)' );
-            const manna32300 = newMannaRing( manna30000, [32,0,1,2,3,19,24],        [32,24,1,0,3],      [0.10,0.00,0],      'Select Three (F)' );
-    const manna40000 = newMannaRing( pinkyFingerTip1,    [32,0,1,2,3,25,26],        [32,0,1,2,25,26] );
-        const manna41000 = newMannaRing( manna40000,     [32,0,1,2,3,25,27,28],     [32,27,28,1,2,0],   [0.02,0.04,0] );
-            const manna41100 = newMannaRing( manna40000, [32,0,1,2,3,25,27],        [32,27,1,2,0],      [0.035,0.09,0],     'Select One (G)' );
-            const manna41200 = newMannaRing( manna40000, [32,0,1,2,3,25,28],        [32,28,1,2,0],      [0.075,0.05,0],     'Select Two (G)' );
-        const manna42000 = newMannaRing( manna40000,     [32,0,1,2,3,26,29,30,31],  [32,1,2,0,29,30,31],[0.04,0.02,0] );
-            const manna42100 = newMannaRing( manna40000, [32,0,1,2,3,26,29],        [32,29,1,2,0],      [0.07,0.08,0],      'Select One (H)' );
-            const manna42200 = newMannaRing( manna40000, [32,0,1,2,3,26,30],        [32,30,1,2,0],      [0.1,0.045,0],      'Select Two (H)' );
-            const manna42300 = newMannaRing( manna40000, [32,0,1,2,3,26,31],        [32,31,1,2,0],      [0.10,0.00,0],      'Select Three (H)' );
-    const manna50000 = newMannaRing( thumbTip1,          [32,0,1,2,3,33],           [0,1,2,3,33] );
-        const manna51000 = newMannaRing( manna50000,     [32,0,1,2,3,33],           [0,1,2,3,33],       [0.01,0.04,0],      'Settings');
-
-
+function initManna() {
     newMannaDot(indexFingerTip2);
-    newMannaLabel(manna10000, "Index");
-    newMannaLabel(manna20000, "Middle");
-    newMannaLabel(manna30000, "Ring");
-    newMannaLabel(manna40000, "Pinky");
-    newMannaLabel(manna50000, "Thumb");
 
-    newMannaLabel(manna11000, "Option A", true);
-        newMannaLabel(manna11100, "Select One (A)", true);
-        newMannaLabel(manna11200, "Select Two (A)", true);
+/*0*/ const manna00000 = newMannaRing( palm1,
+    /* connections */ [ 0,1,2,3,4,5 ],
+    /* labels */      [ 1,2,3,4,5 ],
+    /* offset */      [ 0.0, 0.00, 0.02 ],
+    /* function */    'settings' );
+    newMannaLabel(manna00000, "Settings", true);
 
-    newMannaLabel(manna12000, "Option B", true);
-        newMannaLabel(manna12100, "Select One (B)", true);
-        newMannaLabel(manna12200, "Select Two (B)", true);
-        newMannaLabel(manna12300, "Select Three (B)", true);
+/*1*/ const manna10000 = newMannaRing( thumbTip1,
+    /* connections */ [ 0,1,2,3,4,5 ],
+    /* labels */      [ 0,2,3,4,5 ],
+    /* offset */      [ 0.0, 0.0, 0.0 ] );
+    newMannaLabel(manna10000, "Find");
 
-    newMannaLine(manna11000, 0.032, -28, [0.001,0,0]);
-    newMannaLine(manna12000, 0.032, -63, [0.002,-0.002,0]);
-    newMannaLine(manna11100, 0.040, -17, [0.021,0.04,0]);
-    newMannaLine(manna11200, 0.042, -80, [0.024,0.0385,0]);
+/*2*/ const manna20000 = newMannaRing( indexFingerTip1,
+    /* connections */ [ 0,1,2,3,4,5 ],
+    /* labels */      [ 0,1,3,4,5 ],
+    /* offset */      [ 0.0, 0.0, 0.0 ] );
+    newMannaLabel(manna20000, "Category");
 
-    newMannaLine(manna12100, 0.054, -27, [0.041,0.02,0]);
-    newMannaLine(manna12200, 0.052, -67, [0.044,0.0185,0]);
-    newMannaLine(manna12300, 0.050, -108,[0.043,0.016,0]);
+/*3*/ const manna30000 = newMannaRing( middleFingerTip1,
+    /* connections */ [ 0,1,2,3,4,5 ],
+    /* labels */      [ 0,1,2,4,5 ],
+    /* offset */      [ 0.0, 0.0, 0.0 ] );
+    newMannaLabel(manna30000, "View");
 
-    newMannaLabel(manna21000, "Option C", true);
-        newMannaLabel(manna21100, "Select One (C)", true);
-        newMannaLabel(manna21200, "Select Two (C)", true);
+/*4*/ const manna40000 = newMannaRing( ringFingerTip1,
+    /* connections */ [ 0,1,2,3,4,5 ],
+    /* labels */      [ 0,1,2,3,5 ],
+    /* offset */      [ 0.0, 0.0, 0.0 ] );
+    newMannaLabel(manna40000, "Annotations");
 
-    newMannaLabel(manna22000, "Option D", true);
-        newMannaLabel(manna22100, "Select One (D)", true);
-        newMannaLabel(manna22200, "Select Two (D)", true);
-        newMannaLabel(manna22300, "Select Three (D)", true);
+/*5*/ const manna50000 = newMannaRing( pinkyFingerTip1,
+    /* connections */ [ 0,1,2,3,4,5 ],
+    /* labels */      [ 0,1,2,3,4 ],
+    /* offset */      [ 0.0, 0.0, 0.0 ] );
+    newMannaLabel(manna50000, "Focus");
 
-    newMannaLine(manna21000, 0.032, -28, [0.001,0,0]);
-    newMannaLine(manna22000, 0.032, -63, [0.002,-0.002,0]);
-    newMannaLine(manna21100, 0.040, -17, [0.021,0.04,0]);
-    newMannaLine(manna21200, 0.042, -80, [0.024,0.0385,0]);
 
-    newMannaLine(manna22100, 0.054, -27, [0.041,0.02,0]);
-    newMannaLine(manna22200, 0.052, -67, [0.044,0.0185,0]);
-    newMannaLine(manna22300, 0.050, -108,[0.043,0.016,0]);
 
-    newMannaLabel(manna31000, "Option E", true);
-        newMannaLabel(manna31100, "Select One (E)", true);
-        newMannaLabel(manna31200, "Select Two (E)", true);
+    
 
-    newMannaLabel(manna32000, "Option F", true);
-        newMannaLabel(manna32100, "Select One (F)", true);
-        newMannaLabel(manna32200, "Select Two (F)", true);
-        newMannaLabel(manna32300, "Select Three (F)", true);
+    // newMannaLabel(manna11000, "Option A", true);
+    //     newMannaLabel(manna11100, "Select One (A)", true);
+    //     newMannaLabel(manna11200, "Select Two (A)", true);
 
-    newMannaLine(manna31000, 0.032, -28, [0.001,0,0]);
-    newMannaLine(manna32000, 0.032, -63, [0.002,-0.002,0]);
-    newMannaLine(manna31100, 0.040, -17, [0.021,0.04,0]);
-    newMannaLine(manna31200, 0.042, -80, [0.024,0.0385,0]);
+    // newMannaLabel(manna12000, "Option B", true);
+    //     newMannaLabel(manna12100, "Select One (B)", true);
+    //     newMannaLabel(manna12200, "Select Two (B)", true);
+    //     newMannaLabel(manna12300, "Select Three (B)", true);
 
-    newMannaLine(manna32100, 0.054, -27, [0.041,0.02,0]);
-    newMannaLine(manna32200, 0.052, -67, [0.044,0.0185,0]);
-    newMannaLine(manna32300, 0.050, -108,[0.043,0.016,0]);
+    // newMannaLine(manna11000, 0.032, -28, [0.001,0,0]);
+    // newMannaLine(manna12000, 0.032, -63, [0.002,-0.002,0]);
+    // newMannaLine(manna11100, 0.040, -17, [0.021,0.04,0]);
+    // newMannaLine(manna11200, 0.042, -80, [0.024,0.0385,0]);
 
-    newMannaLabel(manna41000, "Option G", true);
-        newMannaLabel(manna41100, "Select One (G)", true);
-        newMannaLabel(manna41200, "Select Two (G)", true);
+    // newMannaLine(manna12100, 0.054, -27, [0.041,0.02,0]);
+    // newMannaLine(manna12200, 0.052, -67, [0.044,0.0185,0]);
+    // newMannaLine(manna12300, 0.050, -108,[0.043,0.016,0]);
 
-    newMannaLabel(manna42000, "Option H", true);
-        newMannaLabel(manna42100, "Select One (H)", true);
-        newMannaLabel(manna42200, "Select Two (H)", true);
-        newMannaLabel(manna42300, "Select Three (H)", true);
-
-    newMannaLine(manna41000, 0.032, -28, [0.001,0,0]);
-    newMannaLine(manna42000, 0.032, -63, [0.002,-0.002,0]);
-    newMannaLine(manna41100, 0.040, -17, [0.021,0.04,0]);
-    newMannaLine(manna41200, 0.042, -80, [0.024,0.0385,0]);
-
-    newMannaLine(manna42100, 0.054, -27, [0.041,0.02,0]);
-    newMannaLine(manna42200, 0.052, -67, [0.044,0.0185,0]);
-    newMannaLine(manna42300, 0.050, -108,[0.043,0.016,0]);
-
-    newMannaLabel(manna51000, "Settings", true);
-    newMannaLine(manna51000, 0.028, -14, [0.001,0,0]);
+    // newMannaLabel(manna51000, "Settings", true);
+    // newMannaLine(manna51000, 0.028, -14, [0.001,0,0]);
 
     // Array of the base manna nodes
-    mannaBases = [manna10000,manna20000,manna30000,manna40000,manna50000];
+    mannaBases = [manna00000,manna10000,manna20000,manna30000,manna40000,manna50000];
     mannaNodes = mannaBases;
 
     // Array of all manna nodes, including inactive ones
-    mannaArray = [manna10000,manna20000,manna30000,manna40000,
-                    manna11000,manna12000,manna11100,manna11200,manna12100,manna12200,manna12300,
-                    manna21000,manna22000,manna21100,manna21200,manna22100,manna22200,manna22300,
-                    manna31000,manna32000,manna31100,manna31200,manna32100,manna32200,manna32300,
-                    manna41000,manna42000,manna41100,manna41200,manna42100,manna42200,manna42300,
-                    manna50000,manna51000];
+    mannaArray = [manna00000,manna10000,manna20000,manna30000,manna40000,manna50000];
 
     // Hide all manna
     mannaDot.visible = true;
@@ -5366,17 +5656,18 @@ function newMannaRing(parent, nodes, labels = [], offset = [0,0,0], funct = 'non
     ring.anchorY = 'middle';
     ring.outlineWidth = 0.0;
     // ring.outlineBlur = 0.002;
-    ring.outlineColor = _colorTool;
+    ring.outlineColor = _colorTools;
     ring.color = _colorManna;
 
     ringGroup.add(ring);
     parent.add(ringGroup);
-    ring.position.set(offset[0],offset[1],offset[2]);
+    ring.position.set(offset[0],offset[1],0);
     ring.rotation.set(0,0,0);
     ring.scale.y = 0.85;
 
     ringGroup.userData.mannaNodes = nodes;
     ringGroup.userData.labelNodes = labels;
+    ringGroup.userData.zoffset = offset[2];
 
     ring.sync();
     // ringGroup.visible = false;
@@ -5390,10 +5681,10 @@ function newMannaRing(parent, nodes, labels = [], offset = [0,0,0], funct = 'non
         dot.fontSize = 0.05;
         dot.anchorX = 'center';
         dot.anchorY = 'middle';
-        dot.color = _colorTool;
+        dot.color = _colorTools;
 
         ringGroup.add(dot);
-        dot.position.set(offset[0],offset[1],offset[2]);
+        dot.position.set(offset[0],offset[1],0);
         dot.rotation.set(0,0,0);
         dot.translateY(0.014);
         dot.translateZ(-0.002);
@@ -5413,7 +5704,7 @@ function newMannaDot(parent) {
     dot.anchorY = 'middle';
     dot.outlineWidth = 0.0;
     // dot.outlineBlur = 0.002;
-    dot.outlineColor = _colorTool;
+    dot.outlineColor = _colorTools;
     dot.color = _colorManna;
 
     mannaDot.add(dot);
@@ -5429,13 +5720,13 @@ function newMannaDot(parent) {
     mannaDotPoint.translateZ(-0.01);
 
     dot.sync();
-    // mannaDot.visible = false;
+    mannaDot.visible = false;
 }
 
-function newMannaLabel(parent, label = "label", offsetObj = false) {
+function newMannaLabel(parent, label = "label", offsetObj = false, color = _colorTools) {
     const newText = new Text();
     newText.text = label;
-    newText.color = _colorTool;
+    newText.color = color;
     newText.fontSize = 0.01;
     newText.anchorX = 'left';
     newText.anchorY = 'bottom';
@@ -5524,9 +5815,12 @@ function tryManna() {
 
         // set rotations of the rings
         for (var i = mannaBases.length - 1; i >= 0; i--) {
+            var zoffset = 0;
+            if ( mannaBases[i].userData.zoffset != undefined ) { zoffset = mannaBases[i].userData.zoffset; }
+
             mannaBases[i].lookAt(camera.position);
             mannaBases[i].position.set(0,0,0);
-            mannaBases[i].translateZ(0.02);
+            mannaBases[i].translateZ(0.02 + zoffset);
         }
 
         mannaDot.lookAt(camera.position);
@@ -5534,6 +5828,7 @@ function tryManna() {
         if ( !isMannaSet ) {
             // The manna menu has just been opened
             isMannaSet = true;
+            lastIntersect = undefined;
 
             // Make the components visible
             for (var i = mannaBases.length - 1; i >= 0; i--) {
@@ -5742,6 +6037,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 initconsoleLog();
                 initWorkspace();
                 initManna();
+                colorHands();
 
             } else if (firstInit && !secondInit && indexFingerTip2.position.distanceTo(wrist2.position) > 0.1 && indexFingerTip1.position.distanceTo(wrist1.position)){
                 // This runs once after the hands have properly loaded
@@ -5761,6 +6057,10 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryPointer();
                 tryMapSelector();
                 tryManna();
+                tryQuickGestures();
+                // tryOffGestures();
+
+                tryVelocity();
 
                 animateCitationLines();
                 animateConsoleLog();
@@ -5823,12 +6123,31 @@ camera.position.z = 1;
 // history feature
 // memory leaks from not disposiing of THREE objects?
 // library visible at all times?
-
+// when dragging, prevent the raycast from 'searching' outside the current snapDistance
+// 3D selection box? But where would it start?
+// scroll documents by dragging the background
+// new document layout
 
 
 // WIP:
-// quick pinch to trigger function (open document, etc)
-// palm 'settings' button to swap finger tips
+// quick push/pull while dragging to change snap distances
+// unfocus document - transparent bg
 
 
 // COMPLETE THIS UPDATE:
+// changed hand model material
+// new manna node: palm (for settings)
+// quick pinch to trigger function (open document, etc)
+// point and drag has been heavily streamlined for user experience - fixed issues of pointer 'falling off' of objects
+// moved library view down slightly
+// turned off prism menu - tap for library
+// relabeled manna menu (nonfunctional)
+// change menubar "Read | Outline | References"
+// references spawn citation block
+// sans-serif for menu - serif (Wittgenstein) for content
+// hide lines in library view
+// document redesign (visual)
+// most objects (like documents) now generate relative to the user
+// hid manna dot on initialization
+// scroll documents by pointing/pinching at background/text
+// scrolling now has velocity
