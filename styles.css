@@ -168,3 +168,17 @@ body {
 #debugging > button {
   font-size: 2em;
 }
+
+
+
+
+#debugmode {
+  position: fixed;
+}
+
+#debugmode > label {
+  position: absolute;
+  width: 150px;
+  font-size: 0.75em;
+  top: 3px;
+}

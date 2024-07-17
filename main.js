@@ -44,9 +44,11 @@ import TWEEN from '@tweenjs/tween.js';
 // Map highlight/selector color
     const _colorHImap = 0xffbd66;
 // Selector/pointer color
-    const _colorTools = 0xffffff;
+    const _colorTools = 0xffbd66;
 // Manna circuit color
     const _colorManna = 0xffbd66;
+// Manna text color
+    const _colorManaT = 0xffffff;
 // Hand model color
     const _colorHands = 0x000000;
 
@@ -155,13 +157,14 @@ testPillar.position.set( 0, -0.75, 0 );
 testMat.visible = false;
 // =========================================================
 
-
 // font
 const _fontserif = './Wittgenstein.ttf';
 // const _fontserif = './NotoSerif.ttf';
 // const _fontserif = 'https://fonts.google.com/share?selection.family=Noto+Serif:ital,wght@0,100..900;1,100..900';
 
-
+// hands
+var currentDominant;
+var initialDominant;
 
 
 
@@ -849,11 +852,7 @@ function initTools() {
     toolSelectorTip2.rotateY( Math.PI / 4 );
     toolSelectorTip2.rotateX( Math.PI / 4 );
 
-    toolSelectorCore.translateZ( -0.111 );
-    toolSelectorCore.translateY( -0.113 );
-    toolSelectorCore.translateX( -0.015 );
-
-    toolSelectorCore.rotateX( -Math.PI / 2.9);
+    reorientPointer();
 
     toolSelector.attach( toolSelectorCore );
     scene.add( toolSelector );
@@ -879,6 +878,23 @@ function initTools() {
         toolSelectorPrevPositions.push(posVector);
     }
 
+}
+
+function reorientPointer() {
+    toolSelectorCore.position.set( 0, 0, 0 );
+    toolSelectorCore.rotation.set( 0, 0, 0 );
+
+    if ( currentDominant == 'right' || currentDominant == undefined ) {
+        toolSelectorCore.translateZ( -0.111 );
+        toolSelectorCore.translateY( -0.113 );
+        toolSelectorCore.translateX( -0.015 );
+    } else {
+        toolSelectorCore.translateZ( -0.111 );
+        toolSelectorCore.translateY( -0.113 );
+        toolSelectorCore.translateX( 0.015 );
+    }
+
+    toolSelectorCore.rotateX( -Math.PI / 2.9);
 }
 
 var toolSelectorSmoothSteps = 3;
@@ -1004,7 +1020,7 @@ function tryPointer() {
 
     if ( pinkyFingerTip2.position.distanceTo(wrist2.position) < 0.13 
     && ringFingerTip2.position.distanceTo(wrist2.position) < 0.13
-    && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13 && !isMannaActive
+    && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13 && !isMannaUsed
     ) {
 
         toolSelectorActive = true;
@@ -1117,7 +1133,7 @@ function tryPointer() {
             var intersects = raycaster.intersectObjects(scene.children);
             var intersect = intersects[0];
 
-            if ( intersect.object.userData.type != "mapbg" ) {
+            if ( intersect != undefined && intersect.object.userData.type != "mapbg" ) {
                 lastIntersect = intersect;
                 lastIntersectBGtime = 0;
             } else {
@@ -1140,8 +1156,10 @@ function tryPointer() {
             // If the raycaster has found an eligible object
             if (intersect) {
 
-                toolSelectorTimer = 0;
-
+                if (intersect.object != mapbg) {
+                    toolSelectorTimer = 0;
+                }
+                
                 let beamScale = tempSelectorWorld.distanceTo(intersect.point) * 1000;
                 // toolSelectorBeam.visible = toolSelectorVisible;
                 toolSelectorBeam.scale.z = beamScale;
@@ -1158,7 +1176,7 @@ function tryPointer() {
                     textsToReset.push(intersect.object);
                 }
 
-                if (rSwipeObj == undefined) {
+                if (domswipeObj == undefined) {
                     tryPointerOver(intersect.object);
                 }
 
@@ -1168,7 +1186,7 @@ function tryPointer() {
             }
 
             // Selection function - user has clamped their fingers together while pointing
-            if (intersect && isTwoPinching && !tempSelectorActive) {
+            if (intersect && isDomPinching && !tempSelectorActive) {
                 tempSelectorActive = true;
 
                 // Tween the selector dot for the selection 'click'
@@ -1186,7 +1204,7 @@ function tryPointer() {
 
                 tryPointerSelect(intersect.object);
 
-            } else if (!isTwoPinching && tempSelectorActive) {
+            } else if (!isDomPinching && tempSelectorActive) {
                 tempSelectorActive = false;
                 stopSwipe();
             }
@@ -1247,7 +1265,7 @@ function tryPointer() {
 
 
 function tryCloseHandles() {
-    if (openHandles.length > 0 && rSwipeObj == undefined) {
+    if (openHandles.length > 0 && domswipeObj == undefined) {
         for (var i = openHandles.length - 1; i >= 0; i--) {
             var tempHandlebarScale = new TWEEN.Tween( openHandles[i].scale )
             .to( {x: 0.1}, 300 )
@@ -3803,6 +3821,8 @@ function init() {
             palmNormal.translateY( -0.1 );
 
             controller1enabled = true;
+
+            hand1.userData.handedness = event.data.handedness;
         });
 
         // Wait for the hand to connect, then get finger joints
@@ -3821,6 +3841,8 @@ function init() {
             palm2 = event.target.joints['middle-finger-phalanx-proximal'];
 
             controller2enabled = true;
+
+            hand2.userData.handedness = event.data.handedness;
         });
 
         setTimeout(() => {
@@ -3849,15 +3871,16 @@ function colorHands() {
         hand2.children[1].children[0].material = handMaterial;
         hand2.children[0].children[0].children[0].material = handMaterial;
     } catch {
-        console.log("Error setting hand material. Using default.")
+        console.log("Error setting hand material.");
+        setTimeout(() => { colorHands(); }, 200);
     }
 }
 
-var isOnePinching = false;
-var isOnePinchConsumed = false;
+var isNonPinching = false;
+var isNonPinchConsumed = false;
 var onePinchTime = 0.0;
-var isTwoPinching = false;
-var isTwoPinchConsumed = false;
+var isDomPinching = false;
+var isDomPinchConsumed = false;
 var twoPinchTime = 0.0;
 
 var lastIntersect;
@@ -3865,39 +3888,98 @@ var lastIntersectBGtime = 0.0;
 
 const pinchThreshold = 0.25;
 
-function onPinchStartOne( event ) {    
-    isOnePinching = true;
-    isOnePinchConsumed = false;
+function onPinchStartOne( event ) {   
+    if ( currentDominant == "left" && initialDominant == "right" ) {
+        onPinchStart( true );
+    } else if ( currentDominant == "right" && initialDominant == "right" ) {
+        onPinchStart( false );
+    } else if ( currentDominant == "left" && initialDominant == "left" ) {
+        onPinchStart( false );
+    } else if ( currentDominant == "right" && initialDominant == "left" ) {
+        onPinchStart( true );
+    }
 }
 
 function onPinchEndOne( event ) {
-    isOnePinching = false;
+    if ( currentDominant == "left" && initialDominant == "right" ) {
+        onPinchEnd( true );
+    } else if ( currentDominant == "right" && initialDominant == "right" ) {
+        onPinchEnd( false );
+    } else if ( currentDominant == "left" && initialDominant == "left" ) {
+        onPinchEnd( false );
+    } else if ( currentDominant == "right" && initialDominant == "left" ) {
+        onPinchEnd( true );
+    }
 }
 
-function onPinchStartTwo( event ) {    
-    isTwoPinching = true;
-    isTwoPinchConsumed = false;
-    if (lastIntersect != undefined) {
-        // scale mapbg to the selected object's current viewdistance
-
-        toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
-        const endPoint = new THREE.Vector3(toolSelectorDotWorld.x,0,toolSelectorDotWorld.z);
-        const distance = _zero.distanceTo(endPoint);
-        mapbg.scale.set(distance,1,distance);
-        
+function onPinchStartTwo( event ) {
+    if ( currentDominant == "right" && initialDominant == "right" ) {
+        onPinchStart( true );
+    } else if ( currentDominant == "left" && initialDominant == "right" ) {
+        onPinchStart( false );
+    } else if ( currentDominant == "right" && initialDominant == "left" ) {
+        onPinchStart( false );
+    } else if ( currentDominant == "left" && initialDominant == "left" ) {
+        onPinchStart( true );
     }
+    
 }
 
 function onPinchEndTwo( event ) {
-    isTwoPinching = false;
-    if (twoPinchTime <= pinchThreshold && lastIntersect != undefined) { tryQuickPointerSelect(lastIntersect.object); }
-    twoPinchTime = 0;
-    if (mapbg != undefined) {
-        mapbg.scale.set(defaultMapScale,1,defaultMapScale);
+    if ( currentDominant == "right" && initialDominant == "right" ) {
+        onPinchEnd( true );
+    } else if ( currentDominant == "left" && initialDominant == "right" ) {
+        onPinchEnd( false );
+    } else if ( currentDominant == "right" && initialDominant == "left" ) {
+        onPinchEnd( false );
+    } else if ( currentDominant == "left" && initialDominant == "left" ) {
+        onPinchEnd( true );
     }
-    raycaster.layers.set( 3 );
-    lastIntersect = undefined;
 }
+
+
+
+
+
+
+function onPinchStart( dom = true ) {
+    if ( dom ) {
+        isDomPinching = true;
+        isDomPinchConsumed = false;
+        if (lastIntersect != undefined) {
+            // scale mapbg to the selected object's current viewdistance
+
+            toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+            const endPoint = new THREE.Vector3(toolSelectorDotWorld.x,0,toolSelectorDotWorld.z);
+            const distance = _zero.distanceTo(endPoint);
+            mapbg.scale.set(distance,1,distance);
+            
+        }
+    } else {
+        isNonPinching = true;
+        isNonPinchConsumed = false;
+    }
+}
+
+
+function onPinchEnd( dom = true ) {
+    if ( dom ) {
+        isDomPinching = false;
+        if (twoPinchTime <= pinchThreshold && lastIntersect != undefined) { tryQuickPointerSelect(lastIntersect.object); }
+        twoPinchTime = 0;
+        if (mapbg != undefined) {
+            mapbg.scale.set(defaultMapScale,1,defaultMapScale);
+        }
+        raycaster.layers.set( 3 );
+        lastIntersect = undefined;
+    } else {
+        isNonPinching = false;
+    }
+}
+
+
+
+
 
 function placeholderArrow(raycaster, length = grabDistance, color = 0x33ff77, life = 50) {
     if (debugMode) {
@@ -4017,7 +4099,7 @@ var wrist2NormalZVector = new THREE.Vector3();
 var wrist2Roll, wrist2Pitch;
 var curObjDir = new THREE.Vector3();
 var swipeRayLengthBase = 0.75;
-var rSwipeObj = undefined;
+var domswipeObj = undefined;
 var rSwipeVar = 0;
 
 var toolSelectorDotWorld = new THREE.Vector3();
@@ -4028,17 +4110,17 @@ function startSwipe(object, type = undefined) {
     consoleLog("==== drag started on " + object + " ====", 0x5500aa);
     rSwipeVar = type;
     if (type == undefined) {
-        rSwipeObj = object.parent;
+        domswipeObj = object.parent;
     } else if (type == "clipTop" || type == "clipBot") {
-        rSwipeObj = object;
+        domswipeObj = object;
         rSwipeVar = "clip";
     } else if (type == "clipTopGrip" || type == "clipBotGrip") {
-        rSwipeObj = object.parent;
+        domswipeObj = object.parent;
         rSwipeVar = "clip";
     } else if (type == "scroll") {
-        rSwipeObj = object;
+        domswipeObj = object;
     } else if (type == "docbg") {
-        rSwipeObj = object;
+        domswipeObj = object;
         velocityObjects = [];
         velocityObjects.push( object.parent );
     }
@@ -4049,16 +4131,16 @@ function startSwipe(object, type = undefined) {
 
 function stopSwipe() {
     // consoleLog("==== drag stopped ====");
-    rSwipeObj = undefined;
+    domswipeObj = undefined;
 }
 
 var swipeClipLock = false;
 
 function trySwipe() {
-    if ( rSwipeObj != undefined ) {
+    if ( domswipeObj != undefined ) {
 
-        if (rSwipeObj.userData.swipeInverter != undefined) {
-            swipeInverter = rSwipeObj.userData.swipeInverter;
+        if (domswipeObj.userData.swipeInverter != undefined) {
+            swipeInverter = domswipeObj.userData.swipeInverter;
         }
 
         toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
@@ -4073,7 +4155,7 @@ function trySwipe() {
             var scale = 1;
 
             if (rSwipeVar == "clip" || rSwipeVar == "scroll" || rSwipeVar == "docbg") {
-                const docGroup = rSwipeObj.parent;
+                const docGroup = domswipeObj.parent;
                 const clippingStart = docGroup.userData.clippingStart;
                 const clippingEnd = docGroup.userData.clippingEnd;
                 const scrollNub = docGroup.userData.scrollNub;
@@ -4081,34 +4163,34 @@ function trySwipe() {
 
                 // consoleLog(clippingStart.position.y - clippingEnd.position.y + movement);
 
-                if (rSwipeObj == clippingStart && 
+                if (domswipeObj == clippingStart && 
                     clippingStart.position.y - clippingEnd.position.y + movement < 0.3) {
-                        rSwipeObj.position.y = clippingEnd.position.y + 0.3;
+                        domswipeObj.position.y = clippingEnd.position.y + 0.3;
                         movement = 0;
-                } else if (rSwipeObj == clippingEnd &&
+                } else if (domswipeObj == clippingEnd &&
                     clippingStart.position.y - clippingEnd.position.y - movement < 0.3) {
-                        rSwipeObj.position.y = clippingStart.position.y - 0.3;
+                        domswipeObj.position.y = clippingStart.position.y - 0.3;
                         movement = 0;
-                } else if (rSwipeObj == scrollNub &&
+                } else if (domswipeObj == scrollNub &&
                     clippingStart.position.y - scrollNub.position.y - movement < 0.1) {
-                        rSwipeObj.position.y = clippingStart.position.y - 0.1;
+                        domswipeObj.position.y = clippingStart.position.y - 0.1;
                         movement = 0;
-                } else if (rSwipeObj == scrollNub &&
+                } else if (domswipeObj == scrollNub &&
                     scrollNub.position.y - clippingEnd.position.y + movement < 0.1) {
-                        rSwipeObj.position.y = clippingEnd.position.y + 0.1;
+                        domswipeObj.position.y = clippingEnd.position.y + 0.1;
                         movement = 0;
                 }
 
-                scale = rSwipeObj.parent.scale.x;
+                scale = domswipeObj.parent.scale.x;
 
                 // update scroll percentage
-                if (rSwipeObj == scrollNub) {
-                    var scrollPercent = norm( rSwipeObj.position.y, clippingStart.position.y - 0.1, clippingEnd.position.y + 0.1 );
+                if (domswipeObj == scrollNub) {
+                    var scrollPercent = norm( domswipeObj.position.y, clippingStart.position.y - 0.1, clippingEnd.position.y + 0.1 );
                     docGroup.userData.scrollPercent = scrollPercent;
                     scrollDocument(docGroup);
                     reclipDocument(docGroup);
                     // consoleLog(scrollPercent);
-                } else if (rSwipeObj == txtGroup ) {
+                } else if (domswipeObj == txtGroup ) {
                     var moveMod = 1;
 
                     if ( docGroup.userData.isFocused ) {
@@ -4135,7 +4217,7 @@ function trySwipe() {
             }
 
             if (movement) {
-                rSwipeObj.position.y += movement / scale;
+                domswipeObj.position.y += movement / scale;
             }
 
             offsetPositionY = toolSelectorDotWorld.y;
@@ -4144,7 +4226,7 @@ function trySwipe() {
 
         // Horizontal movement
         if (rSwipeVar == undefined) {
-            curObjDir.subVectors(toolSelectorDotWorld, rSwipeObj.position).normalize();
+            curObjDir.subVectors(toolSelectorDotWorld, domswipeObj.position).normalize();
             var angle = Math.atan2(curObjDir.x, curObjDir.z);
 
             if (!offsetAngle) {
@@ -4154,16 +4236,16 @@ function trySwipe() {
             var rotation = angle - offsetAngle;
 
             if (rotation) {
-                rSwipeObj.rotation.y += rotation * swipeInverter;
-                rSwipeObj.userData.swipeRot = rSwipeObj.rotation.y;
+                domswipeObj.rotation.y += rotation * swipeInverter;
+                domswipeObj.userData.swipeRot = domswipeObj.rotation.y;
             }
 
             offsetAngle = angle;
         }
 
         if (rSwipeVar == "clip" || rSwipeVar == "docbg") {
-            scrollDocument(rSwipeObj.parent);
-            reclipDocument(rSwipeObj.parent);
+            scrollDocument(domswipeObj.parent);
+            reclipDocument(domswipeObj.parent);
         }
 
     }
@@ -4174,12 +4256,12 @@ function trySwipe() {
 }
 
 function tryQuickGestures() {
-    if ( isTwoPinching ) {
+    if ( isDomPinching ) {
         // quick pinch
         twoPinchTime += deltaTime;
 
         // quick pull/push -- CURRENTLY DISABLED: GESTURE IS TOO AWKWARD TO USE
-        // if ( rSwipeObj ) {
+        // if ( domswipeObj ) {
         //     const pushNum = 0.117;
         //     const pullNum = 0.050;
 
@@ -4231,7 +4313,7 @@ function tryOffGestures() {
     && ringFingerTip1.position.distanceTo(wrist1.position) < 0.13
     && middleFingerTip1.position.distanceTo(wrist1.position) < 0.13
     && indexFingerTip1.position.distanceTo(wrist1.position) < 0.13
-    && !isMannaActive && rSwipeObj != undefined) {
+    && !isMannaActive && domswipeObj != undefined) {
 
         offhandGrip = true;
         toolSelectorCore.getWorldPosition( toolSelectorCoreWorld );
@@ -4260,10 +4342,10 @@ function tryOffGestures() {
 
         // consoleLog( velocity, 0x5c2ef7 );
 
-        var viewDistance = rSwipeObj.userData.viewDistance;
+        var viewDistance = domswipeObj.userData.viewDistance;
         if ( viewDistance != undefined ) {
             var newView = clamp(parseFloat(viewDistance) + parseFloat(velocity), snapDistanceMin, snapDistanceMax);
-            changeDistance( rSwipeObj, newView );
+            changeDistance( domswipeObj, newView );
             consoleLog( newView );
         } else {
             console.log("NO VIEW DISTANCE");
@@ -4277,7 +4359,7 @@ function tryOffGestures() {
 
 
 function tryVelocity() {
-    if ( velocityObjects.length > 0 && rSwipeObj == undefined ) {
+    if ( velocityObjects.length > 0 && domswipeObj == undefined ) {
         for (var i = velocityObjects.length - 1; i >= 0; i--) {
             var scrollVelocity = parseFloat(velocityObjects[i].userData.scrollVelocity);
             scrollVelocity = scrollVelocity * 0.90;
@@ -5367,7 +5449,7 @@ function startMapSelector() {
 
 
 function tryMapSelector() {
-    if (isTwoPinching && isMapSelecting) {
+    if (isDomPinching && isMapSelecting) {
         // while selecting, update the cylinder geometry by disposing of the current mesh
 
         updateMapSelectorGeo(mapSelectingStart, mapSelectingEnd);
@@ -5560,6 +5642,7 @@ function updateMapSelectorGeo(start, end, readout = false) {
 
 var isMannaActive = false;
 var isMannaSet = false;
+var isMannaUsed = false;
 var mannaBases = [];
 var mannaNodes = [];
 var mannaDot = new THREE.Group();
@@ -5576,8 +5659,8 @@ function initManna() {
     /* connections */ [ 0,1,2,3,4,5 ],
     /* labels */      [ 1,2,3,4,5 ],
     /* offset */      [ 0.0, 0.00, 0.02 ],
-    /* function */    'settings' );
-    newMannaLabel(manna00000, "Settings", true);
+    /* function */    'swaphands' );
+    newMannaLabel(manna00000, "Swap Hands", true);
 
 /*1*/ const manna10000 = newMannaRing( thumbTip1,
     /* connections */ [ 0,1,2,3,4,5 ],
@@ -5611,7 +5694,7 @@ function initManna() {
 
 
 
-    
+
 
     // newMannaLabel(manna11000, "Option A", true);
     //     newMannaLabel(manna11100, "Select One (A)", true);
@@ -5647,6 +5730,27 @@ function initManna() {
 
 }
 
+function killManna() {
+    for (var i = mannaBases.length - 1; i >= 0; i--) {
+        mannaBases[i].clear();
+    }
+
+    mannaDot.parent.remove(mannaDot);
+    mannaDot = new THREE.Group();
+
+
+    mannaBases = [];
+    mannaNodes = [];
+    mannaArray = [];
+    mannaPointDest = mannaDotPoint;
+    mannaPointLast = mannaPointDest;
+
+    isMannaActive = false;
+    isMannaSet = false;
+    isMannaUsed = false;
+    mannaBreak = false;
+}
+
 function newMannaRing(parent, nodes, labels = [], offset = [0,0,0], funct = 'none') {
     const ringGroup = new THREE.Group();
     const ring = new Text();
@@ -5656,7 +5760,7 @@ function newMannaRing(parent, nodes, labels = [], offset = [0,0,0], funct = 'non
     ring.anchorY = 'middle';
     ring.outlineWidth = 0.0;
     // ring.outlineBlur = 0.002;
-    ring.outlineColor = _colorTools;
+    ring.outlineColor = _colorManaT;
     ring.color = _colorManna;
 
     ringGroup.add(ring);
@@ -5681,7 +5785,7 @@ function newMannaRing(parent, nodes, labels = [], offset = [0,0,0], funct = 'non
         dot.fontSize = 0.05;
         dot.anchorX = 'center';
         dot.anchorY = 'middle';
-        dot.color = _colorTools;
+        dot.color = _colorManaT;
 
         ringGroup.add(dot);
         dot.position.set(offset[0],offset[1],0);
@@ -5704,7 +5808,7 @@ function newMannaDot(parent) {
     dot.anchorY = 'middle';
     dot.outlineWidth = 0.0;
     // dot.outlineBlur = 0.002;
-    dot.outlineColor = _colorTools;
+    dot.outlineColor = _colorManaT;
     dot.color = _colorManna;
 
     mannaDot.add(dot);
@@ -5723,18 +5827,27 @@ function newMannaDot(parent) {
     mannaDot.visible = false;
 }
 
-function newMannaLabel(parent, label = "label", offsetObj = false, color = _colorTools) {
+function newMannaLabel(parent, label = "label", offsetObj = false, color = _colorManaT) {
     const newText = new Text();
     newText.text = label;
     newText.color = color;
     newText.fontSize = 0.01;
-    newText.anchorX = 'left';
     newText.anchorY = 'bottom';
+
+    var mod = 1;
+    if (currentDominant == 'left') { 
+        mod = -1;
+        newText.anchorX = 'right';
+    } else {
+        newText.anchorX = 'left';
+    }
+
+
     if (offsetObj == false) {
-        newText.position.set(0.005,0.005,0);
+        newText.position.set(0.005 * mod,0.005,0);
     } else {
         const offset = parent.children[0];
-        newText.position.x = offset.position.x + 0.005;
+        newText.position.x = offset.position.x + (0.005 * mod);
         newText.position.y = offset.position.y + 0.005;
         newText.position.z = offset.position.z + 0.000;
     }
@@ -5807,8 +5920,8 @@ function tryManna() {
         // The manna menu is active, run functions
 
         // Finger pinched - trigger a function
-        if ( isTwoPinching && !isTwoPinchConsumed) {
-            isTwoPinchConsumed = true;
+        if ( isDomPinching && !isDomPinchConsumed) {
+            isDomPinchConsumed = true;
             const funct = mannaPointDest.parent.userData.function;
             if ( funct != undefined ) { triggerManna(funct); mannaBreak = true; }
         }
@@ -5873,6 +5986,7 @@ function tryManna() {
             var newNodes = mannaPointDest.parent.userData.mannaNodes;
             // console.log(mannaPointDest.parent);
             if (newNodes != undefined) {
+                isMannaUsed = true;
                 mannaNodes = [];
                 for (var i = newNodes.length - 1; i >= 0; i--) {
                     mannaNodes.push(mannaArray[newNodes[i]]);
@@ -5884,11 +5998,12 @@ function tryManna() {
                     if ( label != undefined ) { label.visible = true; }
                 }
             } else {
+                isMannaUsed = false;
                 mannaNodes = mannaBases;
                 for (var i = mannaNodes.length - 1; i >= 0; i--) {
                     mannaNodes[i].visible = true;
                     const label = mannaNodes[i].userData.mannaLabel;
-                    if ( label != undefined ) { label.visible = true; console.log(label.visible);}
+                    if ( label != undefined ) { label.visible = true; }
                 }
             }
 
@@ -5923,34 +6038,107 @@ function triggerManna(funct) {
     consoleLog(funct, 0x55aaff);
 
 
-    let newText = new Text();
+    // let newText = new Text();
 
-    newText.fontSize = 0.3;
-    newText.text = funct;
-    newText.color = _colorManna;
-    newText.anchorX = 'center';
-    newText.anchorY = 'middle';
+    // newText.fontSize = 0.3;
+    // newText.text = funct;
+    // newText.color = _colorManna;
+    // newText.anchorX = 'center';
+    // newText.anchorY = 'middle';
 
-    scene.add(newText);
-    newText.position.set(wrist2.position.x,wrist2.position.y,wrist2.position.z);
-    newText.lookAt(camera.position.x,camera.position.y,camera.position.z);
-    newText.translateZ(-1);
+    // scene.add(newText);
+    // newText.position.set(wrist2.position.x,wrist2.position.y,wrist2.position.z);
+    // newText.lookAt(camera.position.x,camera.position.y,camera.position.z);
+    // newText.translateZ(-1);
 
-    newText.sync();
+    // newText.sync();
 
-    new TWEEN.Tween( newText.scale )
-        .to( {x: 0, y: 0, z: 0}, 2000 )
-        .easing( TWEEN.Easing.Back.In )
-        .start()
-        .onComplete(() => {
-            newText.parent.remove(newText);
-        });
+    // new TWEEN.Tween( newText.scale )
+    //     .to( {x: 0, y: 0, z: 0}, 2000 )
+    //     .easing( TWEEN.Easing.Back.In )
+    //     .start()
+    //     .onComplete(() => {
+    //         newText.parent.remove(newText);
+    // });
 
+    if ( funct == "swaphands" ) {
+        swapHands();
+    }
 
 }
 
 
+function swapHands() {
+    // hand 2 = dominant
+    // hand 1 = non-dominant
+    var dummyHand = hand1;
+    hand1 = hand2;
+    hand2 = dummyHand;
 
+    var dummyJoint = wrist1;
+    wrist1 = wrist2;
+    wrist2 = dummyJoint;
+
+    dummyJoint = thumbTip1;
+    thumbTip1 = thumbTip2;
+    thumbTip2 = dummyJoint;
+
+    dummyJoint = thumbDistal1;
+    thumbDistal1 = thumbDistal2;
+    thumbDistal2 = dummyJoint;
+
+    dummyJoint = indexFingerTip1;
+    indexFingerTip1 = indexFingerTip2;
+    indexFingerTip2 = dummyJoint;
+
+    dummyJoint = indexDis1;
+    indexDis1 = indexDis2;
+    indexDis2 = dummyJoint;
+
+    dummyJoint = middleFingerTip1;
+    middleFingerTip1 = middleFingerTip2;
+    middleFingerTip2 = dummyJoint;
+
+    dummyJoint = middleDistal1;
+    middleDistal1 = middleDistal2;
+    middleDistal2 = dummyJoint;
+
+    dummyJoint = ringFingerTip1;
+    ringFingerTip1 = ringFingerTip2;
+    ringFingerTip2 = dummyJoint;
+
+    dummyJoint = pinkyFingerTip1;
+    pinkyFingerTip1 = pinkyFingerTip2;
+    pinkyFingerTip2 = dummyJoint;
+
+    dummyJoint = indexKnuckle1;
+    indexKnuckle1 = indexKnuckle2;
+    indexKnuckle2 = dummyJoint;
+
+    dummyJoint = palm1;
+    palm1 = palm2;
+    palm2 = dummyJoint;
+
+    currentDominant = hand2.userData.handedness;
+
+    killManna();
+    initManna();
+
+    wrist1.add( palmNormal );
+    isDomPinching = false;
+
+    reorientPointer();
+
+    wrist1.attach(sphereHelperSolid);
+    sphereHelperSolid.position.set(0,0,0);
+
+    if (menuMode != 99) {
+        wrist1.attach(sphereHelper);
+        sphereHelper.position.set(0,0,0);
+    }
+    
+    
+}
 
 
 
@@ -6037,7 +6225,6 @@ if ( WebGL.isWebGLAvailable() ) {
                 initconsoleLog();
                 initWorkspace();
                 initManna();
-                colorHands();
 
             } else if (firstInit && !secondInit && indexFingerTip2.position.distanceTo(wrist2.position) > 0.1 && indexFingerTip1.position.distanceTo(wrist1.position)){
                 // This runs once after the hands have properly loaded
@@ -6047,6 +6234,19 @@ if ( WebGL.isWebGLAvailable() ) {
                 establishLibrary();
                 tryInitMap();
                 toggleLibrary('close');
+
+                colorHands();
+
+                console.log($('#checkdebug').is(":checked"));
+                if ( $('#checkdebug').is(":checked") ) {
+                    setTimeout(() => {
+                        debugMode = true;
+                        showDebug();
+                    }, 2000);
+                }
+                
+                currentDominant = hand2.userData.handedness;
+                initialDominant = hand2.userData.handedness;
             }
 
             if (firstInit && secondInit) { // This runs every frame after first initialization
@@ -6064,7 +6264,6 @@ if ( WebGL.isWebGLAvailable() ) {
 
                 animateCitationLines();
                 animateConsoleLog();
-
                 
             }
 
@@ -6123,31 +6322,27 @@ camera.position.z = 1;
 // history feature
 // memory leaks from not disposiing of THREE objects?
 // library visible at all times?
-// when dragging, prevent the raycast from 'searching' outside the current snapDistance
 // 3D selection box? But where would it start?
-// scroll documents by dragging the background
-// new document layout
+// voice commands
+// align and sort map view
+// quick push/pull while dragging to change snap distances
+// replace library with new interface
+// quickpinch to swap document back to preview
 
+// SETTING SUGGESTIONS:
+// left/right hand swap
+// default reading distance
+// pointer laser: always off | smart | always on
+// color palette swap
+// enable/disable debug mode
+// export workspace
 
 // WIP:
-// quick push/pull while dragging to change snap distances
-// unfocus document - transparent bg
 
 
 // COMPLETE THIS UPDATE:
-// changed hand model material
-// new manna node: palm (for settings)
-// quick pinch to trigger function (open document, etc)
-// point and drag has been heavily streamlined for user experience - fixed issues of pointer 'falling off' of objects
-// moved library view down slightly
-// turned off prism menu - tap for library
-// relabeled manna menu (nonfunctional)
-// change menubar "Read | Outline | References"
-// references spawn citation block
-// sans-serif for menu - serif (Wittgenstein) for content
-// hide lines in library view
-// document redesign (visual)
-// most objects (like documents) now generate relative to the user
-// hid manna dot on initialization
-// scroll documents by pointing/pinching at background/text
-// scrolling now has velocity
+// change pointer color to orange
+// change pointer/manna swap to occur when manna dot is snapped rather than when it is on
+// bug fix: hand model material would sometimes fail to set
+// left/right hand swap
+// 'launch in debug mode' added to main page as a temporary toggle
