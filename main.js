@@ -10,7 +10,7 @@ import TWEEN from '@tweenjs/tween.js';
 
 // Palette ================================================================================
 // Main environment background color
-    const _colorBGmain = 0xbbbbbb;
+    const _colorBGmain = 0x7f7f7f;
 // Library background and prism menu color
     const _colorBGmenu = 0x5c5c5c;
 // Focus and document background color
@@ -51,6 +51,8 @@ import TWEEN from '@tweenjs/tween.js';
     const _colorManaT = 0xffffff;
 // Hand model color
     const _colorHands = 0x000000;
+// Box menu border color
+    const _colorBXmain = 0xffffff;
 
 
 // Set up the scene and camera for three.js
@@ -102,6 +104,15 @@ window.addEventListener('resize', () => {
 
 // Set background
 scene.background = new THREE.Color ( _colorBGmain );
+
+// Artificial background for webXR color issues
+const sceneSphere = new THREE.SphereGeometry( 50, 8, 8 );
+const sceneMat = new THREE.MeshBasicMaterial({
+    color: _colorBGmain,
+    side: THREE.DoubleSide
+});
+const sceneBG = new THREE.Mesh( sceneSphere, sceneMat );
+scene.add( sceneBG );
 
 // Add a floor axis for testing
 var floorAxisGeo = new THREE.PlaneGeometry(0.5, 0.5);
@@ -159,6 +170,9 @@ testMat.visible = false;
 
 // font
 const _fontserif = './Wittgenstein.ttf';
+const _fontserifbold = './Wittgenstein-Bold.ttf';
+const _fontserifblack = './Wittgenstein-Black.ttf';
+const _fontserifitalic = './Wittgenstein-Italic.ttf';
 // const _fontserif = './NotoSerif.ttf';
 // const _fontserif = 'https://fonts.google.com/share?selection.family=Noto+Serif:ital,wght@0,100..900;1,100..900';
 
@@ -1101,6 +1115,11 @@ function tryPointer() {
                 var thisText = textsToReset[i];
                 thisText.fontSize = thisText.userData.fontSize;
 
+                // if this is a serif font
+                if ( thisText.font == _fontserifbold ) {
+                    thisText.font = _fontserif;
+                }
+
                 // ...as long as they are not selected
                 if ( selectedObjects.indexOf(thisText) == -1 ) {
                     thisText.fontWeight = "normal";
@@ -1171,9 +1190,15 @@ function tryPointer() {
                 toolSelectorDot.scale.set( distScale, distScale, distScale );
 
                 if (intersect.object.userData.type != "preview") {
-                    intersect.object.fontSize = intersect.object.userData.fontSize * 1.1;
-                    intersect.object.fontWeight = "bold";
-                    textsToReset.push(intersect.object);
+                    if ( intersect.object.font == _fontserif ) {
+                        // intersect.object.fontSize = intersect.object.userData.fontSize * 1.1;
+                        intersect.object.font = _fontserifbold;
+                        textsToReset.push(intersect.object);
+                    } else {
+                        intersect.object.fontSize = intersect.object.userData.fontSize * 1.1;
+                        intersect.object.fontWeight = "bold";
+                        textsToReset.push(intersect.object);
+                    }
                 }
 
                 if (domswipeObj == undefined) {
@@ -1898,6 +1923,15 @@ function tryPointerSelect(object) {
     } else if (object.userData.type == "docbg") {
         const txtGroup = object.parent.userData.txtGroup;
         startSwipe(txtGroup,"docbg");
+    } else if (object.userData.type.slice(0,8) == "boxMenu-") {
+        var thisfunction = object.userData.type.slice(8,99);
+
+        if ( thisfunction == "background" ) {
+            startSwipe( object.parent );
+        } else {
+            showBoxCatalog( thisfunction );
+        }
+        
     }
 }
 
@@ -2220,6 +2254,7 @@ const snapDistanceMin = 0.5;
 var snapDistanceOneValue = readerStartDistance;
 var snapDistanceFocusValue = 2.00;
 var snapDistanceMapValue = 4.00;
+var snapDistanceMenuValue = snapDistanceMapValue - 0.01;
 
 function loadTextBlock(url) {
 
@@ -2300,8 +2335,9 @@ function findAbstract(url, object) {
             // Find the class 'abstract' and read the inner html
             var abstract = $html.find('.abstract');
             var result = abstract.text();
-            // console.log(result);
+            console.log(result);
             object.userData.abstract = result;
+
         },
         error: function(xhr, status, error) {
             console.error('Error fetching HTML: ', error);
@@ -3319,6 +3355,32 @@ function trySync() {
                     updateMapTextBounds(syncCheck[i]);
                     // setTimeout(() => {updateMapTextBounds(syncCheck[i])},500);
                     
+                } else if (funct == 'catalogBuilder') {
+
+                    var parent = syncCheck[i].userData.syncParent;
+                    var elements = syncCheck[i].userData.syncElements;
+                    var step = syncCheck[i].userData.syncStep;
+                    syncCheck[i].userData.syncParent = undefined;
+                    syncCheck[i].userData.syncElements = undefined;
+                    syncCheck[i].userData.syncStep = undefined;
+                    stepBoxCatalog( parent, elements, step );
+
+                } else if (funct == 'previewBuilder') {
+
+                    var parent = syncCheck[i].userData.syncParent;
+                    var author = syncCheck[i].userData.syncAuthor;
+                    var year = syncCheck[i].userData.syncYear;
+                    var source = syncCheck[i].userData.syncSource;
+                    var type = syncCheck[i].userData.syncType;
+                    var step = syncCheck[i].userData.syncStep;
+                    syncCheck[i].userData.syncParent = undefined;
+                    syncCheck[i].userData.syncAuthor = undefined;
+                    syncCheck[i].userData.syncYear = undefined;
+                    syncCheck[i].userData.syncSource = undefined;
+                    syncCheck[i].userData.syncType = undefined;
+                    syncCheck[i].userData.syncStep = undefined;
+                    stepBoxPreview( parent, "", author, year, source, type, step );
+
                 }
 
                 syncCheck.splice(i,1);
@@ -4990,107 +5052,105 @@ var globalLIB;
 
 function initLibrary(source) {
 
-    sphereHelper.add(library);
-
-    initRays(sphereHelper);
+    // sphereHelper.add(library);
     
-    fetch('./library-acm22.json')
+    fetch(source)
     .then((response) => response.json())
     .then((json) => {
         globalLIB = json;
 
-        for (var i = json.documents.length - 1; i >= 0; i--) {
+        // for (var i = json.documents.length - 1; i >= 0; i--) {
         
-        // Create:
-        const myText = new Text();
-        library.add(myText);
-        myText.layers.enable( 3 );
-        myText.userData.type = "librarydoc";
+        // // Create:
+        // const myText = new Text();
+        // library.add(myText);
+        // myText.layers.enable( 3 );
+        // myText.userData.type = "librarydoc";
 
-        // Set userdata from json
-        myText.userData.title = json.documents[i].title;
-        myText.userData.year = json.documents[i].year;
-        myText.userData.source = json.documents[i].source;
+        // // Set userdata from json
+        // myText.userData.title = json.documents[i].title;
+        // myText.userData.year = json.documents[i].year;
+        // myText.userData.source = json.documents[i].source;
 
-        for (var j = json.documents[i].author.length - 1; j >= 0; j--) {
-            if(j==json.documents[i].author.length - 1){ myText.userData.author = json.documents[i].author[j] }
-            else{
-                myText.userData.author = myText.userData.author.concat(", ", json.documents[i].author[j]);
-            }
-        }
-        findAbstract(json.documents[i].source, myText);
+        // for (var j = json.documents[i].author.length - 1; j >= 0; j--) {
+        //     if(j==json.documents[i].author.length - 1){ myText.userData.author = json.documents[i].author[j] }
+        //     else{
+        //         myText.userData.author = myText.userData.author.concat(", ", json.documents[i].author[j]);
+        //     }
+        // }
+        // findAbstract(json.documents[i].source, myText);
         
 
-        // Set properties to configure:
-        myText.text = json.documents[i].title;
-        myText.fontSize = 0.0002;
-        myText.userData.fontSize = myText.fontSize;
-        myText.color = _colorTXlibr;
-        myText.anchorX = 'right';
-        myText.anchorY = 'middle';
+        // // Set properties to configure:
+        // myText.text = json.documents[i].title;
+        // myText.fontSize = 0.0002;
+        // myText.userData.fontSize = myText.fontSize;
+        // myText.color = _colorTXlibr;
+        // myText.anchorX = 'right';
+        // myText.anchorY = 'middle';
 
-        myText.position.x = -0.0003;
-        myText.position.y = (i / 2000 - json.documents.length / 4000 - 0.003);
-        // myText.position.z = (Math.random()-0.5) * json.documents.length / 50000 - 0.02;
-        myText.position.z = -0.02;
-        myText.curveRadius = -myText.position.z;
+        // myText.position.x = -0.0003;
+        // myText.position.y = (i / 2000 - json.documents.length / 4000 - 0.003);
+        // // myText.position.z = (Math.random()-0.5) * json.documents.length / 50000 - 0.02;
+        // myText.position.z = -0.02;
+        // myText.curveRadius = -myText.position.z;
 
-        myText.sync();
+        // myText.sync();
 
-        }
+        // }
 
 
-        // Library divider line
-        const lineGeo = new THREE.BoxGeometry( 0.00002, 0.01, 0.00002 );
-        const lineMat = new THREE.MeshBasicMaterial( { color: _colorTXlibr } );
-        var dividerLine = new THREE.Mesh( lineGeo, lineMat );
-        library.add(dividerLine);
-        dividerLine.position.set( 0, 0, -0.02);
+        // // Library divider line
+        // const lineGeo = new THREE.BoxGeometry( 0.00002, 0.01, 0.00002 );
+        // const lineMat = new THREE.MeshBasicMaterial( { color: _colorTXlibr } );
+        // var dividerLine = new THREE.Mesh( lineGeo, lineMat );
+        // library.add(dividerLine);
+        // dividerLine.position.set( 0, 0, -0.02);
 
-        // Library preview title
-        libraryTitle = new Text();
-        library.add(libraryTitle);
-        libraryTitle.text = "";
-        libraryTitle.fontSize = 0.0004;
-        libraryTitle.fontWeight = 'bold';
-        libraryTitle.color = _colorTXlibr;
-        libraryTitle.position.set(0.0003, 0.005, -0.0198);
-        libraryTitle.curveRadius = -libraryTitle.position.z;
-        libraryTitle.sync();
+        // // Library preview title
+        // libraryTitle = new Text();
+        // library.add(libraryTitle);
+        // libraryTitle.text = "";
+        // libraryTitle.fontSize = 0.0004;
+        // libraryTitle.fontWeight = 'bold';
+        // libraryTitle.color = _colorTXlibr;
+        // libraryTitle.position.set(0.0003, 0.005, -0.0198);
+        // libraryTitle.curveRadius = -libraryTitle.position.z;
+        // libraryTitle.sync();
 
-        // Library preview author(s)
-        libraryAuthor = new Text();
-        library.add(libraryAuthor);
-        libraryAuthor.text = "";
-        libraryAuthor.fontSize = 0.0003;
-        libraryAuthor.color = _colorTXlibr;
-        libraryAuthor.position.set(0.0003, 0.0045, -0.0199);
-        libraryAuthor.curveRadius = -libraryTitle.position.z;
-        libraryAuthor.sync();
+        // // Library preview author(s)
+        // libraryAuthor = new Text();
+        // library.add(libraryAuthor);
+        // libraryAuthor.text = "";
+        // libraryAuthor.fontSize = 0.0003;
+        // libraryAuthor.color = _colorTXlibr;
+        // libraryAuthor.position.set(0.0003, 0.0045, -0.0199);
+        // libraryAuthor.curveRadius = -libraryTitle.position.z;
+        // libraryAuthor.sync();
 
-        // Library preview year
-        libraryYear = new Text();
-        library.add(libraryYear);
-        libraryYear.text = "";
-        libraryYear.fontSize = 0.00015;
-        libraryYear.color = _colorTXlibr;
-        libraryYear.position.set(0.0003, 0.0052, -0.02);
-        libraryYear.curveRadius = -libraryYear.position.z;
-        libraryYear.sync();
+        // // Library preview year
+        // libraryYear = new Text();
+        // library.add(libraryYear);
+        // libraryYear.text = "";
+        // libraryYear.fontSize = 0.00015;
+        // libraryYear.color = _colorTXlibr;
+        // libraryYear.position.set(0.0003, 0.0052, -0.02);
+        // libraryYear.curveRadius = -libraryYear.position.z;
+        // libraryYear.sync();
 
-        // Library preview abstract
-        libraryAbstract = new Text();
-        library.add(libraryAbstract);
-        libraryAbstract.text = "";
-        libraryAbstract.anchorY = 'top';
-        libraryAbstract.maxWidth = 0.010;
-        libraryAbstract.fontSize = 0.0002;
-        libraryAbstract.color = _colorTXlibr;
-        libraryAbstract.position.set(0.0003, 0.004, -0.02);
-        libraryAbstract.curveRadius = -libraryAbstract.position.z;
-        libraryAbstract.sync();
+        // // Library preview abstract
+        // libraryAbstract = new Text();
+        // library.add(libraryAbstract);
+        // libraryAbstract.text = "";
+        // libraryAbstract.anchorY = 'top';
+        // libraryAbstract.maxWidth = 0.010;
+        // libraryAbstract.fontSize = 0.0002;
+        // libraryAbstract.color = _colorTXlibr;
+        // libraryAbstract.position.set(0.0003, 0.004, -0.02);
+        // libraryAbstract.curveRadius = -libraryAbstract.position.z;
+        // libraryAbstract.sync();
 
-        library.visible = false;
+        // library.visible = false;
 
     });
 
@@ -6155,18 +6215,616 @@ function swapHands() {
 
 
 
+// ====================================================================================================
+// ============================================= BOX MENU =============================================
+// ====================================================================================================
 
-
-
-
-var currentURL = './3511095.3531271.html';
-
-// change the url of the document to load
-$('#urlin').change(function(){
-    var url = $('#urlin').val();
-    currentURL = url;
-    console.log("Changed document to: " + url);
+const boxMat = new THREE.MeshBasicMaterial({
+        color: _colorBXmain,
+        side: THREE.DoubleSide
 });
+
+const boxMenu = new THREE.Group();
+const boxCatalogs = [];
+const boxPreviews = [];
+
+
+function initBoxMenu(argument) {        // The start menu box for selecting categories to sort documents
+    
+    scene.add( boxMenu );
+
+    const boxOutline = genBox( boxMenu, 0.8, 1.85 );
+    boxOutline.position.y = 0.3;
+
+    var headerTxt = globalLIB.library;
+    if (headerTxt.length > 20) {
+        headerTxt = headerTxt.slice(0,20);
+    }
+    var prePadder = "                                                                      ";
+
+    const header = new Text();
+    header.text = prePadder.concat(headerTxt);
+    header.fontSize = 0.05;
+    header.curveRadius = snapDistanceMenuValue;
+    header.color = _colorBXmain;
+    header.maxWidth = 0.8;
+    header.anchorY = "bottom";
+    header.textAlign = 'center';
+    header.font = _fontserifbold;
+    boxMenu.add(header);
+    header.position.z = -snapDistanceMenuValue;
+    header.sync();
+
+    const headbar = genBar( boxMenu, 0.5, 0.8 );
+    headbar.position.y = -0.05;
+
+    const allPapers = new Text();
+    allPapers.text = "              All Papers";
+    allPapers.fontSize = 0.05;
+    allPapers.userData.fontSize = 0.05;
+    allPapers.curveRadius = snapDistanceMenuValue;
+    allPapers.color = _colorBXmain;
+    allPapers.textAlign = 'left';
+    allPapers.font = _fontserif;
+    boxMenu.add( allPapers );
+    allPapers.position.z = -snapDistanceMenuValue;
+    allPapers.sync();
+    allPapers.position.y = -0.25;
+    allPapers.userData.type = 'boxMenu-all';
+    allPapers.layers.enable( 3 );
+
+    const longPapers = new Text();
+    longPapers.text = "              Long Papers";
+    longPapers.fontSize = 0.05;
+    longPapers.userData.fontSize = 0.05;
+    longPapers.curveRadius = snapDistanceMenuValue;
+    longPapers.color = _colorBXmain;
+    longPapers.textAlign = 'left';
+    longPapers.font = _fontserif;
+    boxMenu.add( longPapers );
+    longPapers.position.z = -snapDistanceMenuValue;
+    longPapers.sync();
+    longPapers.position.y = -0.35;
+    longPapers.userData.type = 'boxMenu-long';
+    longPapers.layers.enable( 3 );
+
+    const shortPapers = new Text();
+    shortPapers.text = "              Short Papers";
+    shortPapers.fontSize = 0.05;
+    shortPapers.userData.fontSize = 0.05;
+    shortPapers.curveRadius = snapDistanceMenuValue;
+    shortPapers.color = _colorBXmain;
+    shortPapers.textAlign = 'left';
+    shortPapers.font = _fontserif;
+    boxMenu.add( shortPapers );
+    shortPapers.position.z = -snapDistanceMenuValue;
+    shortPapers.sync();
+    shortPapers.position.y = -0.45;
+    shortPapers.userData.type = 'boxMenu-short';
+    shortPapers.layers.enable( 3 );
+
+    const posters = new Text();
+    posters.text = "              Posters";
+    posters.fontSize = 0.05;
+    posters.userData.fontSize = 0.05;
+    posters.curveRadius = snapDistanceMenuValue;
+    posters.color = _colorBXmain;
+    posters.textAlign = 'left';
+    posters.font = _fontserif;
+    boxMenu.add( posters );
+    posters.position.z = -snapDistanceMenuValue;
+    posters.sync();
+    posters.position.y = -0.55;
+    posters.userData.type = 'boxMenu-poster';
+    posters.layers.enable( 3 );
+
+    const workshops = new Text();
+    workshops.text = "              Workshops";
+    workshops.fontSize = 0.05;
+    workshops.userData.fontSize = 0.05;
+    workshops.curveRadius = snapDistanceMenuValue;
+    workshops.color = _colorBXmain;
+    workshops.textAlign = 'left';
+    workshops.font = _fontserif;
+    boxMenu.add( workshops );
+    workshops.position.z = -snapDistanceMenuValue;
+    workshops.sync();
+    workshops.position.y = -0.65;
+    workshops.userData.type = 'boxMenu-workshop';
+    workshops.layers.enable( 3 );
+
+    const byAuthor = new Text();
+    byAuthor.text = "              By Author";
+    byAuthor.fontSize = 0.05;
+    byAuthor.userData.fontSize = 0.05;
+    byAuthor.curveRadius = snapDistanceMenuValue;
+    byAuthor.color = _colorBXmain;
+    byAuthor.textAlign = 'left';
+    byAuthor.font = _fontserif;
+    boxMenu.add( byAuthor );
+    byAuthor.position.z = -snapDistanceMenuValue;
+    byAuthor.sync();
+    byAuthor.position.y = -0.85;
+    byAuthor.userData.type = 'boxMenu-author';
+    byAuthor.layers.enable( 3 );
+
+    const byInstitution = new Text();
+    byInstitution.text = "              By Institution";
+    byInstitution.fontSize = 0.05;
+    byInstitution.userData.fontSize = 0.05;
+    byInstitution.curveRadius = snapDistanceMenuValue;
+    byInstitution.color = _colorBXmain;
+    byInstitution.textAlign = 'left';
+    byInstitution.font = _fontserif;
+    boxMenu.add( byInstitution );
+    byInstitution.position.z = -snapDistanceMenuValue;
+    byInstitution.sync();
+    byInstitution.position.y = -0.95;
+    byInstitution.userData.type = 'boxMenu-institution';
+    byInstitution.layers.enable( 3 );
+
+    const botbar = genBar( boxMenu, 0.5, 0.8 );
+    botbar.position.y = -1.25;
+
+    var yearTxt = globalLIB.year;
+    var preSmallPadder = "                                                                                                                                   ";
+
+    const year = new Text();
+    year.text = preSmallPadder.concat(yearTxt);
+    year.fontSize = 0.03;
+    year.curveRadius = snapDistanceMenuValue;
+    year.color = _colorBXmain;
+    year.maxWidth = 0.8;
+    year.anchorY = "bottom";
+    year.textAlign = 'center';
+    year.font = _fontserifbold;
+    boxMenu.add(year);
+    year.position.z = -snapDistanceMenuValue;
+    year.position.y = -1.35;
+    year.sync();
+
+
+    initBoxCatalog('all');
+    // initBoxCatalog('long');
+    // initBoxCatalog('short');
+    // initBoxCatalog('poster');
+    // initBoxCatalog('workshop');
+    // initBoxCatalog('author');
+    // initBoxCatalog('institution'); <-- leave non-functional for now
+
+
+    for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
+
+        const title = globalLIB.documents[i].title;
+        const source = globalLIB.documents[i].source;
+        const year = globalLIB.documents[i].year;
+        const type = globalLIB.documents[i].type;
+
+        var author = "";
+        for (var j = globalLIB.documents[i].author.length - 1; j >= 0; j--) {
+            author = author.concat( globalLIB.documents[i].author[j] );
+            if ( j > 1 ) {
+                author = author.concat( ", " );
+            } else if ( j > 0 ) {
+                author = author.concat( " and " );
+            }
+        }
+        initBoxPreview( title, author, year, source, type );
+    }
+
+
+    boxMenu.rotation.y = Math.PI + camera.rotation.y;
+    boxMenu.rotateY( Math.PI );
+}
+
+
+function initBoxCatalog(argument) {     // The large box that lists all documents in the current category
+    const boxCatalog = new THREE.Group();
+
+    const elements = [];
+
+    const newGroup = new THREE.Group();
+
+    if ( argument == 'all' ) {
+
+        var header = "#" + globalLIB.library;
+        elements.push( header );
+
+        // build the bib for every paper in the library
+        for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
+            
+            var element = globalLIB.documents[i].title;
+            element = element.concat(" -- ");
+
+            var author = "";
+            for (var j = globalLIB.documents[i].author.length - 1; j >= 0; j--) {
+                author = author.concat( globalLIB.documents[i].author[j] );
+                if ( j > 1 ) {
+                    author = author.concat( ", " );
+                } else if ( j > 0 ) {
+                    author = author.concat( " and " );
+                }
+            }
+
+            element = element.concat( author );
+
+            elements.push( element );
+        }
+
+    } else if ( argument == 'long' || argument == 'short' || argument == 'poster' || argument == 'workshop' ) {
+        
+        var header = "#" + globalLIB.library + " - " + argument[0].toUpperCase() + argument.slice(1) + " Papers";
+        elements.push( header );
+
+        // build the bib for all 'long' papers in the library
+        for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
+            if ( globalLIB.documents[i].type == argument ) {
+
+                var element = globalLIB.documents[i].title;
+                element = element.concat(" -- ");
+
+                var author = "";
+                for (var j = globalLIB.documents[i].author.length - 1; j >= 0; j--) {
+                    author = author.concat( globalLIB.documents[i].author[j] );
+                    if ( j > 1 ) {
+                        author = author.concat( ", " );
+                    } else if ( j > 0 ) {
+                        author = author.concat( " and " );
+                    }
+                }
+            
+            element = element.concat( author );
+
+            elements.push( element );
+
+            }
+
+        }
+
+    } else if ( argument == 'author' ) {
+
+        const allAuthors = [];
+
+        // get all the authors from every document in the json library
+        for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
+            var authors = globalLIB.documents[i].author;
+            for (var j = authors.length - 1; j >= 0; j--) {
+
+                // check against duplicates
+                var num = getOccurance(allAuthors,authors[j]);
+                if (num == 0) {
+                    allAuthors.push(authors[j]);
+                }
+     
+            }
+        }
+
+        allAuthors.sort().reverse();
+
+        for (var i = allAuthors.length - 1; i >= 0; i--) {
+
+            elements.push( "#".concat(allAuthors[i]) );
+
+            for (var j = globalLIB.documents.length - 1; j >= 0; j--) {
+                
+                for (var k = globalLIB.documents[j].author.length - 1; k >= 0; k--) {
+
+                    if ( allAuthors[i] == globalLIB.documents[j].author[k] ) {
+
+                        var element = globalLIB.documents[j].title;
+                        element = element.concat(" -- ");
+
+                        var author = "";
+                        for (var l = globalLIB.documents[j].author.length - 1; l >= 0; l--) {
+                            author = author.concat( globalLIB.documents[j].author[l] );
+                            if ( l > 1 ) {
+                                author = author.concat( ", " );
+                            } else if ( l > 0 ) {
+                                author = author.concat( " and " );
+                            }
+                        }
+                    
+                        element = element.concat( author );
+
+                        elements.push( element );
+
+                    }
+                    
+                }
+
+            }
+
+        }
+
+    }
+
+    scene.add(newGroup);
+
+    stepBoxCatalog( newGroup, elements );
+
+    boxCatalogs.push( boxCatalog );
+}
+
+
+function stepBoxCatalog( parent, elements, step=0 ) {
+
+    var element = elements[step];
+    // console.log(element);
+
+    const tempBox = new THREE.Box3().setFromObject(parent);
+    tempBox.getSize(tempSize);
+    var totalHeight = tempSize.y;
+
+    var padding = 0.02;
+    var margin = 0.1;
+
+    if (step == 0) { padding = 0; }
+
+    if ( step + 1 <= elements.length ) {
+
+        const newText = new Text();
+        newText.text = element;
+        newText.fontSize = 0.035;
+        newText.userData.fontSize = 0.035;
+        newText.curveRadius = snapDistanceMenuValue;
+        newText.color = _colorBXmain;
+        newText.textAlign = 'left';
+        newText.font = _fontserif;
+        parent.add( newText );
+        newText.position.z = -snapDistanceMenuValue;
+        newText.maxWidth = 2;
+
+        // special styles for headers
+        if ( element.slice(0,1) == '#' ) {
+            var newelement = element.slice(1);
+            newText.text = newelement;
+            newText.font = _fontserifblack;
+            newText.fontSize = 0.038;
+            newText.userData.fontSize = 0.038;
+            newText.position.y = -totalHeight - (padding * 1.5);
+        } else {
+            newText.position.y = -totalHeight - padding;
+            newText.userData.type = 'catalogPaper';
+
+            var title = element.split(' -- ')[0];
+            for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
+                if ( title == globalLIB.documents[i].title ) {
+
+                    // find the matching preview box and assign it to this title
+
+                }
+            }
+            newText.layers.enable( 3 );
+        }
+
+        newText.sync();
+    
+        // Pass to check and wait for sync to complete
+        newText.userData.sync = 'catalogBuilder';
+        newText.userData.syncParent = parent;
+        newText.userData.syncElements = elements;
+        newText.userData.syncStep = step+1;
+        syncCheck.push(newText);
+    } else {
+        const box = genBox( parent, 2 + (margin * 2), totalHeight + (margin * 2) );
+
+        box.rotation.y = margin / snapDistanceMenuValue;
+        box.position.y = margin;
+
+        parent.position.y = boxMenu.position.y + (totalHeight/2) - (1.85/2) + 0.3;
+
+        if (currentDominant == 'right') {
+            parent.rotation.y = boxMenu.rotation.y + ((2 + margin) / snapDistanceMenuValue);
+        } else {
+            parent.rotation.y = boxMenu.rotation.y - ((0.8 + margin) / snapDistanceMenuValue);
+        }
+
+    }
+
+
+}
+
+
+function showBoxCatalog(argument) {     // Toggle the chosen box to display
+    consoleLog( argument );
+
+    // parent.position.y = boxMenu.position.y + (totalHeight/2) - (1.85/2) + 0.3;
+
+    // if (currentDominant == 'right') {
+    //     parent.rotation.y = boxMenu.rotation.y + (2 / snapDistanceMenuValue);
+    // } else {
+    //     parent.rotation.y = boxMenu.rotation.y - (0.8 / snapDistanceMenuValue);
+    // }
+}
+
+
+function initBoxPreview(title, author, year, source, type) {     // The preview box that displays document abstract and info
+    console.log(title);
+
+    const newGroup = new THREE.Group();
+    scene.add( newGroup );
+    newGroup.position.y = Math.random() * 8 - 4;
+    newGroup.rotation.y = Math.random() * Math.PI - Math.PI/2;
+    stepBoxPreview( newGroup, title, author, year, source, type );
+}
+
+
+function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
+    const maxwidth = 1.6;
+    const distance = -snapDistanceMenuValue + 0.1
+    const newText = new Text();
+    var totalHeight = 0;
+
+    if ( step > 0 ) {
+        const tempBox = new THREE.Box3().setFromObject(parent);
+        tempBox.getSize(tempSize);
+        totalHeight = tempSize.y;
+    }
+
+    parent.add(newText);
+    newText.color = _colorBXmain;
+    newText.maxWidth = maxwidth;
+    newText.position.set(0, -totalHeight, distance);
+    newText.curveRadius = -newText.position.z;
+    newText.fontSize = 0.035;
+    newText.font = _fontserif;
+
+    if ( step == 0 ) {
+        // Title
+        newText.text = title;
+        newText.fontSize = 0.038;
+        newText.font = _fontserifblack;
+    } else if ( step == 1 ) {
+        // author
+        newText.text = author;
+        newText.font = _fontserifitalic;
+    } else if ( step == 2 ) {
+        // get abstract
+
+        $.ajax({
+            url: source,
+            type: 'GET',
+            dataType: 'html',
+            success: function(data) {
+                var $html = $(data);
+
+                // Find the class 'abstract' and read the inner html
+                var abstract = $html.find('.abstract');
+                var result = abstract.text();
+                console.log(result);
+                newText.text = "\n".concat(result);
+                newText.sync();
+                newText.userData.sync = "previewBuilder";
+                newText.userData.syncParent = parent;
+                newText.userData.syncAuthor = author;
+                newText.userData.syncYear = year;
+                newText.userData.syncSource = source;
+                newText.userData.syncType = type;
+                newText.userData.syncStep = step + 1;
+                syncCheck.push( newText );
+                
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching HTML: ', error);
+            }
+        });
+        
+    } else if ( step == 3 ) {
+        // date and paper type
+        var prePadder = "                                                                                                                                                                                                                                                                         ";
+        newText.text = prePadder.concat(year + ", " + type[0].toUpperCase() + type.slice(1) + " Paper");
+        newText.textAlign = 'center';
+        newText.fontSize = 0.03;
+    } else if ( step == 4 ) {
+        // generate box
+        const margin = 0.2;
+        const box = genBox( parent, maxwidth + margin, totalHeight + margin, -distance );
+        box.position.y = margin/2;
+        box.rotation.y = -(margin/2)/distance;
+    }
+
+    newText.sync();
+
+    if ( step < 4  && step != 2) {
+        newText.userData.sync = "previewBuilder";
+        newText.userData.syncParent = parent;
+        newText.userData.syncAuthor = author;
+        newText.userData.syncYear = year;
+        newText.userData.syncSource = source;
+        newText.userData.syncType = type;
+        newText.userData.syncStep = step + 1;
+        syncCheck.push( newText );
+    }
+
+}
+
+
+function genBox( parent, width, height, distance = snapDistanceMenuValue, mod = -1, weight = 0.005 ) {
+
+    const newGroup = new THREE.Group();
+
+    const horizontalGeo = new THREE.CylinderGeometry(
+        distance,
+        distance,
+        weight, 32, 1, true, 0,
+        (width + weight) / distance
+        );
+
+    const verticalGeo = new THREE.CylinderGeometry(
+        distance,
+        distance,
+        height, 1, 1, true, 0,
+        weight / distance
+        );
+
+    const fullGeo = new THREE.CylinderGeometry(
+        distance + 0.001,
+        distance + 0.001,
+        height + (weight*2), 32, 1, true, 0,
+        (width + weight) / distance
+        );
+
+    const top = new THREE.Mesh( horizontalGeo, boxMat );
+    const bot = new THREE.Mesh( horizontalGeo, boxMat );
+    const left = new THREE.Mesh( verticalGeo, boxMat );
+    const right = new THREE.Mesh( verticalGeo, boxMat );
+    const back = new THREE.Mesh( fullGeo, sceneMat );
+
+    newGroup.add( top );
+    newGroup.add( bot );
+    newGroup.add( left );
+    newGroup.add( right );
+    newGroup.add( back );
+    parent.add( newGroup );
+
+    top.position.y = 0;
+    top.rotation.y = (mod * width) / distance;
+    bot.position.y = -height;
+    bot.rotation.y = (mod * width) / distance;
+    left.rotation.y = (mod * width) / distance;
+    left.position.y = -height/2;
+    right.position.y = -height/2;
+    back.position.y = (-height)/2;
+    back.rotation.y = (mod * width) / distance;
+
+    top.rotateY(Math.PI);
+    bot.rotateY(Math.PI);
+    left.rotateY(Math.PI);
+    right.rotateY(Math.PI);
+    back.rotateY(Math.PI);
+
+    back.layers.enable( 3 );
+    back.userData.type = "boxMenu-background";
+
+    return newGroup;
+}
+
+
+function genBar( parent, width, maxWidth = width, distance = snapDistanceMenuValue, mod = -1, weight = 0.005 ) {
+    const horizontalGeo = new THREE.CylinderGeometry(
+        distance,
+        distance,
+        weight, 32, 1, true, 0,
+        (width + weight) / distance
+    );
+
+    const bar = new THREE.Mesh( horizontalGeo, boxMat );
+
+    parent.add( bar );
+    bar.rotation.y = (mod * width) / distance;
+    bar.rotateY( ( (mod*maxWidth/2) + (width/2) ) / distance );
+    bar.rotateY(Math.PI);
+
+    return bar;
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -6195,6 +6853,7 @@ if ( WebGL.isWebGLAvailable() ) {
 
     // Load the libarary and build it
     initLibrary('./library-acm22.json');
+    initRays(sphereHelper);
 
     // navigator.xr.requestSession("immersive-vr").then( function(session) {
     //     xrSession = session;
@@ -6231,13 +6890,13 @@ if ( WebGL.isWebGLAvailable() ) {
                 secondInit = true;
                 setToolPositions();
                 repositionWorld();
-                establishLibrary();
+                // establishLibrary();
                 tryInitMap();
                 toggleLibrary('close');
+                initBoxMenu();
 
                 colorHands();
 
-                console.log($('#checkdebug').is(":checked"));
                 if ( $('#checkdebug').is(":checked") ) {
                     setTimeout(() => {
                         debugMode = true;
@@ -6338,11 +6997,19 @@ camera.position.z = 1;
 // export workspace
 
 // WIP:
+// new main menu for library navigation
 
 
 // COMPLETE THIS UPDATE:
-// change pointer color to orange
-// change pointer/manna swap to occur when manna dot is snapped rather than when it is on
-// bug fix: hand model material would sometimes fail to set
-// left/right hand swap
-// 'launch in debug mode' added to main page as a temporary toggle
+// disabled library
+// artifical background to fix color issues between browser and webXR
+// more serif font styles (bold, black and italic)
+// updated the ACM 2022 library to include more data (version 1.3)
+// new main menu hub
+// catalog generation: all papers
+// catalog generation: long papers
+// catalog generation: short papers
+// catalog generation: poster papers
+// catalog generation: workshop papers
+// catalog generation: by author sort
+// previe box generation
