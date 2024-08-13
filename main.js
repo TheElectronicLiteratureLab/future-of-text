@@ -173,36 +173,10 @@ const _fontserif = './Wittgenstein.ttf';
 const _fontserifbold = './Wittgenstein-Bold.ttf';
 const _fontserifblack = './Wittgenstein-Black.ttf';
 const _fontserifitalic = './Wittgenstein-Italic.ttf';
-// const _fontserif = './NotoSerif.ttf';
-// const _fontserif = 'https://fonts.google.com/share?selection.family=Noto+Serif:ital,wght@0,100..900;1,100..900';
 
 // hands
 var currentDominant;
 var initialDominant;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1932,6 +1906,58 @@ function tryPointerSelect(object) {
             showBoxCatalog( thisfunction );
         }
         
+    } else if (object.userData.type == "catalogPaper") {
+        startSwipe( object );
+    } else if (object.userData.type.slice(0,11) == "boxpreview-") {
+        const targetValue = object.userData.type.slice(11,99);
+
+        if ( targetValue == "close" ) {
+
+            object.parent.parent.remove(object.parent);
+
+        } else if ( targetValue == "focus" ) {
+
+            var focsd = object.text;
+
+            if (focsd == "FOCUS") {
+
+                changeDistance(object.parent, snapDistanceFocusValue);
+                object.parent.scale.set(0.3, 0.3, 0.4);
+                object.parent.position.y = camera.position.y + 0.3;
+
+                focusTransScale = new TWEEN.Tween( object.parent.scale )
+                    .to( {x: 0.4, y: 0.4, z: 0.4}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.Out )
+                    .start()
+                ;
+
+                const focusTxt = object.parent.userData.focusTxt;
+                if (focusTxt != undefined) {
+                    focusTxt.text = "UNFOCUS";
+                    focusTxt.sync();
+                }
+
+            } else if (focsd == "UNFOCUS") {
+
+                changeDistance(object.parent, snapDistanceMenuValue - 0.1);
+                object.parent.scale.set(1.1, 1.1, 1.0);
+                object.parent.position.y = camera.position.y + 0.3;
+
+                focusTransScale = new TWEEN.Tween( object.parent.scale )
+                    .to( {x: 1.0, y: 1.0, z: 1.0}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.Out )
+                    .start()
+                ;
+
+                const focusTxt = object.parent.userData.focusTxt;
+                if (focusTxt != undefined) {
+                    focusTxt.text = "FOCUS";
+                    focusTxt.sync();
+                }
+
+            }
+
+        }
     }
 }
 
@@ -1942,8 +1968,53 @@ function tryQuickPointerSelect(object) {
         const title = object.userData.title;
         const author = object.userData.author;
         findDocumentContent(source,title,author);
+    } else if (object.userData.type == "catalogPaper") {
+        const boxpreview = object.userData.boxpreview;
+        const height = boxpreview.userData.totalHeight;
+        const catalog = object.parent.parent;
+        showBoxPreview( boxpreview, height, catalog );
+
+        const topLine = object.parent.parent.userData.topLine;
+        const botLine = object.parent.parent.userData.botLine;
+        const topPos = object.userData.topPos;
+        const botPos = object.userData.botPos;
+        const time = 300;
+
+        new TWEEN.Tween( topLine.position )
+            .to( {y: topPos - 0.02}, time )
+            .easing( TWEEN.Easing.Cubic.Out )
+            .start();
+
+        new TWEEN.Tween( botLine.position )
+            .to( {y: botPos}, time )
+            .easing( TWEEN.Easing.Cubic.Out )
+            .start();
+
+    } else if ( object.userData.type == "boxMenu-background" ) {
+
+        const thisGroup = object.parent.parent;
+
+        if ( thisGroup.userData.type == "boxpreview" ) {
+
+            const source = thisGroup.userData.source;
+            const title = thisGroup.userData.title;
+            const author = thisGroup.userData.author;
+            findDocumentContent(source,title,author);
+
+            new TWEEN.Tween( thisGroup.scale )
+            .to( {y: 0}, 300 )
+            .easing( TWEEN.Easing.Back.In )
+            .start()
+            .onComplete(() => {
+                thisGroup.parent.remove(thisGroup);
+            });
+
+        }
+
     }
 }
+
+
 
 
 
@@ -2851,9 +2922,9 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         // Tags             Read / Outline / Map             Focus
         // change menubar "Read | Outline | References"
 
-        let iText = newMenuBarText( 'i', 0.02, menuBar, 'menubarTags', docGroup );
-        iText.layers.enable( 3 );
-        iText.userData.layers = 3;
+        // let iText = newMenuBarText( 'i', 0.02, menuBar, 'menubarTags', docGroup );
+        // iText.layers.enable( 3 );
+        // iText.userData.layers = 3;
 
         let readText = newMenuBarText( 'Read', (documentMaxWidth + 0.09)/2 - 0.10, menuBar, 'menubarRead', docGroup, 'right' );
         readText.layers.enable( 3 );
@@ -2867,10 +2938,10 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         refText.layers.enable( 3 );
         refText.userData.layers = 3;
 
-        // let focusText = newMenuBarText( 'Focus', documentMaxWidth + 0.09 - 0.02, menuBar, 'menubarFocus', docGroup, 'right' );
-        // focusText.layers.enable( 3 );
-        // focusText.userData.layers = 3;
-        // docGroup.userData.menubarFocus = focusText;
+        let focusText = newMenuBarText( 'Focus', 0.02, menuBar, 'menubarFocus', docGroup );
+        focusText.layers.enable( 3 );
+        focusText.userData.layers = 3;
+        docGroup.userData.menubarFocus = focusText;
 
         // Add grip handles for the top and bottom
         // const topBox = new THREE.Mesh( borderBox, invisMat );
@@ -3363,7 +3434,7 @@ function trySync() {
                     syncCheck[i].userData.syncParent = undefined;
                     syncCheck[i].userData.syncElements = undefined;
                     syncCheck[i].userData.syncStep = undefined;
-                    stepBoxCatalog( parent, elements, step );
+                    stepBoxCatalog( parent, elements, step, syncCheck[i] );
 
                 } else if (funct == 'previewBuilder') {
 
@@ -3467,7 +3538,7 @@ function focusThis(object) {
     snapDistanceFocus.push(object);
 
     // calculate width & height
-    if (object.userData.type != "document") {
+    if (object.userData.type != "document" && object.userData.type != "boxpreview") {
 
         changeDistance(object, 1);
 
@@ -3505,7 +3576,8 @@ function focusThis(object) {
 
         // set the distance and curve radius to snapDistanceFocusValue
         changeDistance(object, snapDistanceFocusValue);
-    } else if (object.userData.type == "document") {
+    } else {
+    // else if (object.userData.type == "document") {
         changeDistance(object, snapDistanceFocusValue + object.userData.specialReaderOffset);
         // changeDocDistance(object, snapDistanceFocusValue + object.userData.specialReaderOffset);
     }
@@ -4162,7 +4234,7 @@ var wrist2Roll, wrist2Pitch;
 var curObjDir = new THREE.Vector3();
 var swipeRayLengthBase = 0.75;
 var domswipeObj = undefined;
-var rSwipeVar = 0;
+var domSwipeVar = 0;
 
 var toolSelectorDotWorld = new THREE.Vector3();
 var curObjDir = new THREE.Vector3();
@@ -4170,15 +4242,15 @@ var swipeInverter = 1;
 
 function startSwipe(object, type = undefined) {
     consoleLog("==== drag started on " + object + " ====", 0x5500aa);
-    rSwipeVar = type;
+    domSwipeVar = type;
     if (type == undefined) {
         domswipeObj = object.parent;
     } else if (type == "clipTop" || type == "clipBot") {
         domswipeObj = object;
-        rSwipeVar = "clip";
+        domSwipeVar = "clip";
     } else if (type == "clipTopGrip" || type == "clipBotGrip") {
         domswipeObj = object.parent;
-        rSwipeVar = "clip";
+        domSwipeVar = "clip";
     } else if (type == "scroll") {
         domswipeObj = object;
     } else if (type == "docbg") {
@@ -4188,18 +4260,80 @@ function startSwipe(object, type = undefined) {
     }
 
     raycaster.layers.set( 5 );
+
+    toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+    swipeOrigin.set(toolSelectorDotWorld.x,toolSelectorDotWorld.y,toolSelectorDotWorld.z);
 }
 
+const magnetTime = 300;
+var swipeTime = 0;
+const swipeThreshold = 0.5;
+var swipeOrigin = new THREE.Vector3();
 
 function stopSwipe() {
-    // consoleLog("==== drag stopped ====");
+    
+    if ( domswipeObj != undefined ) {
+        consoleLog("==== drag stopped ====");
+        if ( domswipeObj.userData.magnetRotY != undefined && domswipeObj.userData.magnetPosY != undefined ) {
+
+            toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+            var swipeDistance = swipeOrigin.distanceTo(toolSelectorDotWorld);
+            console.log("Swipe Distance: " + swipeDistance);
+
+            const boxpreview = domswipeObj.children[0].userData.boxpreview;
+            if ( boxpreview != undefined && swipeTime > pinchThreshold && swipeDistance > swipeThreshold) {
+                
+                showBoxPreview( boxpreview, 0, domswipeObj, true );
+                domswipeObj.position.y = domswipeObj.userData.magnetPosY;
+                domswipeObj.rotation.y = domswipeObj.userData.magnetRotY;
+
+            } else {
+
+                new TWEEN.Tween( domswipeObj.position )
+                    .to( {y: domswipeObj.userData.magnetPosY}, magnetTime )
+                    .easing( TWEEN.Easing.Circular.Out )
+                    .start()
+                ;
+
+                if ( domswipeObj.rotation.y <= -Math.PI || domswipeObj.rotation.y >= Math.PI ) {
+                    console.log("GREATER");
+                    new TWEEN.Tween( domswipeObj )
+                        .to( {rotation: {y: domswipeObj.userData.magnetRotY + (Math.PI * 2) }}, magnetTime )
+                        .easing( TWEEN.Easing.Circular.Out )
+                        .start()
+                        .dynamic(true)
+                        .onComplete( function ( object ) {
+                            console.log(object);
+                            object.rotation.y = object.userData.magnetRotY;
+                        });
+                    ;
+                } else {
+                    console.log("LESSER");
+                    new TWEEN.Tween( domswipeObj.rotation )
+                        .to( {y: domswipeObj.userData.magnetRotY}, magnetTime )
+                        .easing( TWEEN.Easing.Circular.Out )
+                        .start()
+                    ;
+                }
+
+            }
+
+
+        }
+    }
+
     domswipeObj = undefined;
+    swipeTime = 0;
+    swipeDistance = 0;
 }
 
 var swipeClipLock = false;
 
 function trySwipe() {
     if ( domswipeObj != undefined ) {
+        swipeTime += deltaTime;
+
+        // console.log( domswipeObj.rotation.y );
 
         if (domswipeObj.userData.swipeInverter != undefined) {
             swipeInverter = domswipeObj.userData.swipeInverter;
@@ -4208,7 +4342,7 @@ function trySwipe() {
         toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
 
         // Vertical movement
-        if (rSwipeVar == undefined || rSwipeVar == "clip" || rSwipeVar == "scroll" || rSwipeVar == "docbg") {
+        if (domSwipeVar == undefined || domSwipeVar == "clip" || domSwipeVar == "scroll" || domSwipeVar == "docbg") {
             if (!offsetPositionY) {
                 offsetPositionY = toolSelectorDotWorld.y;
             }
@@ -4216,7 +4350,7 @@ function trySwipe() {
             var movement = toolSelectorDotWorld.y - offsetPositionY;
             var scale = 1;
 
-            if (rSwipeVar == "clip" || rSwipeVar == "scroll" || rSwipeVar == "docbg") {
+            if (domSwipeVar == "clip" || domSwipeVar == "scroll" || domSwipeVar == "docbg") {
                 const docGroup = domswipeObj.parent;
                 const clippingStart = docGroup.userData.clippingStart;
                 const clippingEnd = docGroup.userData.clippingEnd;
@@ -4287,7 +4421,7 @@ function trySwipe() {
         }
 
         // Horizontal movement
-        if (rSwipeVar == undefined) {
+        if (domSwipeVar == undefined) {
             curObjDir.subVectors(toolSelectorDotWorld, domswipeObj.position).normalize();
             var angle = Math.atan2(curObjDir.x, curObjDir.z);
 
@@ -4305,7 +4439,7 @@ function trySwipe() {
             offsetAngle = angle;
         }
 
-        if (rSwipeVar == "clip" || rSwipeVar == "docbg") {
+        if (domSwipeVar == "clip" || domSwipeVar == "docbg") {
             scrollDocument(domswipeObj.parent);
             reclipDocument(domswipeObj.parent);
         }
@@ -5314,7 +5448,7 @@ function initMap() {
     for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
         // get all the titles of every document in the json library
         const title = globalLIB.documents[i].title;
-            allTitles.push(title);
+            // allTitles.push(title);
 
         // get all the names from every document in the json library
         var names = globalLIB.documents[i].customData[0].names;
@@ -5464,7 +5598,7 @@ function initMap() {
     const mapbggeo = new THREE.CylinderGeometry(
             (1),
             (1),
-            10, 32, 1, false);
+            30, 32, 1, false);
     mapbg = new THREE.Mesh( mapbggeo, mapbgmat );
     mapbg.layers.enable( 3 );
     mapbg.layers.enable( 5 );
@@ -5785,7 +5919,7 @@ function initManna() {
     mannaArray = [manna00000,manna10000,manna20000,manna30000,manna40000,manna50000];
 
     // Hide all manna
-    mannaDot.visible = true;
+    mannaDot.visible = false;
     for (var i = mannaArray.length - 1; i >= 0; i--) { mannaArray[i].visible = false; }
 
 }
@@ -6384,15 +6518,6 @@ function initBoxMenu(argument) {        // The start menu box for selecting cate
     year.sync();
 
 
-    initBoxCatalog('all');
-    // initBoxCatalog('long');
-    // initBoxCatalog('short');
-    // initBoxCatalog('poster');
-    // initBoxCatalog('workshop');
-    // initBoxCatalog('author');
-    // initBoxCatalog('institution'); <-- leave non-functional for now
-
-
     for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
 
         const title = globalLIB.documents[i].title;
@@ -6413,6 +6538,17 @@ function initBoxMenu(argument) {        // The start menu box for selecting cate
     }
 
 
+    initBoxCatalog('all');
+    initBoxCatalog('long');
+    initBoxCatalog('short');
+    initBoxCatalog('poster');
+    initBoxCatalog('workshop');
+    initBoxCatalog('author');
+    // initBoxCatalog('institution'); <-- leave non-functional for now
+}
+
+
+function startBoxMenu() {
     boxMenu.rotation.y = Math.PI + camera.rotation.y;
     boxMenu.rotateY( Math.PI );
 }
@@ -6422,8 +6558,6 @@ function initBoxCatalog(argument) {     // The large box that lists all document
     const boxCatalog = new THREE.Group();
 
     const elements = [];
-
-    const newGroup = new THREE.Group();
 
     if ( argument == 'all' ) {
 
@@ -6538,15 +6672,20 @@ function initBoxCatalog(argument) {     // The large box that lists all document
 
     }
 
-    scene.add(newGroup);
+    scene.add(boxCatalog);
 
-    stepBoxCatalog( newGroup, elements );
+    boxCatalog.visible = false;
+    boxCatalog.position.y = 99;
+
+    stepBoxCatalog( boxCatalog, elements );
+
+    boxCatalog.userData.catalog = argument;
 
     boxCatalogs.push( boxCatalog );
 }
 
 
-function stepBoxCatalog( parent, elements, step=0 ) {
+function stepBoxCatalog( parent, elements, step=0, lastText = undefined ) {
 
     var element = elements[step];
     // console.log(element);
@@ -6554,6 +6693,10 @@ function stepBoxCatalog( parent, elements, step=0 ) {
     const tempBox = new THREE.Box3().setFromObject(parent);
     tempBox.getSize(tempSize);
     var totalHeight = tempSize.y;
+    if ( lastText != undefined ) {
+        lastText.userData.botPos = -totalHeight;
+    }
+    
 
     var padding = 0.02;
     var margin = 0.1;
@@ -6583,14 +6726,22 @@ function stepBoxCatalog( parent, elements, step=0 ) {
             newText.userData.fontSize = 0.038;
             newText.position.y = -totalHeight - (padding * 1.5);
         } else {
+            const newGroup = new THREE.Group();
+            parent.add( newGroup );
             newText.position.y = -totalHeight - padding;
             newText.userData.type = 'catalogPaper';
+            newGroup.attach( newText );
+            newGroup.userData.magnetRotY = newGroup.rotation.y;
+            newGroup.userData.magnetPosY = newGroup.position.y;
+
+            newText.userData.topPos = -totalHeight;
+            newText.userData.botPos = 0;
 
             var title = element.split(' -- ')[0];
-            for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
-                if ( title == globalLIB.documents[i].title ) {
+            for (var i = boxPreviews.length - 1; i >= 0; i--) {
+                if ( title == boxPreviews[i].userData.title ) {
 
-                    // find the matching preview box and assign it to this title
+                    newText.userData.boxpreview = boxPreviews[i];
 
                 }
             }
@@ -6611,13 +6762,19 @@ function stepBoxCatalog( parent, elements, step=0 ) {
         box.rotation.y = margin / snapDistanceMenuValue;
         box.position.y = margin;
 
-        parent.position.y = boxMenu.position.y + (totalHeight/2) - (1.85/2) + 0.3;
+        parent.userData.totalHeight = totalHeight;
+        parent.userData.margin = margin;
 
-        if (currentDominant == 'right') {
-            parent.rotation.y = boxMenu.rotation.y + ((2 + margin) / snapDistanceMenuValue);
-        } else {
-            parent.rotation.y = boxMenu.rotation.y - ((0.8 + margin) / snapDistanceMenuValue);
-        }
+        const topLine = genCurve( parent, 2 + (margin * 2), 0.0025 );
+        const botLine = genCurve( parent, 2 + (margin * 2), 0.0025 );
+
+        topLine.position.y = 0.1;
+        topLine.rotateY( 0.1 / snapDistanceMenuValue );
+        botLine.position.y = -totalHeight - 0.1;
+        botLine.rotateY( 0.1 / snapDistanceMenuValue );
+
+        parent.userData.topLine = topLine;
+        parent.userData.botLine = botLine;
 
     }
 
@@ -6628,24 +6785,189 @@ function stepBoxCatalog( parent, elements, step=0 ) {
 function showBoxCatalog(argument) {     // Toggle the chosen box to display
     consoleLog( argument );
 
-    // parent.position.y = boxMenu.position.y + (totalHeight/2) - (1.85/2) + 0.3;
+    showBoxPreview();
 
-    // if (currentDominant == 'right') {
-    //     parent.rotation.y = boxMenu.rotation.y + (2 / snapDistanceMenuValue);
-    // } else {
-    //     parent.rotation.y = boxMenu.rotation.y - (0.8 / snapDistanceMenuValue);
-    // }
+    for (var i = boxCatalogs.length - 1; i >= 0; i--) {
+        if ( boxCatalogs[i].userData.catalog == argument ) {
+
+            var totalHeight = boxCatalogs[i].userData.totalHeight;
+            var margin = boxCatalogs[i].userData.margin;
+
+            const topLine = boxCatalogs[i].userData.topLine;
+            const botLine = boxCatalogs[i].userData.botLine;
+            if ( topLine != undefined && botLine != undefined ) {
+                topLine.position.y = 0 + 0.1;
+                botLine.position.y = -totalHeight - 0.1;
+            }
+
+            try {
+                boxCatalogs[i].visible = true;
+
+                boxCatalogs[i].position.y = boxMenu.position.y + (totalHeight/2) - (1.85/2) + 0.3;
+
+                if (currentDominant == 'right') {
+                    boxCatalogs[i].rotation.y = boxMenu.rotation.y + ((2 + margin) / snapDistanceMenuValue);
+                } else {
+                    boxCatalogs[i].rotation.y = boxMenu.rotation.y - ((0.8 + margin) / snapDistanceMenuValue);
+                }
+            } 
+            catch {
+                console.log("Error while displaying the catalog - it might still be loading, so wait a short while and try again.");
+            }
+
+        } else {
+
+            boxCatalogs[i].visible = false;
+            boxCatalogs[i].position.y = 99;
+        }
+    }
+
+    
+}
+
+
+function showBoxPreview( target, height, catalog, freeform=false ) {     // Toggle the chosen preview box to display
+    
+    toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+
+    // hide the other previews
+    if (!freeform) {
+        for (var i = boxPreviews.length - 1; i >= 0; i--) {
+            boxPreviews[i].position.y = 99;
+            boxPreviews[i].visible = false;
+        }
+
+        if ( target != undefined ) {
+
+            target.visible = true;
+            target.position.y = toolSelectorDotWorld.y + (height/2);
+
+            if (currentDominant == 'right') {
+                target.rotation.y = catalog.rotation.y - ( 2 / (snapDistanceMapValue - 0.1) );
+            } else {
+                target.rotation.y = catalog.rotation.y - ( 2 / (snapDistanceMapValue - 0.1) );
+            }
+
+        }
+
+    } else {
+        // clone the preview
+        const newClone = target.clone();
+        scene.add(newClone);
+
+        // edit the preview to contain the menu items
+        var totalHeight = newClone.userData.totalHeight;
+
+        for (var i = newClone.children.length - 1; i >= 0; i--) {
+            if ( newClone.children[i].type == "Group" ) {
+                newClone.remove(newClone.children[i]);
+            }
+        }
+
+        const maxwidth = 1.6;
+        const margin = 0.2;
+        const distance = snapDistanceMenuValue + 0.1;
+
+        const bar = genCurve( newClone, 1.2, 0.0025, snapDistanceMapValue - 0.15 );
+        bar.rotation.y = ((maxwidth/2) + 0.6) / (snapDistanceMapValue - 0.1);
+        bar.position.y = -totalHeight - 0.1;
+
+
+        const closeTxt = new Text();
+        newClone.add(closeTxt);
+        closeTxt.color = _colorBXmain;
+        closeTxt.curveRadius = snapDistanceMenuValue - 0.1;
+        closeTxt.fontSize = 0.030;
+        closeTxt.text = "CLOSE";
+        closeTxt.anchorX = "right";
+        closeTxt.sync();
+
+        closeTxt.position.y = -totalHeight - 0.2;
+        closeTxt.rotation.y = (((maxwidth+0.1)/2) - 0.03) / -distance;
+        closeTxt.translateZ( -snapDistanceMenuValue + 0.1 );
+
+        closeTxt.layers.enable( 3 );
+        closeTxt.userData.fontSize = closeTxt.fontSize;
+        closeTxt.userData.type = "boxpreview-close";
+
+        const barTxt = new Text();
+        newClone.add(barTxt);
+        barTxt.color = _colorBXmain;
+        barTxt.curveRadius = snapDistanceMenuValue - 0.1;
+        barTxt.fontSize = 0.030;
+        barTxt.text = "|";
+        barTxt.anchorX = "center";
+        barTxt.sync();
+
+        barTxt.position.y = -totalHeight - 0.2;
+        barTxt.rotation.y = ((maxwidth+0.1)/2) / -distance;
+        barTxt.translateZ( -snapDistanceMenuValue + 0.1 );
+
+        const focusTxt = new Text();
+        newClone.add(focusTxt);
+        focusTxt.color = _colorBXmain;
+        focusTxt.curveRadius = snapDistanceMenuValue - 0.1;
+        focusTxt.fontSize = 0.030;
+        focusTxt.text = "FOCUS";
+        focusTxt.anchorX = "left";
+        focusTxt.sync();
+
+        focusTxt.position.y = -totalHeight - 0.2;
+        focusTxt.rotation.y = (((maxwidth+0.1)/2) + 0.03) / -distance;
+        focusTxt.translateZ( -snapDistanceMenuValue + 0.1 );
+
+        focusTxt.layers.enable( 3 );
+        focusTxt.userData.fontSize = focusTxt.fontSize;
+        focusTxt.userData.type = "boxpreview-focus";
+
+        newClone.userData.focusTxt = focusTxt;
+
+        totalHeight = totalHeight + 0.2;
+
+        const box = genBox( newClone, maxwidth + margin, totalHeight + margin, snapDistanceMenuValue - 0.1 );
+        box.position.y = margin/2;
+        box.rotation.y = (margin/2)/distance;
+
+        newClone.userData.totalHeight = totalHeight;
+        console.log(box);
+
+        // position the new preview
+        newClone.visible = true;
+        newClone.position.y = toolSelectorDotWorld.y;
+        newClone.rotation.y = catalog.rotation.y + ( 2 / (snapDistanceMapValue - 0.1) );
+        newClone.scale.y = 0;
+
+        // tween in the new preview
+        new TWEEN.Tween( newClone.scale )
+            .to( {y: 1}, 300 )
+            .easing( TWEEN.Easing.Circular.Out )
+            .start()
+        ;
+
+    }
+
+
 }
 
 
 function initBoxPreview(title, author, year, source, type) {     // The preview box that displays document abstract and info
-    console.log(title);
+    // console.log(title);
 
     const newGroup = new THREE.Group();
     scene.add( newGroup );
+    newGroup.userData.title = title;
+    boxPreviews.push( newGroup );
+
     newGroup.position.y = Math.random() * 8 - 4;
     newGroup.rotation.y = Math.random() * Math.PI - Math.PI/2;
     stepBoxPreview( newGroup, title, author, year, source, type );
+
+    newGroup.position.y = 99;
+    newGroup.visible = false;
+    newGroup.userData.type = "boxpreview";
+    newGroup.userData.source = source;
+    newGroup.userData.title = title;
+    newGroup.userData.author = author;
 }
 
 
@@ -6691,7 +7013,7 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
                 // Find the class 'abstract' and read the inner html
                 var abstract = $html.find('.abstract');
                 var result = abstract.text();
-                console.log(result);
+                // console.log(result);
                 newText.text = "\n".concat(result);
                 newText.sync();
                 newText.userData.sync = "previewBuilder";
@@ -6711,16 +7033,21 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
         
     } else if ( step == 3 ) {
         // date and paper type
-        var prePadder = "                                                                                                                                                                                                                                                                         ";
+        var prePadder = "\n";
         newText.text = prePadder.concat(year + ", " + type[0].toUpperCase() + type.slice(1) + " Paper");
-        newText.textAlign = 'center';
+        newText.anchorX = 'center';
         newText.fontSize = 0.03;
+        newText.position.z = 0;
+        newText.rotation.y = (((maxwidth)/2) + 0.01 )/distance;
+        newText.translateZ( distance );
     } else if ( step == 4 ) {
         // generate box
         const margin = 0.2;
         const box = genBox( parent, maxwidth + margin, totalHeight + margin, -distance );
         box.position.y = margin/2;
         box.rotation.y = -(margin/2)/distance;
+
+        parent.userData.totalHeight = totalHeight;
     }
 
     newText.sync();
@@ -6735,6 +7062,28 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
         newText.userData.syncStep = step + 1;
         syncCheck.push( newText );
     }
+
+}
+
+
+function genCurve( parent, width, weight = 0.005, distance = snapDistanceMenuValue, mod = -1, ) {
+
+    const horizontalGeo = new THREE.CylinderGeometry(
+        distance,
+        distance,
+        weight, 32, 1, true, 0,
+        (width + weight) / distance
+    );
+
+    const line = new THREE.Mesh( horizontalGeo, boxMat );
+
+    parent.add( line );
+
+    line.rotation.y = (mod * width) / distance;
+
+    line.rotateY(Math.PI);
+
+    return line;
 
 }
 
@@ -6894,6 +7243,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryInitMap();
                 toggleLibrary('close');
                 initBoxMenu();
+                startBoxMenu();
 
                 colorHands();
 
@@ -6916,7 +7266,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryPointer();
                 tryMapSelector();
                 tryManna();
-                tryQuickGestures();
+                // tryQuickGestures();
                 // tryOffGestures();
 
                 tryVelocity();
@@ -6999,17 +7349,7 @@ camera.position.z = 1;
 // WIP:
 // new main menu for library navigation
 
-
 // COMPLETE THIS UPDATE:
-// disabled library
-// artifical background to fix color issues between browser and webXR
-// more serif font styles (bold, black and italic)
-// updated the ACM 2022 library to include more data (version 1.3)
-// new main menu hub
-// catalog generation: all papers
-// catalog generation: long papers
-// catalog generation: short papers
-// catalog generation: poster papers
-// catalog generation: workshop papers
-// catalog generation: by author sort
-// previe box generation
+// new menu interaction: toggle between catalogs, quick select titles, and spawn preview boxes
+// extended max vertical space
+// box preview interactions
