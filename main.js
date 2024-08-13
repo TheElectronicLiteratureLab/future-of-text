@@ -2023,6 +2023,7 @@ function tryQuickPointerSelect(object) {
 
 var newPopup;
 var tempWorldPos = new THREE.Vector3();
+var tempWorldQuat = new THREE.Quaternion();
 
 var popupMat = new THREE.MeshStandardMaterial({ 
     color: _colorBGpopu,
@@ -6934,7 +6935,10 @@ function showBoxPreview( target, height, catalog, freeform=false ) {     // Togg
         // position the new preview
         newClone.visible = true;
         newClone.position.y = toolSelectorDotWorld.y;
-        newClone.rotation.y = catalog.rotation.y + ( 2 / (snapDistanceMapValue - 0.1) );
+
+        catalog.getWorldQuaternion( tempWorldQuat );
+        newClone.rotation.setFromQuaternion( tempWorldQuat );
+
         newClone.scale.y = 0;
 
         // tween in the new preview
