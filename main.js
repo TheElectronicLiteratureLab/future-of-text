@@ -21,8 +21,10 @@ import TWEEN from '@tweenjs/tween.js';
     const _colorLImain = 0xffffff;
 // Library text color
     const _colorTXlibr = 0xffffff;
-// Main body text color
+// Main text color
     const _colorTXmain = 0x000000;
+// Alt text color
+    const _colorTXalts = 0xeeeeee;
 // Popup menu text color
     const _colorTXpopu = 0xffffff;
 // Bounding box color - for document bounds and UI
@@ -89,6 +91,9 @@ renderer.setPixelRatio( window.devicePixelRatio );
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
+// Setup renderer color space
+renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+
 // Disable foveation
 renderer.xr.setFoveation(0);
 
@@ -140,7 +145,7 @@ const _zero = new THREE.Vector3( 0, 0, 0 );
 
 
 var debugMode = false;
-const readerStartDistance = 2;
+const readerStartDistance = 2.5;
 const closeEnough = 0.1;
 
 // Rotation order
@@ -1090,7 +1095,7 @@ function tryPointer() {
                 thisText.fontSize = thisText.userData.fontSize;
 
                 // if this is a serif font
-                if ( thisText.font == _fontserifbold ) {
+                if ( thisText.font == _fontserifbold && thisText.userData.bold == undefined ) {
                     thisText.font = _fontserif;
                 }
 
@@ -1164,7 +1169,7 @@ function tryPointer() {
                 toolSelectorDot.scale.set( distScale, distScale, distScale );
 
                 if (intersect.object.userData.type != "preview") {
-                    if ( intersect.object.font == _fontserif ) {
+                    if ( intersect.object.font == _fontserif || intersect.object.font == _fontserifbold ) {
                         // intersect.object.fontSize = intersect.object.userData.fontSize * 1.1;
                         intersect.object.font = _fontserifbold;
                         textsToReset.push(intersect.object);
@@ -1320,12 +1325,17 @@ function disablePreviews(group) {
 function tryPointerOver(object) {
     // console.log(intersect);
     // Show connection lines, if applicable
-    if (object.userData.lines != undefined) {
+    if (object.userData.lines != undefined && object.userData.type != "menubarRef") {
         const lines = object.userData.lines;
         for (var i = lines.length - 1; i >= 0; i--) {
             lines[i].visible = true;
             linesToHide.push(lines[i]);
         }
+    // Catch for any objects that do not have their type set, but can trigger the event
+    } else if (object.userData.type == undefined) {
+
+        // console.log("No over event for this object");
+
     // For the library, update the preview text
     } else if (object.userData.type == "librarydoc") {
         var object = object;
@@ -1384,6 +1394,74 @@ function tryPointerOver(object) {
                 tryCloseButton(child);
             });
         }
+    // When pointing at the box menu, animate it to visible
+    } else if (object.userData.type.slice(0,8) == "boxMenu-") {
+
+        if ( object.parent.parent == boxMenu || object.parent == boxMenu ) {
+            tryHideBoxMenu( false );
+        }
+
+    } else if (object.userData.type == "docoutline-bg") {
+        const outlineGroup = object.parent;
+        const outlineGroupBG = outlineGroup.userData.outbg;
+        const outlineBar = outlineGroup.userData.outlineBar;
+
+        if ( outlineGroup != undefined && outlineGroup.userData.isOut == false ) {
+
+            new TWEEN.Tween( outlineGroup.rotation )
+            .to( { y: outlineGroup.userData.rotationOut}, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( outlineGroup.scale )
+            .to( { y: 1}, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( outlineGroupBG.rotation )
+            .to( { y: 0.2 }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( outlineBar.scale )
+            .to( { y: outlineBar.userData.scaleOut }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            outlineGroup.userData.isOut = true;
+
+        }
+
+    } else if (object.userData.type == "docbg") {
+        const outlineGroup = object.parent.userData.outlineGroup;
+        const outlineGroupBG = outlineGroup.userData.outbg;
+        const outlineBar = outlineGroup.userData.outlineBar;
+
+        if ( outlineGroup != undefined && outlineGroup.userData.isOut == true ) {
+
+            new TWEEN.Tween( outlineGroup.rotation )
+            .to( { y: outlineGroup.userData.rotationIn}, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( outlineGroup.scale )
+            .to( { y: 0.2}, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( outlineGroupBG.rotation )
+            .to( { y: 0 }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( outlineBar.scale )
+            .to( { y: outlineBar.userData.scaleIn }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            outlineGroup.userData.isOut = false;
+
+        }
 
     }
                
@@ -1394,11 +1472,19 @@ function tryPointerSelect(object) {
     consoleLog("Select: " + object.userData.type);
     if (object.userData.type == "citation") {
         popupMenu(object);
+    // Catch for any objects that do not have their type set, but can trigger the event
+    } else if (object.userData.type == undefined) {
+        // console.log("No over event for this object");
     } else if (object.userData.type == "popup-find") {
         var target = object.userData.target;
         var tempTextResult = target.text.slice(1).split(']')[0];
         var tempSource = target.userData.source;
-        findCitation(tempSource, tempTextResult, target);
+        var docGroup = target.parent.userData.docGroup;
+        if (docGroup == undefined) {
+            docGroup = target.userData.detachedParent;
+        }
+        console.log(docGroup);
+        findCitation(tempSource, tempTextResult, target, docGroup);
         popupMenu(undefined);
         consoleLog("POPUP: Find " + tempTextResult, 0x555555);
     } else if (object.userData.type == "popup-close") {
@@ -1439,12 +1525,23 @@ function tryPointerSelect(object) {
             oldGroup.rotation.y,
             oldGroup.rotation.z
         );
+        // newGroup.scale.set( 
+        //     oldGroup.scale.x,
+        //     oldGroup.scale.y,
+        //     oldGroup.scale.z
+        // );
         workspace.add(newGroup);
+
+        const docGroup = oldGroup.userData.docGroup;
+        if ( docGroup != undefined ) {
+            docGroup.userData.references.push( newGroup );
+        }
 
         if (thisfunction == "clone") {
             var newText = new Text();
             newText.text = target.text;
             newText.fontSize = target.fontSize;
+            newText.userData.fontSize = target.fontSize;
             newText.curveRadius = target.curveRadius;
             newText.color = target.color;
             newText.outlineWidth = target.outlineWidth;
@@ -1456,7 +1553,13 @@ function tryPointerSelect(object) {
             newText.sync();
             newText.layers.enable( 3 );
             newText.userData.layers = 3;
-            
+
+            newText.scale.set( 
+                target.scale.x,
+                target.scale.y,
+                target.scale.z
+            );
+                
             for (i in target.userData) {
                 newText.userData[i] = target.userData[i];
                 consoleLog("Cloned data: " + i, 0x65e6ae);
@@ -1603,6 +1706,8 @@ function tryPointerSelect(object) {
         tryResetPreviews();
         startSwipe(object);
         popupMenu(undefined);
+    } else if (object.userData.type == "focusBG") {
+        startSwipe(object); 
     } else if (object.userData.type == "reference") {
         popupMenu(object, "reference");
     } else if (object.userData.type == "popup-remove") {
@@ -1752,16 +1857,16 @@ function tryPointerSelect(object) {
     } else if (object.userData.type == "menubarRead") {
         // consoleLog("Menubar: Read");
         const docGroup = object.parent.parent.parent;
-        docGroup.userData.outlineGroup.visible = false;
-        docGroup.userData.outlineGroup.scale.set(0,0,0);
+        // docGroup.userData.outlineGroup.visible = false;
+        // docGroup.userData.outlineGroup.scale.set(0,0,0);
         docGroup.userData.txtGroup.visible = true;
         docGroup.userData.txtGroup.scale.set(1,1,1);
         popupMenu(undefined);
     } else if (object.userData.type == "menubarOutline") {
         // consoleLog("Menubar: Outline");
         const docGroup = object.parent.parent.parent;
-        docGroup.userData.outlineGroup.visible = true;
-        docGroup.userData.outlineGroup.scale.set(1,1,1);
+        // docGroup.userData.outlineGroup.visible = true;
+        // docGroup.userData.outlineGroup.scale.set(1,1,1);
         docGroup.userData.txtGroup.visible = false;
         docGroup.userData.txtGroup.scale.set(0,0,0);
         console.log(docGroup);
@@ -1779,9 +1884,40 @@ function tryPointerSelect(object) {
     } else if (object.userData.type == "menubarRef") {
         consoleLog("Menubar: Ref");
         popupMenu(undefined);
-        const src = object.parent.parent.parent.userData.src;
-        // console.log(object.parent.parent.parent);
-        loadTextBlock(src);
+
+        const docGroup = object.parent.parent.parent;
+
+        if ( docGroup.userData.references == undefined ) {
+
+            // first activation of references - generate them
+            const src = docGroup.userData.src;
+            docGroup.userData.references = [];
+            loadTextBlock(src, docGroup, object);
+            
+        } else if ( docGroup.userData.references != undefined && docGroup.userData.referenceVisible != undefined
+            && docGroup.userData.referenceVisible == false && docGroup.userData.references.length > 0 ) {
+
+            // later activation of references - not visible - show them
+            const references = docGroup.userData.references;
+            for (var i = references.length - 1; i >= 0; i--) {
+                references[i].position.y += 99;
+                references[i].visible = true;
+            }
+            docGroup.userData.referenceVisible = true;
+
+        } else if ( docGroup.userData.references != undefined && docGroup.userData.referenceVisible != undefined
+            && docGroup.userData.referenceVisible == true && docGroup.userData.references.length > 0 ) {
+
+            // later activation of references - currently visible - hide them
+            const references = docGroup.userData.references;
+            for (var i = references.length - 1; i >= 0; i--) {
+                references[i].position.y -= 99;
+                references[i].visible = false;
+            }
+            docGroup.userData.referenceVisible = false;
+
+        }
+
     } else if (object.userData.type == "menubarFocus") {
         const docGroup = object.parent.parent.parent;
         if (docGroup.userData.isFocused != undefined) {
@@ -1791,6 +1927,63 @@ function tryPointerSelect(object) {
             // consoleLog("Menubar: Focus");
             focusThis(docGroup);
         }
+        popupMenu(undefined);
+    } else if (object.userData.type == "menubarFold") {
+        const docGroup = object.parent.parent.parent;
+        
+        const clippingStart = docGroup.userData.clippingStart;
+        const clippingEnd = docGroup.userData.clippingEnd;
+        const centerPoint = (clippingEnd.position.y - clippingStart.position.y)/2 + clippingStart.position.y;
+
+        // tween the bottom clip bounds
+        new TWEEN.Tween( clippingEnd.position )
+            .to( {y: centerPoint}, 500 )
+            .easing( TWEEN.Easing.Back.In )
+            .start();
+
+        // tween the top clip bounds
+        new TWEEN.Tween( clippingStart.position )
+            .to( {y: centerPoint}, 500 )
+            .easing( TWEEN.Easing.Back.In )
+            .start()
+            .onUpdate(() => {
+                scrollDocument(docGroup);
+                reclipDocument(docGroup);
+            })
+            .onComplete(() => {
+                docGroup.parent.remove(docGroup);
+
+                const title = docGroup.userData.title;
+                for (var i = boxPreviews.length - 1; i >= 0; i--) {
+                    if ( title == boxPreviews[i].userData.title ) {
+
+                        const boxpreview = boxPreviews[i];
+                        const height = boxpreview.userData.totalHeight;
+                        const catalog = docGroup;
+                        showBoxPreview( boxpreview, height, catalog, true );
+
+                    }
+                }
+
+                if (docGroup.userData.references != undefined) {
+                    const allRefs = docGroup.userData.references;
+                    for (var i = allRefs.length - 1; i >= 0; i--) {
+                        var ref = allRefs[i];
+                        var index = animatedConnections.indexOf(ref);
+                        if ( index >= 0 ) {
+                            animatedConnections.splice(index,1);
+                        }
+                        try {
+                            ref.parent.remove(ref);
+                        }
+                        catch {
+                            console.log("Reference removal failed at index " + i);
+                        }
+                    }
+                }
+
+            });
+
         popupMenu(undefined);
     } else if (object.userData.type.slice(0,11) == "docoutline-") {
         const docGroup = object.parent.parent;
@@ -1828,8 +2021,8 @@ function tryPointerSelect(object) {
                     scrollDocument(docGroup);
                     reclipDocument(docGroup);
 
-                    docGroup.userData.outlineGroup.visible = false;
-                    docGroup.userData.outlineGroup.scale.set(0,0,0);
+                    // docGroup.userData.outlineGroup.visible = false;
+                    // docGroup.userData.outlineGroup.scale.set(0,0,0);
                     docGroup.userData.txtGroup.visible = true;
                     docGroup.userData.txtGroup.scale.set(1,1,1);
 
@@ -1899,10 +2092,39 @@ function tryPointerSelect(object) {
         startSwipe(txtGroup,"docbg");
     } else if (object.userData.type.slice(0,8) == "boxMenu-") {
         var thisfunction = object.userData.type.slice(8,99);
-
         if ( thisfunction == "background" ) {
-            startSwipe( object.parent );
+            if ( object.parent.parent != boxMenu ) {
+                startSwipe( object.parent );
+            } else if ( boxMenuHidden == undefined ) {
+                startSwipe( object.parent );
+            } else {
+                startSwipe( object.parent.parent );
+            }
         } else {
+
+            for (var i = boxMenuItems.length - 1; i >= 0; i--) {
+                boxMenuItems[i].userData.bold = undefined;
+                boxMenuItems[i].font = _fontserif;
+            }
+
+            object.userData.bold = true;
+
+            boxMenuDot.visible = true;
+            boxMenuDot.position.set( 0, 0, 0 );
+            boxMenuDot.position.y = object.position.y - 0.035;
+
+            boxMenuDot.rotation.y = - 0.1 / (snapDistanceMenuValue + 0.1);
+
+            boxMenuDot.translateZ( - snapDistanceMenuValue - 0.1 );
+
+            boxMenuDot.scale.set( 0, 0, 0 );
+
+            new TWEEN.Tween( boxMenuDot.scale )
+                .to( {x: 0.2, y: 0.2, z: 0.2}, 300 )
+                .easing( TWEEN.Easing.Quadratic.Out )
+                .start()
+            ;
+            
             showBoxCatalog( thisfunction );
         }
         
@@ -1957,6 +2179,27 @@ function tryPointerSelect(object) {
 
             }
 
+        } else if ( targetValue == "expand" ) {
+
+            const thisGroup = object.parent;
+
+            if ( thisGroup.userData.type == "boxpreview" ) {
+
+                const source = thisGroup.userData.source;
+                const title = thisGroup.userData.title;
+                const author = thisGroup.userData.author;
+                findDocumentContent(source,title,author);
+
+                new TWEEN.Tween( thisGroup.scale )
+                .to( {y: 0}, 300 )
+                .easing( TWEEN.Easing.Back.In )
+                .start()
+                .onComplete(() => {
+                    thisGroup.parent.remove(thisGroup);
+                });
+
+            }
+
         }
     }
 }
@@ -1968,11 +2211,14 @@ function tryQuickPointerSelect(object) {
         const title = object.userData.title;
         const author = object.userData.author;
         findDocumentContent(source,title,author);
+    // Catch for any objects that do not have their type set, but can trigger the event
+    } else if (object.userData.type == undefined) {
+        // console.log("No over event for this object");
     } else if (object.userData.type == "catalogPaper") {
-        const boxpreview = object.userData.boxpreview;
-        const height = boxpreview.userData.totalHeight;
-        const catalog = object.parent.parent;
-        showBoxPreview( boxpreview, height, catalog );
+        // const boxpreview = object.userData.boxpreview;
+        // const height = boxpreview.userData.totalHeight;
+        // const catalog = object.parent.parent;
+        // showBoxPreview( boxpreview, height, catalog );
 
         const topLine = object.parent.parent.userData.topLine;
         const botLine = object.parent.parent.userData.botLine;
@@ -1992,24 +2238,24 @@ function tryQuickPointerSelect(object) {
 
     } else if ( object.userData.type == "boxMenu-background" ) {
 
-        const thisGroup = object.parent.parent;
+        // const thisGroup = object.parent.parent;
 
-        if ( thisGroup.userData.type == "boxpreview" ) {
+        // if ( thisGroup.userData.type == "boxpreview" ) {
 
-            const source = thisGroup.userData.source;
-            const title = thisGroup.userData.title;
-            const author = thisGroup.userData.author;
-            findDocumentContent(source,title,author);
+        //     const source = thisGroup.userData.source;
+        //     const title = thisGroup.userData.title;
+        //     const author = thisGroup.userData.author;
+        //     findDocumentContent(source,title,author);
 
-            new TWEEN.Tween( thisGroup.scale )
-            .to( {y: 0}, 300 )
-            .easing( TWEEN.Easing.Back.In )
-            .start()
-            .onComplete(() => {
-                thisGroup.parent.remove(thisGroup);
-            });
+        //     new TWEEN.Tween( thisGroup.scale )
+        //     .to( {y: 0}, 300 )
+        //     .easing( TWEEN.Easing.Back.In )
+        //     .start()
+        //     .onComplete(() => {
+        //         thisGroup.parent.remove(thisGroup);
+        //     });
 
-        }
+        // }
 
     }
 }
@@ -2154,28 +2400,30 @@ function popupMenu(target, variation = "citation") {
             popupItems.push(popupMark);
 
     // FOCUS popup button
-            const popupFocus = new Text();
-            scene.add(popupFocus);
-            if (target.parent.userData.focusBG != undefined) {
-            // UNFOCUS
-            popupFocus.text = "Unfocus";
-            popupFocus.userData.type = "popup-unfocus";
-            } else {
-            // FOCUS
-            popupFocus.text = "Focus";
-            popupFocus.userData.type = "popup-focus";
+            if ( target.userData.detachedParent == undefined ) {
+                const popupFocus = new Text();
+                scene.add(popupFocus);
+                if (target.parent.userData.focusBG != undefined) {
+                // UNFOCUS
+                popupFocus.text = "Unfocus";
+                popupFocus.userData.type = "popup-unfocus";
+                } else {
+                // FOCUS
+                popupFocus.text = "Focus";
+                popupFocus.userData.type = "popup-focus";
+                }
+                popupFocus.fontSize = 0.02;
+                popupFocus.userData.fontSize = 0.02;
+                popupFocus.color = _colorTXpopu;
+                popupFocus.anchorX = 'left';
+                popupFocus.anchorY = 'middle';
+                newPopup.attach(popupFocus);
+                popupFocus.position.x = -0.11;
+                popupFocus.position.y = -0.10;
+                popupFocus.layers.enable( 3 );
+                popupFocus.userData.target = target;
+                popupItems.push(popupFocus);
             }
-            popupFocus.fontSize = 0.02;
-            popupFocus.userData.fontSize = 0.02;
-            popupFocus.color = _colorTXpopu;
-            popupFocus.anchorX = 'left';
-            popupFocus.anchorY = 'middle';
-            newPopup.attach(popupFocus);
-            popupFocus.position.x = -0.11;
-            popupFocus.position.y = -0.10;
-            popupFocus.layers.enable( 3 );
-            popupFocus.userData.target = target;
-            popupItems.push(popupFocus);
 
         } else if (variation == "reference") { //======================================================
     // REMOVE popup button
@@ -2286,6 +2534,7 @@ function popupMenu(target, variation = "citation") {
         
         scene.add(newPopup);
         newPopup.layers.enable( 3 );
+        // newPopup.userData.type = "popup-background";
 
         popupHead.sync();
 
@@ -2328,7 +2577,7 @@ var snapDistanceFocusValue = 2.00;
 var snapDistanceMapValue = 4.00;
 var snapDistanceMenuValue = snapDistanceMapValue - 0.01;
 
-function loadTextBlock(url) {
+function loadTextBlock(url, docGroup = undefined, lineTarget = undefined) {
 
     $.ajax({
         url: url,
@@ -2360,7 +2609,7 @@ function loadTextBlock(url) {
             })
 
             // pass the data to be built
-            displayTextBlock( displayHead, displayText, url )
+            displayTextBlock( displayHead, displayText, url, docGroup, lineTarget )
         },
         error: function(xhr, status, error) {
             console.error('Error fetching HTML: ', error);
@@ -2368,7 +2617,7 @@ function loadTextBlock(url) {
     });
 }
 
-function findCitation(url, num, object) {
+function findCitation(url, num, object, docGroup = undefined) {
     // console.log(url + " " + num);
     var object = object;
 
@@ -2385,7 +2634,7 @@ function findCitation(url, num, object) {
                 var innerHTML = $(this).html();
                 if (innerHTML == num) {
                     var result = $(this).parent().text();
-                    displayCitation(result, object);
+                    displayCitation(result, object, docGroup);
                 }
             });
         },
@@ -2426,7 +2675,7 @@ function findAbstract(url, object) {
 var animatedConnections = [];
 // var lineArray = [];
 
-function displayCitation(text, object) {
+function displayCitation(text, object, docGroup = undefined) {
     var temporaryCitation;
     var temporaryCitationGroup;
     consoleLog(text.slice(0,48) + "...", 0xdddddd);
@@ -2439,7 +2688,7 @@ function displayCitation(text, object) {
     temporaryCitation.text = text;
     // temporaryCitation.userData.text = text;
     temporaryCitation.fontSize = 0.015;
-    temporaryCitation.color = _colorTXmain;
+    temporaryCitation.color = _colorTXalts;
     temporaryCitation.anchorX = 'left';
     temporaryCitation.anchorY = 'top';
     temporaryCitation.maxWidth = 1;
@@ -2455,6 +2704,13 @@ function displayCitation(text, object) {
 
     temporaryCitationGroup.add(temporaryCitation);
     workspace.add(temporaryCitationGroup);
+
+    console.log(docGroup);
+    if ( docGroup != undefined && docGroup.userData.docGroup == undefined) {
+        docGroup.userData.references.push( temporaryCitationGroup );
+    } else if ( docGroup.userData.docGroup != undefined ) {
+        docGroup.userData.docGroup.userData.references.push( temporaryCitationGroup );
+    }
 
 // Either or for these, grouped to move with the parent, otherwise enable layers 3
     // object.parent.attach(temporaryCitationGroup);
@@ -2484,7 +2740,7 @@ function displayCitation(text, object) {
 }
 
 
-function createLine(object, target) {
+function createLine(object, target, persistent = false) {
     const lineGeo = new THREE.BoxGeometry( 0.001, 0.001, 1 );
     const lineMat = new THREE.MeshBasicMaterial( { color: 0x000000 } );
     var temporaryCitationLine = new THREE.Mesh( lineGeo, lineMat );
@@ -2513,9 +2769,16 @@ function createLine(object, target) {
         target.userData.lines = newArray;
     }
 
-    temporaryCitationLine.visible = false;
+    if (!persistent) {
+        temporaryCitationLine.visible = false;
+    } else {
+        temporaryCitationLine.userData.persistent = true;
+        temporaryCitationLine.visible = true;
+    }
 
     animatedConnections.push(temporaryCitationLine);
+
+    return temporaryCitationLine;
 }
 
 
@@ -2534,14 +2797,14 @@ function animateCitationLines() {
                 if (newstart != undefined) {
                     thisLine.userData.startObjRef = newstart;
                 }
-                // consoleLog("start object found from uuid: " + thisLine.userData.startObjRef);
+                consoleLog("start object found from uuid: " + thisLine.userData.startObjRef);
             }
             if (thisLine.userData.endObjRef == undefined) {
                 var newend = workspace.getObjectByProperty('uuid', thisLine.userData.endObj);
                 if (newend != undefined) {
                     thisLine.userData.endObjRef = newend;
                 }
-                // consoleLog("end object found from uuid: " + thisLine.userData.endObjRef);
+                consoleLog("end object found from uuid: " + thisLine.userData.endObjRef);
             }
 
             // if (thisLine.userData.startObjRef != undefined && thisLine.userData.endObjRef != undefined) {
@@ -2593,11 +2856,21 @@ var tempSize = new THREE.Vector3();
 let totalPreInstance = 0;
 let totalPostInstance = 0;
 
-function displayTextBlock(head, text, source) {
+function displayTextBlock(head, text, source, docGroup = undefined, lineTarget = undefined) {
     // Create:
     const textBlock = [];
     const headText = new Text();
     const textGroup = new THREE.Group();
+
+    if (docGroup != undefined) {
+        docGroup.userData.references.push( textGroup );
+        docGroup.userData.referenceVisible = true;
+
+        const newLine = createLine(lineTarget, headText, true);
+
+        docGroup.userData.references.push( newLine );
+        textGroup.userData.docGroup = docGroup;
+    }
 
     textGroup.add(headText)
     workspace.add(textGroup);
@@ -2626,7 +2899,7 @@ function displayTextBlock(head, text, source) {
 
     tempTextBlock.text = tempTextString;
     tempTextBlock.fontSize = 0.02;
-    tempTextBlock.color = _colorTXmain;
+    tempTextBlock.color = _colorTXalts;
     tempTextBlock.anchorX = 'left';
     tempTextBlock.anchorY = 'top';
     tempTextBlock.lineHeight = 1.5;
@@ -2656,7 +2929,7 @@ function displayTextBlock(head, text, source) {
 
         tempText.text = text[i];
         tempText.fontSize = 0.02;
-        tempText.color = _colorTXmain;
+        tempText.color = _colorTXalts;
         tempText.anchorX = 'left';
         tempText.anchorY = 'top';
         tempText.curveRadius = snapDistanceOneValue + specialReaderOffset;
@@ -2689,7 +2962,7 @@ function displayTextBlock(head, text, source) {
 
     headText.text = head;
     headText.fontSize = 0.03;
-    headText.color = _colorTXmain;
+    headText.color = _colorTXalts;
     headText.anchorX = 'left';
     headText.anchorY = 'bottom';
     headText.curveRadius = snapDistanceOneValue + specialReaderOffset;
@@ -2719,7 +2992,8 @@ function displayTextBlock(head, text, source) {
 
 
 var destinationClippingStart = 0.5;
-var destinationClippingEnd = -2.0;
+var destinationClippingEnd = -1.5;
+var documentMargin = 0.1;
 var documentMaxWidth = 1.25;
 var startingScrollPercent = 0.0;
 
@@ -2738,10 +3012,9 @@ function findDocumentContent(url,title=" ",author=" ") {
         }
     });
 }
- 
 
 
-       
+
 var allHeaders = [];
 function generateDocumentContent(content,title,author,url) {
     allHeaders = [];
@@ -2777,6 +3050,7 @@ function generateDocumentContent(content,title,author,url) {
     docGroup.add(txtGroup);
 
     docGroup.userData.src = url;
+    docGroup.userData.title = title;
 
     let specialReaderOffset = Math.random(0.001, -0.001);
     docGroup.userData.specialReaderOffset = specialReaderOffset;
@@ -2839,6 +3113,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         // newText.outlineColor = 0xffffff * Math.random();
 
         if (i == 0 ) {
+            newText.text = "\n".concat(fullText[i]);
             newText.fontSize = 0.05;
             newText.fontWeight = 'bold';
             newText.fontWeight = newText.fontWeight;
@@ -2879,15 +3154,15 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         const borderGeo = new THREE.CylinderGeometry(
             (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
             (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
-            0.01, 32, 1, true, -0.005,
-            (documentMaxWidth + 0.11) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            0.01, 32, 1, true, 0,
+            (documentMaxWidth + documentMargin*2) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
             );
 
         const menubarGeo = new THREE.CylinderGeometry(
             (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
             (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
-            0.08, 32, 1, true, -0.005,
-            (documentMaxWidth + 0.11) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            0.08, 32, 1, true, 0,
+            (documentMaxWidth + documentMargin*2) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
             );
 
         // const borderBox = new THREE.CylinderGeometry(
@@ -2917,6 +3192,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         botBorder.add(menuBar);
         menuBar.position.y = - 0.04;
         menuBar.layers.enable( 3 );
+        menuBar.rotation.y = - documentMargin / (snapDistanceOneValue + docGroup.userData.specialReaderOffset);
         menuBar.userData.layers = 3;
         menuBar.userData.type = "menuBar";
 
@@ -2927,22 +3203,22 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         // iText.layers.enable( 3 );
         // iText.userData.layers = 3;
 
-        let readText = newMenuBarText( 'Read', (documentMaxWidth + 0.09)/2 - 0.10, menuBar, 'menubarRead', docGroup, 'right' );
-        readText.layers.enable( 3 );
-        readText.userData.layers = 3;
-        let leftDividerText = newMenuBarText( '/', (documentMaxWidth + 0.09)/2 - 0.08, menuBar, undefined, docGroup, 'left' );
-        let outlineText = newMenuBarText( 'Outline', (documentMaxWidth + 0.09)/2, menuBar, 'menubarOutline', docGroup, 'center' );
-        outlineText.layers.enable( 3 );
-        outlineText.userData.layers = 3;
-        let rightDividerText = newMenuBarText( '/', (documentMaxWidth + 0.09)/2 + 0.08, menuBar, undefined, docGroup, 'right' );
-        let refText = newMenuBarText( 'References', (documentMaxWidth + 0.09)/2 + 0.10, menuBar, 'menubarRef', docGroup, 'left' );
+        // let readText = newMenuBarText( 'Body', ( documentMaxWidth + documentMargin*2 )/2 - 0.03, menuBar, 'menubarRead', docGroup, 'right' );
+        // readText.layers.enable( 3 );
+        // readText.userData.layers = 3;
+        // let leftDividerText = newMenuBarText( '|', (documentMaxWidth + 0.09)/2 - 0.08, menuBar, undefined, docGroup, 'left' );
+        // let outlineText = newMenuBarText( 'Outline', (documentMaxWidth + 0.09)/2, menuBar, 'menubarOutline', docGroup, 'center' );
+        // outlineText.layers.enable( 3 );
+        // outlineText.userData.layers = 3;
+        // let rightDividerText = newMenuBarText( '|', ( documentMaxWidth + documentMargin*2 )/2 + 0.00, menuBar, undefined, docGroup, 'center' );
+        let refText = newMenuBarText( 'References', ( documentMaxWidth + documentMargin*2 )/2 + 0.00, menuBar, 'menubarRef', docGroup, 'center' );
         refText.layers.enable( 3 );
         refText.userData.layers = 3;
 
-        let focusText = newMenuBarText( 'Focus', 0.02, menuBar, 'menubarFocus', docGroup );
+        let focusText = newMenuBarText( 'Fold', 0.02, menuBar, 'menubarFold', docGroup );
         focusText.layers.enable( 3 );
         focusText.userData.layers = 3;
-        docGroup.userData.menubarFocus = focusText;
+        // docGroup.userData.menubarFocus = focusText;
 
         // Add grip handles for the top and bottom
         // const topBox = new THREE.Mesh( borderBox, invisMat );
@@ -3039,46 +3315,47 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         const backgroundGeo = new THREE.CylinderGeometry(
             (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.001),
             (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.001),
-            1, 32, 1, true, -0.005,
-            (documentMaxWidth + 0.11) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            1, 32, 1, true, 0,
+            (documentMaxWidth + documentMargin*2) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
             );
 
-        const background = new THREE.Mesh( backgroundGeo, focusBGmat );
+        const background = new THREE.Mesh( backgroundGeo, docBGmat );
         docGroup.add(background);
         background.scale.set(1,clippingEnd - clippingStart,-1);
         background.position.y = destinationClippingStart + (clippingEnd - clippingStart)/2;
         background.layers.enable( 3 );
         background.userData.layers = 3;
+        background.rotation.y = documentMargin / (snapDistanceOneValue + docGroup.userData.specialReaderOffset);
         docGroup.userData.background = background;
         background.userData.type = "docbg";
         background.userData.nearby = [scrollUp, scrollDown, scrollNub];
 
 
         // Create close button
-        var closeBtnMat = new THREE.MeshBasicMaterial( {
-            color: _colorBounds,
-            map: new THREE.TextureLoader().load(
-                './icon-close.png'
-            ),
-            transparent: true
-        } );
+        // var closeBtnMat = new THREE.MeshBasicMaterial( {
+        //     color: _colorBounds,
+        //     map: new THREE.TextureLoader().load(
+        //         './icon-close.png'
+        //     ),
+        //     transparent: true
+        // } );
 
-        const closeBtnGeo = new THREE.CircleGeometry( 0.06, 16 );
-        const closeBtnShell = new THREE.Mesh( closeBtnGeo, invisMat );
-        const closeBtn = new THREE.Mesh( closeBtnGeo, closeBtnMat );
-        closeBtnShell.add(closeBtn);
-        docGroup.add(closeBtnShell);
+        // const closeBtnGeo = new THREE.CircleGeometry( 0.06, 16 );
+        // const closeBtnShell = new THREE.Mesh( closeBtnGeo, invisMat );
+        // const closeBtn = new THREE.Mesh( closeBtnGeo, closeBtnMat );
+        // closeBtnShell.add(closeBtn);
+        // docGroup.add(closeBtnShell);
 
-        closeBtn.scale.set(0.25,0.25,0.25);
+        // closeBtn.scale.set(0.25,0.25,0.25);
 
-        closeBtnShell.rotation.y = (documentMaxWidth + 0.15) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
-        closeBtnShell.position.y = clippingStart + 0.075;
-        closeBtnShell.rotation.z = Math.PI/2;
-        closeBtnShell.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
-        docGroup.userData.closeBtn = closeBtnShell;
-        closeBtnShell.layers.enable( 3 );
-        closeBtnShell.userData.layers = 3;
-        closeBtnShell.userData.type = "closeBtn";
+        // closeBtnShell.rotation.y = (documentMaxWidth + 0.15) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        // closeBtnShell.position.y = clippingStart + 0.075;
+        // closeBtnShell.rotation.z = Math.PI/2;
+        // closeBtnShell.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+        // docGroup.userData.closeBtn = closeBtnShell;
+        // closeBtnShell.layers.enable( 3 );
+        // closeBtnShell.userData.layers = 3;
+        // closeBtnShell.userData.type = "closeBtn";
 
 
         // Create the outline view from headers
@@ -3087,9 +3364,9 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         docGroup.userData.outlineGroup = outlineGroup;
         docGroup.userData.outlineBlock = [];
         docGroup.add(outlineGroup);
-        let totalHeight = 0.035;
+        let totalHeight = 0.020;
 
-        for (var i = 0; i <= allHeaders.length; i++) {
+        for (var i = 1; i <= allHeaders.length; i++) {
 
             let newText = new Text();
             outlineGroup.add(newText);
@@ -3105,7 +3382,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
                 } else {
                     newText.text = fullText[0];
                 }
-                newText.fontSize = 0.05;
+                newText.fontSize = 0.035;
                 newText.fontWeight = 'bold';
                 newText.fontWeight = newText.fontWeight;
                 newText.userData.type = 'docoutline-0';
@@ -3116,20 +3393,20 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
                 } else {
                     newText.text = headerText;
                 }
-                newText.fontSize = 0.035;
+                newText.fontSize = 0.020;
                 newText.layers.enable( 3 );
                 newText.userData.layers = 3;
                 newText.userData.type = 'docoutline-' + i;
             }
 
-            newText.color = _colorTXmain;
+            newText.color = _colorTXalts;
             newText.anchorX = 'left';
             newText.anchorY = 'middle';
             
-            // newText.maxWidth = documentMaxWidth;
+            // newText.maxWidth = 1.00;
             newText.textAlign = 'left';
             newText.curveRadius = snapDistanceOneValue + specialReaderOffset;
-            newText.position.z = - snapDistanceOneValue - specialReaderOffset;
+            newText.position.z = - snapDistanceOneValue - specialReaderOffset - 0.001;
 
             newText.userData.specialReaderOffset = specialReaderOffset;
             newText.userData.text = newText.text;
@@ -3141,7 +3418,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             newText.userData.textAlign = newText.textAlign;
             newText.userData.curveRadius = newText.curveRadius;
 
-            newText.userData.bounds = [newText.position.y - 0.0, newText.position.y - 0.04];
+            // newText.userData.bounds = [newText.position.y - 0.0, newText.position.y - 0.04];
 
             docGroup.userData.outlineBlock.push( newText );
 
@@ -3152,11 +3429,49 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             
         }
 
+        const outlineBlock = docGroup.userData.outlineBlock;
+        for (var i = outlineBlock.length - 1; i >= 0; i--) {
+            outlineBlock[i].translateY( totalHeight/2 );
+        }
 
+        outlineGroup.userData.rotationOut = -(documentMaxWidth + documentMargin + 0.01) / (snapDistanceOneValue + specialReaderOffset);
+        outlineGroup.userData.rotationIn = -(documentMaxWidth + documentMargin - 0.8) / (snapDistanceOneValue + specialReaderOffset);
+        outlineGroup.rotation.y = outlineGroup.userData.rotationIn;
+        outlineGroup.userData.isOut = false;
+
+        // Create outline background
+        const outlinebgGeo = new THREE.CylinderGeometry(
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.002),
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.002),
+            1, 32, 1, true, Math.PI,
+            -(1.1) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            );
+
+        const outbg = new THREE.Mesh( outlinebgGeo, invisMat );
+        outlineGroup.add(outbg);
+        outbg.scale.y = totalHeight;
+        outbg.layers.enable( 3 );
+        outbg.userData.type = "docoutline-bg";
+        outlineGroup.userData.outbg = outbg;
+
+
+        const outlineBarGeo = new THREE.CylinderGeometry(
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.002),
+            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.002),
+            1, 1, 1, true, Math.PI, -0.001 );
+
+        const outlineBar = new THREE.Mesh( outlineBarGeo, boxMat );
+        docGroup.add(outlineBar);
+        outlineBar.userData.scaleOut = totalHeight + 0.1;
+        outlineBar.userData.scaleIn = 0.3;
+        outlineBar.scale.y = outlineBar.userData.scaleIn;
+        outlineBar.rotation.y = -(documentMaxWidth + documentMargin + 0.05) / (snapDistanceOneValue + specialReaderOffset);
+
+        outlineGroup.userData.outlineBar = outlineBar;
 
         // Hide the outline group
-        outlineGroup.visible = false;
-        outlineGroup.scale.set(0,0,0);
+        outlineGroup.visible = true;
+        outlineGroup.scale.y = 0.2;
 
 
         // Final organization and presentation of the document
@@ -3171,7 +3486,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         // docGroup.rotation.y = camera.rotation.y;
 
-        focusThis(docGroup);
+        // focusThis(docGroup);
 
         removeLoader(docGroup);
 
@@ -3214,9 +3529,9 @@ function reclipDocument(docGroup) {
     const scrollDown = docGroup.userData.scrollDown;
     const background = docGroup.userData.background;
     const closeBtn = docGroup.userData.closeBtn;
-
     const outlineGroup = docGroup.userData.outlineGroup;
-    const outlineBlock = docGroup.userData.outlineBlock;
+    const outlineBar = outlineGroup.userData.outlineBar;
+    // const outlineBlock = docGroup.userData.outlineBlock;
 
     // scrollBar.position.set(documentMaxWidth + 0.1, (clippingEnd - clippingStart)/2 + clippingStart, 0);
     scrollBar.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
@@ -3230,7 +3545,7 @@ function reclipDocument(docGroup) {
         handle.scale.y = scrollScale;
     }
 
-    var scrollPos = lerp( scrollPercent, clippingStart - 0.1, clippingEnd + 0.1 );
+    var scrollPos = lerp( scrollPercent, clippingStart - 0.01, clippingEnd + 0.01 );
     scrollNub.position.y = scrollPos;
 
     scrollUp.position.y = clippingStart - 0.07;
@@ -3239,9 +3554,10 @@ function reclipDocument(docGroup) {
     background.scale.y = clippingEnd - clippingStart;
     background.position.y = clippingStart + (clippingEnd - clippingStart)/2;
 
-    closeBtn.position.y = clippingStart + 0.075;
+    // closeBtn.position.y = clippingStart + 0.075;
 
-    outlineGroup.position.y = clippingStart - 0.0;
+    outlineGroup.position.y = clippingStart + (clippingEnd - clippingStart)/2;
+    outlineBar.position.y = outlineGroup.position.y;
 
     const viewHeight = clippingEnd - clippingStart + 0.05;
 
@@ -3251,7 +3567,7 @@ function reclipDocument(docGroup) {
     var calcdClippingEnd = clippingEnd - ((totalHeight + viewHeight) * scrollPercent) - clippingStart;
     var calcdClippingStart = - ((totalHeight + viewHeight) * scrollPercent);
 
-    reclipDocumentCalc(outlineBlock, simpleClippingStart, simpleClippingEnd, 0.025);
+    // reclipDocumentCalc(outlineBlock, simpleClippingStart, simpleClippingEnd, 0.025);
     reclipDocumentCalc(textBlock, calcdClippingStart, calcdClippingEnd);
     
 }
@@ -3322,7 +3638,7 @@ function newMenuBarText(text, xpos, parent, type, docGroup, align = 'left') {
     newText.textAlign = 'left';
     newText.curveRadius = - snapDistanceOneValue - specialReaderOffset - 0.005;
     // tagText.position.z = snapDistanceOneValue + specialReaderOffset - 0.005;
-    newText.position.y = 0.01;
+    newText.position.y = 0.005;
     newText.rotation.y = -(xpos) / -(snapDistanceOneValue + specialReaderOffset);
     newText.translateZ( (snapDistanceOneValue + specialReaderOffset) *1 -0.005);
 
@@ -3341,10 +3657,11 @@ function newMenuBarText(text, xpos, parent, type, docGroup, align = 'left') {
     return newText;
 }
 
+
 var scrollMat = new THREE.ShaderMaterial({
   uniforms: {
     color1: {
-      value: new THREE.Color(_colorBounds + 0x333333)
+      value: new THREE.Color(_colorBGmain)
     },
     color2: {
       value: new THREE.Color(_colorBGread)
@@ -3511,6 +3828,11 @@ function changeDistance(object, value) {
 
 
 const focusBGmat = new THREE.MeshBasicMaterial( {
+    color: _colorBounds,
+    side: THREE.DoubleSide
+} );
+
+const docBGmat = new THREE.MeshBasicMaterial( {
     color: _colorBGread,
     side: THREE.DoubleSide
 } );
@@ -4369,12 +4691,12 @@ function trySwipe() {
                         domswipeObj.position.y = clippingStart.position.y - 0.3;
                         movement = 0;
                 } else if (domswipeObj == scrollNub &&
-                    clippingStart.position.y - scrollNub.position.y - movement < 0.1) {
-                        domswipeObj.position.y = clippingStart.position.y - 0.1;
+                    clippingStart.position.y - scrollNub.position.y - movement < 0.01) {
+                        domswipeObj.position.y = clippingStart.position.y - 0.01;
                         movement = 0;
                 } else if (domswipeObj == scrollNub &&
-                    scrollNub.position.y - clippingEnd.position.y + movement < 0.1) {
-                        domswipeObj.position.y = clippingEnd.position.y + 0.1;
+                    scrollNub.position.y - clippingEnd.position.y + movement < 0.01) {
+                        domswipeObj.position.y = clippingEnd.position.y + 0.01;
                         movement = 0;
                 }
 
@@ -4382,7 +4704,7 @@ function trySwipe() {
 
                 // update scroll percentage
                 if (domswipeObj == scrollNub) {
-                    var scrollPercent = norm( domswipeObj.position.y, clippingStart.position.y - 0.1, clippingEnd.position.y + 0.1 );
+                    var scrollPercent = norm( domswipeObj.position.y, clippingStart.position.y - 0.01, clippingEnd.position.y + 0.01 );
                     docGroup.userData.scrollPercent = scrollPercent;
                     scrollDocument(docGroup);
                     reclipDocument(docGroup);
@@ -5433,7 +5755,7 @@ function tryInitMap() {
 }
 
 let mapbg;
-var defaultMapScale = snapDistanceMapValue + 0.02;
+var defaultMapScale = snapDistanceMenuValue + 0.2;
 let selectableArray = [];
 const hitTestPlane = new THREE.PlaneGeometry(1,1);
 const mapSelectionGroup = new THREE.Group();
@@ -6360,15 +6682,20 @@ const boxMat = new THREE.MeshBasicMaterial({
 });
 
 const boxMenu = new THREE.Group();
+var boxMenuHidden = undefined;
 const boxCatalogs = [];
 const boxPreviews = [];
-
+const boxMenuItems = [];
+const boxMenuDot = new THREE.Mesh( sphereGeo, boxMat );
 
 function initBoxMenu(argument) {        // The start menu box for selecting categories to sort documents
     
     scene.add( boxMenu );
 
-    const boxOutline = genBox( boxMenu, 0.8, 1.85 );
+    boxMenu.add( boxMenuDot );
+    boxMenuDot.visible = false;
+
+    const boxOutline = genBox( boxMenu, 0.8, 1.85, snapDistanceMenuValue + 0.1 );
     boxOutline.position.y = 0.3;
 
     var headerTxt = globalLIB.library;
@@ -6380,125 +6707,132 @@ function initBoxMenu(argument) {        // The start menu box for selecting cate
     const header = new Text();
     header.text = prePadder.concat(headerTxt);
     header.fontSize = 0.05;
-    header.curveRadius = snapDistanceMenuValue;
+    header.curveRadius = snapDistanceMenuValue + 0.1;
     header.color = _colorBXmain;
     header.maxWidth = 0.8;
     header.anchorY = "bottom";
     header.textAlign = 'center';
     header.font = _fontserifbold;
     boxMenu.add(header);
-    header.position.z = -snapDistanceMenuValue;
+    header.position.z = -snapDistanceMenuValue - 0.1;
     header.sync();
 
-    const headbar = genBar( boxMenu, 0.5, 0.8 );
+    const headbar = genBar( boxMenu, 0.5, 0.8, snapDistanceMenuValue + 0.1 );
     headbar.position.y = -0.05;
 
     const allPapers = new Text();
     allPapers.text = "              All Papers";
     allPapers.fontSize = 0.05;
     allPapers.userData.fontSize = 0.05;
-    allPapers.curveRadius = snapDistanceMenuValue;
+    allPapers.curveRadius = snapDistanceMenuValue + 0.1;
     allPapers.color = _colorBXmain;
     allPapers.textAlign = 'left';
     allPapers.font = _fontserif;
     boxMenu.add( allPapers );
-    allPapers.position.z = -snapDistanceMenuValue;
+    allPapers.position.z = -snapDistanceMenuValue - 0.1;
     allPapers.sync();
     allPapers.position.y = -0.25;
     allPapers.userData.type = 'boxMenu-all';
     allPapers.layers.enable( 3 );
+    boxMenuItems.push(allPapers);
 
     const longPapers = new Text();
     longPapers.text = "              Long Papers";
     longPapers.fontSize = 0.05;
     longPapers.userData.fontSize = 0.05;
-    longPapers.curveRadius = snapDistanceMenuValue;
+    longPapers.curveRadius = snapDistanceMenuValue + 0.1;
     longPapers.color = _colorBXmain;
     longPapers.textAlign = 'left';
     longPapers.font = _fontserif;
     boxMenu.add( longPapers );
-    longPapers.position.z = -snapDistanceMenuValue;
+    longPapers.position.z = -snapDistanceMenuValue - 0.1;
     longPapers.sync();
     longPapers.position.y = -0.35;
     longPapers.userData.type = 'boxMenu-long';
     longPapers.layers.enable( 3 );
+    boxMenuItems.push(longPapers);
 
     const shortPapers = new Text();
     shortPapers.text = "              Short Papers";
     shortPapers.fontSize = 0.05;
     shortPapers.userData.fontSize = 0.05;
-    shortPapers.curveRadius = snapDistanceMenuValue;
+    shortPapers.curveRadius = snapDistanceMenuValue + 0.1;
     shortPapers.color = _colorBXmain;
     shortPapers.textAlign = 'left';
     shortPapers.font = _fontserif;
     boxMenu.add( shortPapers );
-    shortPapers.position.z = -snapDistanceMenuValue;
+    shortPapers.position.z = -snapDistanceMenuValue - 0.1;
     shortPapers.sync();
     shortPapers.position.y = -0.45;
     shortPapers.userData.type = 'boxMenu-short';
     shortPapers.layers.enable( 3 );
+    boxMenuItems.push(shortPapers);
 
     const posters = new Text();
     posters.text = "              Posters";
     posters.fontSize = 0.05;
     posters.userData.fontSize = 0.05;
-    posters.curveRadius = snapDistanceMenuValue;
+    posters.curveRadius = snapDistanceMenuValue + 0.1;
     posters.color = _colorBXmain;
     posters.textAlign = 'left';
     posters.font = _fontserif;
     boxMenu.add( posters );
-    posters.position.z = -snapDistanceMenuValue;
+    posters.position.z = -snapDistanceMenuValue - 0.1;
     posters.sync();
     posters.position.y = -0.55;
     posters.userData.type = 'boxMenu-poster';
     posters.layers.enable( 3 );
+    boxMenuItems.push(posters);
 
     const workshops = new Text();
     workshops.text = "              Workshops";
     workshops.fontSize = 0.05;
     workshops.userData.fontSize = 0.05;
-    workshops.curveRadius = snapDistanceMenuValue;
+    workshops.curveRadius = snapDistanceMenuValue + 0.1;
     workshops.color = _colorBXmain;
     workshops.textAlign = 'left';
     workshops.font = _fontserif;
     boxMenu.add( workshops );
-    workshops.position.z = -snapDistanceMenuValue;
+    workshops.position.z = -snapDistanceMenuValue - 0.1;
     workshops.sync();
     workshops.position.y = -0.65;
     workshops.userData.type = 'boxMenu-workshop';
     workshops.layers.enable( 3 );
+    boxMenuItems.push(workshops);
 
     const byAuthor = new Text();
     byAuthor.text = "              By Author";
     byAuthor.fontSize = 0.05;
     byAuthor.userData.fontSize = 0.05;
-    byAuthor.curveRadius = snapDistanceMenuValue;
+    byAuthor.curveRadius = snapDistanceMenuValue + 0.1;
     byAuthor.color = _colorBXmain;
     byAuthor.textAlign = 'left';
     byAuthor.font = _fontserif;
     boxMenu.add( byAuthor );
-    byAuthor.position.z = -snapDistanceMenuValue;
+    byAuthor.position.z = -snapDistanceMenuValue - 0.1;
     byAuthor.sync();
     byAuthor.position.y = -0.85;
     byAuthor.userData.type = 'boxMenu-author';
     byAuthor.layers.enable( 3 );
+    boxMenuItems.push(byAuthor);
 
     const byInstitution = new Text();
     byInstitution.text = "              By Institution";
     byInstitution.fontSize = 0.05;
     byInstitution.userData.fontSize = 0.05;
-    byInstitution.curveRadius = snapDistanceMenuValue;
+    byInstitution.curveRadius = snapDistanceMenuValue + 0.1;
     byInstitution.color = _colorBXmain;
     byInstitution.textAlign = 'left';
     byInstitution.font = _fontserif;
     boxMenu.add( byInstitution );
-    byInstitution.position.z = -snapDistanceMenuValue;
+    byInstitution.position.z = -snapDistanceMenuValue - 0.1;
     byInstitution.sync();
     byInstitution.position.y = -0.95;
     byInstitution.userData.type = 'boxMenu-institution';
     byInstitution.layers.enable( 3 );
+    boxMenuItems.push(byInstitution);
 
-    const botbar = genBar( boxMenu, 0.5, 0.8 );
+    const botbar = genBar( boxMenu, 0.5, 0.8, snapDistanceMenuValue + 0.1 );
     botbar.position.y = -1.25;
 
     var yearTxt = globalLIB.year;
@@ -6507,14 +6841,14 @@ function initBoxMenu(argument) {        // The start menu box for selecting cate
     const year = new Text();
     year.text = preSmallPadder.concat(yearTxt);
     year.fontSize = 0.03;
-    year.curveRadius = snapDistanceMenuValue;
+    year.curveRadius = snapDistanceMenuValue + 0.1;
     year.color = _colorBXmain;
     year.maxWidth = 0.8;
     year.anchorY = "bottom";
     year.textAlign = 'center';
     year.font = _fontserifbold;
     boxMenu.add(year);
-    year.position.z = -snapDistanceMenuValue;
+    year.position.z = -snapDistanceMenuValue - 0.1;
     year.position.y = -1.35;
     year.sync();
 
@@ -6537,7 +6871,6 @@ function initBoxMenu(argument) {        // The start menu box for selecting cate
         }
         initBoxPreview( title, author, year, source, type );
     }
-
 
     initBoxCatalog('all');
     initBoxCatalog('long');
@@ -6784,9 +7117,11 @@ function stepBoxCatalog( parent, elements, step=0, lastText = undefined ) {
 
 
 function showBoxCatalog(argument) {     // Toggle the chosen box to display
-    consoleLog( argument );
+    // consoleLog( argument );
 
     showBoxPreview();
+
+    lockBoxMenu();
 
     for (var i = boxCatalogs.length - 1; i >= 0; i--) {
         if ( boxCatalogs[i].userData.catalog == argument ) {
@@ -6809,8 +7144,10 @@ function showBoxCatalog(argument) {     // Toggle the chosen box to display
                 if (currentDominant == 'right') {
                     boxCatalogs[i].rotation.y = boxMenu.rotation.y + ((2 + margin) / snapDistanceMenuValue);
                 } else {
-                    boxCatalogs[i].rotation.y = boxMenu.rotation.y - ((0.8 + margin) / snapDistanceMenuValue);
+                    boxCatalogs[i].rotation.y = boxMenu.rotation.y - ((0.78 + margin) / snapDistanceMenuValue);
                 }
+
+                lockBoxMenu( boxCatalogs[i] );
             } 
             catch {
                 console.log("Error while displaying the catalog - it might still be loading, so wait a short while and try again.");
@@ -6824,6 +7161,78 @@ function showBoxCatalog(argument) {     // Toggle the chosen box to display
     }
 
     
+}
+
+
+function lockBoxMenu( catalog = undefined ) {
+    if ( catalog != undefined ) {
+        // attach to catalog
+        catalog.attach( boxMenu );
+        boxMenuHidden = false;
+
+    } else {
+        // detach from catalogs
+        boxMenuHidden = undefined;
+        scene.attach(boxMenu);
+    }
+}
+
+
+var hideBoxMenuTimer = 0;
+const boxMenuTimerCap = 3.0;
+
+function tryHideBoxMenu( hide = true ) {
+
+    if ( hide && boxMenuHidden == false ) { hideBoxMenuTimer += deltaTime; }
+
+    // console.log( hideBoxMenuTimer );
+    
+    if ( hide && boxMenuHidden == false && hideBoxMenuTimer >= boxMenuTimerCap ) {
+
+        var rotvalue;
+
+        if ( currentDominant == 'right' ) {
+
+            rotvalue = - 1.45 / (snapDistanceMenuValue + 0.1);
+
+        } else if ( currentDominant == 'left' ) {
+
+            rotvalue = 0.2 / (snapDistanceMenuValue + 0.1);
+
+        }
+
+        new TWEEN.Tween( boxMenu.rotation )
+            .to( {y: rotvalue}, 600 )
+            .easing( TWEEN.Easing.Cubic.InOut )
+            .start()
+        ;
+
+        boxMenuHidden = true;
+        hideBoxMenuTimer = 0;
+
+    } else if ( !hide && boxMenuHidden == true ) {
+
+        hideBoxMenuTimer = 0;
+        boxMenuHidden = false;
+        var rotvalue;
+
+        if ( currentDominant == 'right' ) {
+
+            rotvalue = - 2.15 / (snapDistanceMenuValue + 0.1);
+
+        } else if ( currentDominant == 'left' ) {
+
+            rotvalue = 0.9 / (snapDistanceMenuValue + 0.1);
+
+        }
+
+        new TWEEN.Tween( boxMenu.rotation )
+            .to( {y: rotvalue}, 600 )
+            .easing( TWEEN.Easing.Cubic.InOut )
+            .start()
+        ;
+
+    }
 }
 
 
@@ -6844,9 +7253,9 @@ function showBoxPreview( target, height, catalog, freeform=false ) {     // Togg
             target.position.y = toolSelectorDotWorld.y + (height/2);
 
             if (currentDominant == 'right') {
-                target.rotation.y = catalog.rotation.y - ( 2 / (snapDistanceMapValue - 0.1) );
+                target.rotation.y = catalog.rotation.y - ( 2 / (snapDistanceMenuValue - 0.1) );
             } else {
-                target.rotation.y = catalog.rotation.y - ( 2 / (snapDistanceMapValue - 0.1) );
+                target.rotation.y = catalog.rotation.y - ( 2 / (snapDistanceMenuValue - 0.1) );
             }
 
         }
@@ -6869,8 +7278,8 @@ function showBoxPreview( target, height, catalog, freeform=false ) {     // Togg
         const margin = 0.2;
         const distance = snapDistanceMenuValue + 0.1;
 
-        const bar = genCurve( newClone, 1.2, 0.0025, snapDistanceMapValue - 0.15 );
-        bar.rotation.y = ((maxwidth/2) + 0.6) / (snapDistanceMapValue - 0.1);
+        const bar = genCurve( newClone, 1.2, 0.0025, snapDistanceMenuValue - 0.15 );
+        bar.rotation.y = ((maxwidth/2) + 0.6) / (snapDistanceMenuValue - 0.1);
         bar.position.y = -totalHeight - 0.1;
 
 
@@ -6909,7 +7318,7 @@ function showBoxPreview( target, height, catalog, freeform=false ) {     // Togg
         focusTxt.color = _colorBXmain;
         focusTxt.curveRadius = snapDistanceMenuValue - 0.1;
         focusTxt.fontSize = 0.030;
-        focusTxt.text = "FOCUS";
+        focusTxt.text = "EXPAND";
         focusTxt.anchorX = "left";
         focusTxt.sync();
 
@@ -6919,7 +7328,8 @@ function showBoxPreview( target, height, catalog, freeform=false ) {     // Togg
 
         focusTxt.layers.enable( 3 );
         focusTxt.userData.fontSize = focusTxt.fontSize;
-        focusTxt.userData.type = "boxpreview-focus";
+        // focusTxt.userData.type = "boxpreview-focus";
+        focusTxt.userData.type = "boxpreview-expand";
 
         newClone.userData.focusTxt = focusTxt;
 
@@ -7268,12 +7678,13 @@ if ( WebGL.isWebGLAvailable() ) {
                 tryBtns();
                 tryRecenter();
                 tryPointer();
-                tryMapSelector();
+                // tryMapSelector();
                 tryManna();
                 // tryQuickGestures();
                 // tryOffGestures();
 
                 tryVelocity();
+                tryHideBoxMenu();
 
                 animateCitationLines();
                 animateConsoleLog();
@@ -7341,19 +7752,35 @@ camera.position.z = 1;
 // quick push/pull while dragging to change snap distances
 // replace library with new interface
 // quickpinch to swap document back to preview
-
-// SETTING SUGGESTIONS:
-// left/right hand swap
-// default reading distance
-// pointer laser: always off | smart | always on
-// color palette swap
-// enable/disable debug mode
 // export workspace
 
 // WIP:
-// new main menu for library navigation
+
+// Mana menu settings:
+    // left/right hand swap
+    // default reading distance
+    // pointer laser: always off | smart | always on
+    // color palette swap
+    // enable/disable debug mode
+
+// swap hands sometimes disables pointer until mana menu is viewed again
 
 // COMPLETE THIS UPDATE:
-// new menu interaction: toggle between catalogs, quick select titles, and spawn preview boxes
-// extended max vertical space
-// box preview interactions
+
+// menu collapses to the side of the catalog after opening a catalog - can also be shown again by hover
+// when a catalog is open, the menu is attached to the catalog
+// when catalog is open, the selected item stays bold and has a dot indicator
+// remove abstract preview when tapping
+// abstract: remove focus button, replace with "expand"
+// abstract: remove quick tap function
+// document: remove close button
+// document: remove focus button, replace with "fold"
+// document: scroll nub gradient color must match background
+// document: adjusted margins for consistent spacing
+// document: reference button toggles references on/off and draws a line between the document and the reference content
+// document: "read" button changed to "body" (and then hide it for now)
+// higher contrast environment
+// document: default height reduced slightly
+// references: slight redesign to handle, focus, and popup menu to match current design
+// references: refined what is visible in the popup menu to avoid bugs
+// document: outline appear to the right of the paper - slight box that reveals the outline on hover
