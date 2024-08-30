@@ -28,13 +28,13 @@ import TWEEN from '@tweenjs/tween.js';
 // Popup menu text color
     const _colorTXpopu = 0xffffff;
 // Bounding box color - for document bounds and UI
-    const _colorBounds = 0x555555;
+    const _colorBounds = 0x999999;
 // Highlight for bounding box colors
     const _colorHBound = 0xaaaaaa;
 // Document menu bar text color
     const _colorTXmbar = 0xeeeeee;
 // Popup menu background color
-    const _colorBGpopu = 0x7c7c7c;
+    const _colorBGpopu = 0x999999;
 // Debug log text color
     const _colorTXclog = 0xffffff;
 // Text markup highlight colors
@@ -92,7 +92,9 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
 // Setup renderer color space
+var colorSpace = "linear";
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+// renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 // Disable foveation
 renderer.xr.setFoveation(0);
@@ -897,62 +899,86 @@ var openHandles = [];
 var toolSelectorGapSet = false;
 var toolSelectorCoreWorld = new THREE.Vector3;
 
-function setToolPositions() {
+function setToolPositions(reset = false) {
 
-    var runningRotQuaternion = [0.0,0.0,0.0,0.0];
-    var runningPosVector = [0.0,0.0,0.0];
+    if ( reset ) {
 
-    for (var i = toolSelectorSmoothSteps - 1; i >= 0; i--) {
-        var rotQuaternion = toolSelectorPrevRotations[i];
-        runningRotQuaternion[0] += rotQuaternion[0];
-        runningRotQuaternion[1] += rotQuaternion[1];
-        runningRotQuaternion[2] += rotQuaternion[2];
-        runningRotQuaternion[3] += rotQuaternion[3];
+        for (var i = toolSelectorSmoothSteps; i >= 0; i--) {
+            
+            // add the current wrist position & rotation to the end of the arrays
+            toolSelectorPrevRotations.push([wrist2.quaternion.x, wrist2.quaternion.y, wrist2.quaternion.z, wrist2.quaternion.w]);
+            toolSelectorPrevPositions.push([wrist2.position.x, wrist2.position.y, wrist2.position.z]);
+            // remove the first elements of the arrays
+            toolSelectorPrevRotations.shift();
+            toolSelectorPrevPositions.shift();
 
-        var posVector = toolSelectorPrevPositions[i];
-        runningPosVector[0] += posVector[0];
-        runningPosVector[1] += posVector[1];
-        runningPosVector[2] += posVector[2];
-    }
+        }
 
-    // add the current wrist position & rotation to the end of the arrays
-    toolSelectorPrevRotations.push([wrist2.quaternion.x, wrist2.quaternion.y, wrist2.quaternion.z, wrist2.quaternion.w]);
-    toolSelectorPrevPositions.push([wrist2.position.x, wrist2.position.y, wrist2.position.z]);
-    // remove the first elements of the arrays
-    toolSelectorPrevRotations.shift();
-    toolSelectorPrevPositions.shift();
+        // Move the tool
+        toolSelector.position.set( wrist2.position.x, wrist2.position.y, wrist2.position.z );
+        toolSelector.quaternion.set( wrist2.quaternion.x, wrist2.quaternion.y, wrist2.quaternion.z, wrist2.quaternion.w );
 
-    // Move the tool to 'chase' the destination average (reduce jitter)
-    toolSelector.position.set( runningPosVector[0] / toolSelectorSmoothSteps, runningPosVector[1] / toolSelectorSmoothSteps, runningPosVector[2] / toolSelectorSmoothSteps );
-    toolSelector.quaternion.set( runningRotQuaternion[0] / toolSelectorSmoothSteps, runningRotQuaternion[1] / toolSelectorSmoothSteps, runningRotQuaternion[2] / toolSelectorSmoothSteps, runningRotQuaternion[3] / toolSelectorSmoothSteps );
+        // Set the cast group to the core location
+        toolSelectorCore.getWorldPosition( toolSelectorCoreWorld );
+        toolSelectorCast.position.set( toolSelectorCoreWorld.x, toolSelectorCoreWorld.y, toolSelectorCoreWorld.z );
 
-    // Set the cast group to the core location
-    toolSelectorCore.getWorldPosition( toolSelectorCoreWorld );
-    toolSelectorCast.position.set( toolSelectorCoreWorld.x, toolSelectorCoreWorld.y, toolSelectorCoreWorld.z );
+    } else {
 
-    // Move the floating point (raycaster source) to the appropiate position
-    if (!toolSelectorGapSet && toolSelectorActive) {
-        toolSelectorFloatingPoint.position.set( wrist2.position.x, wrist2.position.y, wrist2.position.z );
-        toolSelectorFloatingPoint.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
-        toolSelectorFloatingPoint.translateZ( 0.55 );
-        toolSelectorGapSet = true;
-    }
+        var runningRotQuaternion = [0.0,0.0,0.0,0.0];
+        var runningPosVector = [0.0,0.0,0.0];
 
-    // Rotate the tool selector core to match the angle between the floating point and the tool tip
-    if (toolSelectorActive) {
+        for (var i = toolSelectorSmoothSteps - 1; i >= 0; i--) {
+            var rotQuaternion = toolSelectorPrevRotations[i];
+            runningRotQuaternion[0] += rotQuaternion[0];
+            runningRotQuaternion[1] += rotQuaternion[1];
+            runningRotQuaternion[2] += rotQuaternion[2];
+            runningRotQuaternion[3] += rotQuaternion[3];
 
-        var newRot = new THREE.Quaternion().setFromRotationMatrix(
-            new THREE.Matrix4().lookAt( toolSelectorFloatingPoint.position, tempSelectorWorld, _ybackward ) 
-        );
-        toolSelectorCast.quaternion.copy( newRot );
+            var posVector = toolSelectorPrevPositions[i];
+            runningPosVector[0] += posVector[0];
+            runningPosVector[1] += posVector[1];
+            runningPosVector[2] += posVector[2];
+        }
 
-    }
+        // add the current wrist position & rotation to the end of the arrays
+        toolSelectorPrevRotations.push([wrist2.quaternion.x, wrist2.quaternion.y, wrist2.quaternion.z, wrist2.quaternion.w]);
+        toolSelectorPrevPositions.push([wrist2.position.x, wrist2.position.y, wrist2.position.z]);
+        // remove the first elements of the arrays
+        toolSelectorPrevRotations.shift();
+        toolSelectorPrevPositions.shift();
 
-    // if distance between camera and pointer is outside of bounds, reset the floating point position
-    if (toolSelectorActive) {
-        let toolSelectorRayGap = toolSelectorFloatingPoint.position.distanceTo(tempSelectorWorld);
-        if (toolSelectorRayGap < 0.3) {
-            toolSelectorGapSet = false;
+        // Move the tool to 'chase' the destination average (reduce jitter)
+        toolSelector.position.set( runningPosVector[0] / toolSelectorSmoothSteps, runningPosVector[1] / toolSelectorSmoothSteps, runningPosVector[2] / toolSelectorSmoothSteps );
+        toolSelector.quaternion.set( runningRotQuaternion[0] / toolSelectorSmoothSteps, runningRotQuaternion[1] / toolSelectorSmoothSteps, runningRotQuaternion[2] / toolSelectorSmoothSteps, runningRotQuaternion[3] / toolSelectorSmoothSteps );
+
+        // Set the cast group to the core location
+        toolSelectorCore.getWorldPosition( toolSelectorCoreWorld );
+        toolSelectorCast.position.set( toolSelectorCoreWorld.x, toolSelectorCoreWorld.y, toolSelectorCoreWorld.z );
+
+        // Move the floating point (raycaster source) to the appropiate position
+        if (!toolSelectorGapSet && toolSelectorActive) {
+            toolSelectorFloatingPoint.position.set( wrist2.position.x, wrist2.position.y, wrist2.position.z );
+            toolSelectorFloatingPoint.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
+            toolSelectorFloatingPoint.translateZ( 0.55 );
+            toolSelectorGapSet = true;
+        }
+
+        // Rotate the tool selector core to match the angle between the floating point and the tool tip
+        if (toolSelectorActive) {
+
+            var newRot = new THREE.Quaternion().setFromRotationMatrix(
+                new THREE.Matrix4().lookAt( toolSelectorFloatingPoint.position, tempSelectorWorld, _ybackward ) 
+            );
+            toolSelectorCast.quaternion.copy( newRot );
+
+        }
+
+        // if distance between camera and pointer is outside of bounds, reset the floating point position
+        if (toolSelectorActive) {
+            let toolSelectorRayGap = toolSelectorFloatingPoint.position.distanceTo(tempSelectorWorld);
+            if (toolSelectorRayGap < 0.3) {
+                toolSelectorGapSet = false;
+            }
         }
     }
     
@@ -1003,8 +1029,9 @@ var toolSelectorFading = false;
 var raycaster = new THREE.Raycaster();
 raycaster.layers.set( 3 );
 
+var toolSelectorBeamCustomRules = false;
+
 function tryPointer() {
-    animateTools();
     let fingersMaxDist = 0.09;
     let fingersMinDist = 0.07;
     let fingersCurDist = thumbTip2.position.distanceTo(indexFingerTip2.position);
@@ -1016,11 +1043,24 @@ function tryPointer() {
     && middleFingerTip2.position.distanceTo(wrist2.position) < 0.13 && !isMannaUsed
     ) {
 
+        // Custom rules for the pointer
+        if ( toolSelectorBeamCustomRules ) {
+            toolSelectorTip.visible = true;
+            toolSelectorTip.scale.set( 1,1,1 );
+            toolSelectorTip2.visible = true;
+            toolSelectorTip2.scale.set( 1,1,1 );
+            toolSelectorBeam.visible = true;
+        }
+
+        // Clear the smooth step history
+        setToolPositions(true);
+
+
         toolSelectorActive = true;
         toolSelectorTimer += deltaTime;
 
         // Animate in the selector core
-        if (!tempSelectorTweenedIn && tempSelectorTweenedOut) {
+        if (!tempSelectorTweenedIn && tempSelectorTweenedOut && !toolSelectorBeamCustomRules) {
             tempSelectorTweenedOut = false;
 
             toolSelectorTip.visible = toolSelectorVisible;
@@ -1054,7 +1094,7 @@ function tryPointer() {
         }
 
         // Fade the line if the user hasn't been pointing at anything for awhile
-        if (toolSelectorTimer >= toolSelectorTimeout && !toolSelectorFading && toolColorMat.opacity < 1) {
+        if (toolSelectorTimer >= toolSelectorTimeout && !toolSelectorFading && toolColorMat.opacity < 1 && !toolSelectorBeamCustomRules) {
             consoleLog("POINTER: Fade in");
             toolSelectorVisible = true;
 
@@ -1072,7 +1112,7 @@ function tryPointer() {
             .onComplete(() => {
                 toolSelectorFading = false;
             });
-        } else if (toolSelectorTimer < toolSelectorTimeout && !toolSelectorFading && toolColorMat.opacity > 0) {
+        } else if (toolSelectorTimer < toolSelectorTimeout && !toolSelectorFading && toolColorMat.opacity > 0 && !toolSelectorBeamCustomRules) {
             consoleLog("POINTER: Fade out");
             toolSelectorFading = true;
             const toolSelectorFadeOutTween = new TWEEN.Tween( toolColorMat )
@@ -1231,7 +1271,7 @@ function tryPointer() {
         tryCloseHandles();
 
         // Animate out the selector core
-        if (tempSelectorTweenedIn && !tempSelectorTweenedOut) {
+        if (tempSelectorTweenedIn && !tempSelectorTweenedOut && !toolSelectorBeamCustomRules) {
             tempSelectorTweenedIn = false;
             toolSelectorBeam.visible = false;
             
@@ -1261,9 +1301,17 @@ function tryPointer() {
                         toolSelectorDot.visible = false;
                     });
 
+        } else if ( toolSelectorBeamCustomRules ) {
+            toolSelectorTip.visible = false;
+            toolSelectorTip.scale.set( 0,0,0 );
+            toolSelectorTip2.visible = false;
+            toolSelectorTip2.scale.set( 0,0,0 );
+            toolSelectorBeam.visible = false;
         }
 
     }
+
+    animateTools();
 
 }
 
@@ -1423,6 +1471,11 @@ function tryPointerOver(object) {
             .easing( TWEEN.Easing.Quadratic.Out )
             .start();
 
+            new TWEEN.Tween( outlineGroupBG.scale )
+            .to( { y: outlineGroupBG.userData.scaleDefault }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
             new TWEEN.Tween( outlineBar.scale )
             .to( { y: outlineBar.userData.scaleOut }, 300 )
             .easing( TWEEN.Easing.Quadratic.Out )
@@ -1451,6 +1504,11 @@ function tryPointerOver(object) {
 
             new TWEEN.Tween( outlineGroupBG.rotation )
             .to( { y: 0 }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( outlineGroupBG.scale )
+            .to( { y: outlineGroupBG.userData.scaleDefault * 4 }, 300 )
             .easing( TWEEN.Easing.Quadratic.Out )
             .start();
 
@@ -1951,19 +2009,25 @@ function tryPointerSelect(object) {
                 reclipDocument(docGroup);
             })
             .onComplete(() => {
-                docGroup.parent.remove(docGroup);
+                try { 
 
-                const title = docGroup.userData.title;
-                for (var i = boxPreviews.length - 1; i >= 0; i--) {
-                    if ( title == boxPreviews[i].userData.title ) {
+                    docGroup.parent.remove(docGroup); 
 
-                        const boxpreview = boxPreviews[i];
-                        const height = boxpreview.userData.totalHeight;
-                        const catalog = docGroup;
-                        showBoxPreview( boxpreview, height, catalog, true );
+                    if (!collapsing) {
+                        const title = docGroup.userData.title;
+                        for (var i = boxPreviews.length - 1; i >= 0; i--) {
+                            if ( title == boxPreviews[i].userData.title ) {
 
+                                const boxpreview = boxPreviews[i];
+                                const height = boxpreview.userData.totalHeight;
+                                const catalog = docGroup;
+
+                                showBoxPreview( boxpreview, height, catalog, true );
+
+                            }
+                        } 
                     }
-                }
+                } catch {};
 
                 if (docGroup.userData.references != undefined) {
                     const allRefs = docGroup.userData.references;
@@ -2135,7 +2199,9 @@ function tryPointerSelect(object) {
 
         if ( targetValue == "close" ) {
 
-            object.parent.parent.remove(object.parent);
+            try {
+                object.parent.parent.remove(object.parent);
+            } catch {}
 
         } else if ( targetValue == "focus" ) {
 
@@ -2220,21 +2286,21 @@ function tryQuickPointerSelect(object) {
         // const catalog = object.parent.parent;
         // showBoxPreview( boxpreview, height, catalog );
 
-        const topLine = object.parent.parent.userData.topLine;
-        const botLine = object.parent.parent.userData.botLine;
-        const topPos = object.userData.topPos;
-        const botPos = object.userData.botPos;
-        const time = 300;
+        // const topLine = object.parent.parent.userData.topLine;
+        // const botLine = object.parent.parent.userData.botLine;
+        // const topPos = object.userData.topPos;
+        // const botPos = object.userData.botPos;
+        // const time = 300;
 
-        new TWEEN.Tween( topLine.position )
-            .to( {y: topPos - 0.02}, time )
-            .easing( TWEEN.Easing.Cubic.Out )
-            .start();
+        // new TWEEN.Tween( topLine.position )
+        //     .to( {y: topPos - 0.02}, time )
+        //     .easing( TWEEN.Easing.Cubic.Out )
+        //     .start();
 
-        new TWEEN.Tween( botLine.position )
-            .to( {y: botPos}, time )
-            .easing( TWEEN.Easing.Cubic.Out )
-            .start();
+        // new TWEEN.Tween( botLine.position )
+        //     .to( {y: botPos}, time )
+        //     .easing( TWEEN.Easing.Cubic.Out )
+        //     .start();
 
     } else if ( object.userData.type == "boxMenu-background" ) {
 
@@ -2271,13 +2337,8 @@ var newPopup;
 var tempWorldPos = new THREE.Vector3();
 var tempWorldQuat = new THREE.Quaternion();
 
-var popupMat = new THREE.MeshStandardMaterial({ 
-    color: _colorBGpopu,
-    transparent: false,
-    roughness: 0.92,
-    metalness: 0,
-    normalScale: new THREE.Vector2( 1, 1 ),
-    normalMap: normalNone
+var popupMat = new THREE.MeshBasicMaterial({ 
+    color: _colorBGpopu
 });
 
 var centerSource = new THREE.Vector3();
@@ -2735,14 +2796,15 @@ function displayCitation(text, object, docGroup = undefined) {
     syncCheck.push(temporaryCitation);
     
     // Citation line
-    createLine(object, temporaryCitation);
+    const newLine = createLine(object, temporaryCitation);
+    docGroup.userData.references.push( newLine );
 
 }
 
 
 function createLine(object, target, persistent = false) {
     const lineGeo = new THREE.BoxGeometry( 0.001, 0.001, 1 );
-    const lineMat = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+    const lineMat = new THREE.MeshBasicMaterial( { color: _colorBGread } );
     var temporaryCitationLine = new THREE.Mesh( lineGeo, lineMat );
 
     workspace.add(temporaryCitationLine);
@@ -2874,7 +2936,6 @@ function displayTextBlock(head, text, source, docGroup = undefined, lineTarget =
 
     textGroup.add(headText)
     workspace.add(textGroup);
-    textGroup.rotation.y = camera.rotation.y;
 
     let textOffset = -0.03;
     let totalTextOffset = textOffset;
@@ -2894,6 +2955,10 @@ function displayTextBlock(head, text, source, docGroup = undefined, lineTarget =
     tempTextBlock.userData.type = "preview";
 
     let specialReaderOffset = Math.random(0.001, -0.001);
+
+    if (docGroup != undefined && docGroup.userData.specialReaderOffset != undefined) {
+        specialReaderOffset = docGroup.userData.specialReaderOffset + 0.01;
+    }
 
     tempTextBlock.position.set( 0, 0.0, -snapDistanceOneValue - specialReaderOffset );
 
@@ -2982,6 +3047,28 @@ function displayTextBlock(head, text, source, docGroup = undefined, lineTarget =
     textGroup.userData.textBlock = textBlock;
     textGroup.userData.specialReaderOffset = specialReaderOffset;
     snapDistanceOne.push(textGroup);
+
+
+    if ( docGroup == undefined ) {
+        textGroup.rotation.y = camera.rotation.y;
+    } else {
+        textGroup.rotation.y = docGroup.rotation.y;
+        textGroup.position.y = docGroup.position.y;
+        textGroup.scale.y = 0;
+
+        new TWEEN.Tween( textGroup.rotation )
+            .to( {y: textGroup.rotation.y - ( 2.0 / (snapDistanceOneValue + specialReaderOffset) ) }, 700 )
+            .easing( TWEEN.Easing.Cubic.Out )
+            .start();
+
+        new TWEEN.Tween( textGroup.scale )
+            .to( { y: 1 }, 500 )
+            .easing( TWEEN.Easing.Cubic.Out )
+            .start();
+
+
+    }
+    
 
 }
 
@@ -3215,9 +3302,10 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         refText.layers.enable( 3 );
         refText.userData.layers = 3;
 
-        let focusText = newMenuBarText( 'Fold', 0.02, menuBar, 'menubarFold', docGroup );
+        let focusText = newMenuBarText( 'Collapse', 0.02, menuBar, 'menubarFold', docGroup );
         focusText.layers.enable( 3 );
         focusText.userData.layers = 3;
+        toCollapse.push(focusText);
         // docGroup.userData.menubarFocus = focusText;
 
         // Add grip handles for the top and bottom
@@ -3449,7 +3537,8 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         const outbg = new THREE.Mesh( outlinebgGeo, invisMat );
         outlineGroup.add(outbg);
-        outbg.scale.y = totalHeight;
+        outbg.scale.y = totalHeight * 4;
+        outbg.userData.scaleDefault = totalHeight;
         outbg.layers.enable( 3 );
         outbg.userData.type = "docoutline-bg";
         outlineGroup.userData.outbg = outbg;
@@ -3625,6 +3714,8 @@ function scrollDocument(docGroup) {
 
 }
 
+var toCollapse = [];
+var collapsing = false;
 
 function newMenuBarText(text, xpos, parent, type, docGroup, align = 'left') {
     const specialReaderOffset = docGroup.userData.specialReaderOffset;
@@ -4118,7 +4209,7 @@ function createHandle(object, variant = undefined) {
     childMesh.translateZ( 0.001 );
 
     if ( variant == "useParentY" ) {
-        boundingMesh.position.set( object.position.x, object.parent.position.y - height/2 + 0.036, object.position.z );
+        boundingMesh.position.set( object.position.x, 0.0 - height/2 + 0.036, object.position.z );
     } else if ( variant == "document" ) {
         boundingMesh.position.set( object.position.x, object.parent.parent.position.y + clippingStart + (clippingEnd - clippingStart)/2, object.position.z );
     } else {
@@ -5675,11 +5766,12 @@ function animateRays() {
 }
 
 
-const loaderSize = 0.8;
+const loaderSize = 0.4;
 var loaderGeo = new THREE.PlaneGeometry(loaderSize, loaderSize);
 var loaderMat = new THREE.MeshBasicMaterial( {
         map: new THREE.TextureLoader().load(
-            './ray-2.png'
+            // './ray-2.png' <-- orange loading circle
+            './ray-3.png'
     ),
         transparent: true,
         side: THREE.DoubleSide,
@@ -5713,7 +5805,7 @@ function removeLoader(object) {
 function animateLoader() {
     if (allLoaders.length > 0) {
         for (var i = allLoaders.length - 1; i >= 0; i--) {
-            allLoaders[i].rotateZ(-5 * deltaTime);
+            allLoaders[i].rotateZ(-7 * deltaTime);
         }
     }
 }
@@ -6180,36 +6272,69 @@ function initManna() {
     newMannaLabel(manna00000, "Swap Hands", true);
 
 /*1*/ const manna10000 = newMannaRing( thumbTip1,
-    /* connections */ [ 0,1,2,3,4,5 ],
-    /* labels */      [ 0,2,3,4,5 ],
+    /* connections */ [ 0,1,2,3,4,5,9 ],
+    /* labels */      [ 0,2,3,4,5,9 ],
     /* offset */      [ 0.0, 0.0, 0.0 ] );
-    newMannaLabel(manna10000, "Find");
+    newMannaLabel(manna10000, "Reset Space");
+
+    /*2-2*/ const manna11000 = newMannaRing( manna10000,
+        /* connections */ [ 0,1,2,3,4,5,9 ],
+        /* labels */      [ 0,2,3,4,5,9 ],
+        /* offset */      [ 0.015, 0.035, 0.0 ],
+        /* function */    'reset' );
+        newMannaLabel(manna11000, "Confirm?", true);
+        newMannaLine(manna11000, 0.026, -24, [0.001,0,0], true);
 
 /*2*/ const manna20000 = newMannaRing( indexFingerTip1,
-    /* connections */ [ 0,1,2,3,4,5 ],
-    /* labels */      [ 0,1,3,4,5 ],
+    /* connections */ [ 0,1,2,3,4,5,6,7,8 ],
+    /* labels */      [ 0,1,3,4,5,6,7,8 ],
     /* offset */      [ 0.0, 0.0, 0.0 ] );
-    newMannaLabel(manna20000, "Category");
+    newMannaLabel(manna20000, "Pointer Beam");
+
+    /*2-1*/ const manna21000 = newMannaRing( manna20000,
+        /* connections */ [ 0,1,2,3,4,5,6 ],
+        /* labels */      [ 0,1,3,4,5,6 ],
+        /* offset */      [ -0.01, 0.05, 0.0 ],
+        /* function */    'pointeron' );
+        newMannaLabel(manna21000, "Always On", true);
+        newMannaLine(manna21000, 0.039, 11, [-0.001,0,0]);
+
+    /*2-2*/ const manna22000 = newMannaRing( manna20000,
+        /* connections */ [ 0,1,2,3,4,5,7 ],
+        /* labels */      [ 0,1,3,4,5,7 ],
+        /* offset */      [ 0.015, 0.035, 0.0 ],
+        /* function */    'pointersmart' );
+        newMannaLabel(manna22000, "Smart Assist", true);
+        newMannaLine(manna22000, 0.026, -24, [0.001,0,0]);
+
+    /*2-3*/ const manna23000 = newMannaRing( manna20000,
+        /* connections */ [ 0,1,2,3,4,5,8 ],
+        /* labels */      [ 0,1,3,4,5,8 ],
+        /* offset */      [ 0.04, 0.02, 0.0 ],
+        /* function */    'pointeroff' );
+        newMannaLabel(manna23000, "Always Off", true);
+        newMannaLine(manna23000, 0.034, -63, [0.002,-0.002,0]);
 
 /*3*/ const manna30000 = newMannaRing( middleFingerTip1,
     /* connections */ [ 0,1,2,3,4,5 ],
     /* labels */      [ 0,1,2,4,5 ],
-    /* offset */      [ 0.0, 0.0, 0.0 ] );
-    newMannaLabel(manna30000, "View");
+    /* offset */      [ 0.0, 0.0, 0.0 ],
+    /* function */    'togglecolorspace' );
+    newMannaLabel(manna30000, "Toggle Contrast");
 
 /*4*/ const manna40000 = newMannaRing( ringFingerTip1,
     /* connections */ [ 0,1,2,3,4,5 ],
     /* labels */      [ 0,1,2,3,5 ],
-    /* offset */      [ 0.0, 0.0, 0.0 ] );
-    newMannaLabel(manna40000, "Annotations");
+    /* offset */      [ 0.0, 0.0, 0.0 ],
+    /* function */    'toggledebug' );
+    newMannaLabel(manna40000, "Toggle Debug");
 
 /*5*/ const manna50000 = newMannaRing( pinkyFingerTip1,
     /* connections */ [ 0,1,2,3,4,5 ],
     /* labels */      [ 0,1,2,3,4 ],
-    /* offset */      [ 0.0, 0.0, 0.0 ] );
-    newMannaLabel(manna50000, "Focus");
-
-
+    /* offset */      [ 0.0, 0.0, 0.0 ],
+    /* function */    'exit' );
+    newMannaLabel(manna50000, "Exit Space");
 
 
 
@@ -6239,7 +6364,7 @@ function initManna() {
     mannaNodes = mannaBases;
 
     // Array of all manna nodes, including inactive ones
-    mannaArray = [manna00000,manna10000,manna20000,manna30000,manna40000,manna50000];
+    mannaArray = [manna00000,manna10000,manna20000,manna30000,manna40000,manna50000,manna21000,manna22000,manna23000,manna11000];
 
     // Hide all manna
     mannaDot.visible = false;
@@ -6375,7 +6500,6 @@ function newMannaLabel(parent, label = "label", offsetObj = false, color = _colo
 }
 
 var debugMannaLine;
-
 
 $( '#debugBtn' ).on( 'click', function() {
     const length = $( '#length' ).val();
@@ -6580,6 +6704,82 @@ function triggerManna(funct) {
 
     if ( funct == "swaphands" ) {
         swapHands();
+    } else if ( funct == "exit" ) {
+        renderer.xr.getSession().end();
+    } else if ( funct == "pointeron" ) {
+        toolSelectorBeamCustomRules = true;
+
+        toolSelectorTip.visible = true;
+        toolSelectorTip.scale.set( 1,1,1 );
+        toolSelectorTip2.visible = true;
+        toolSelectorTip2.scale.set( 1,1,1 );
+        toolSelectorBeam.visible = true;
+
+        const toolSelectorFadeInTween = new TWEEN.Tween( toolColorMat )
+            .to( { opacity: 1 }, 500 )
+            .easing( TWEEN.Easing.Linear.None )
+            .start()
+
+    } else if ( funct == "pointersmart" ) {
+        toolSelectorBeamCustomRules = false;
+
+    } else if ( funct == "pointeroff" ) {
+        toolSelectorBeamCustomRules = true;
+
+        const toolSelectorFadeInTween = new TWEEN.Tween( toolColorMat )
+            .to( { opacity: 0 }, 500 )
+            .easing( TWEEN.Easing.Linear.None )
+            .start()
+            .onComplete(() => {
+                toolSelectorTip.visible = false;
+                toolSelectorTip.scale.set( 0,0,0 );
+                toolSelectorTip2.visible = false;
+                toolSelectorTip2.scale.set( 0,0,0 );
+                toolSelectorBeam.visible = false;
+        });
+
+    } else if ( funct == "toggledebug" ) {
+
+        if (debugMode) {
+            debugMode = false;
+        } else {
+            debugMode = true;
+        }
+        showDebug();
+
+    } else if ( funct == "togglecolorspace" ) {
+
+        if ( colorSpace == "linear" ) {
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            colorSpace = "srgb";
+        } else if ( colorSpace == "srgb" ) {
+            renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+            colorSpace = "linear";
+        }
+
+        renderer.xr.getSession().end();
+
+    } else if ( funct == "reset" ) {
+        collapsing = true;
+        for (var i = toCollapse.length - 1; i >= 0; i--) {
+            tryPointerSelect(toCollapse[i]);
+        }
+
+        toCollapse = [];
+        showBoxCatalog('none');
+
+        for (var i = boxMenuItems.length - 1; i >= 0; i--) {
+                boxMenuItems[i].userData.bold = undefined;
+                boxMenuItems[i].font = _fontserif;
+            }
+
+        boxMenuDot.visible = false;
+        boxMenuDot.position.set( 0, 0, 0 );
+
+        setTimeout(() => {
+            collapsing = false;
+        }, 1000);
+
     }
 
 }
@@ -7292,6 +7492,8 @@ function showBoxPreview( target, height, catalog, freeform=false ) {     // Togg
         closeTxt.anchorX = "right";
         closeTxt.sync();
 
+        toCollapse.push(closeTxt);
+
         closeTxt.position.y = -totalHeight - 0.2;
         closeTxt.rotation.y = (((maxwidth+0.1)/2) - 0.03) / -distance;
         closeTxt.translateZ( -snapDistanceMenuValue + 0.1 );
@@ -7674,7 +7876,7 @@ if ( WebGL.isWebGLAvailable() ) {
 
             if (firstInit && secondInit) { // This runs every frame after first initialization
                 trySwipe();
-                tryMenu();
+                // tryMenu();
                 tryBtns();
                 tryRecenter();
                 tryPointer();
@@ -7732,6 +7934,7 @@ camera.position.z = 1;
 // BUGS:
 // Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
 // nearby select feature of the document background doesn't work on loaded workspaces
+// swap hands sometimes disables pointer until mana menu is viewed again
 
 // NOTES:
 // pass info to llm (chatgpt or claude) and return
@@ -7763,24 +7966,18 @@ camera.position.z = 1;
     // color palette swap
     // enable/disable debug mode
 
-// swap hands sometimes disables pointer until mana menu is viewed again
 
 // COMPLETE THIS UPDATE:
 
-// menu collapses to the side of the catalog after opening a catalog - can also be shown again by hover
-// when a catalog is open, the menu is attached to the catalog
-// when catalog is open, the selected item stays bold and has a dot indicator
-// remove abstract preview when tapping
-// abstract: remove focus button, replace with "expand"
-// abstract: remove quick tap function
-// document: remove close button
-// document: remove focus button, replace with "fold"
-// document: scroll nub gradient color must match background
-// document: adjusted margins for consistent spacing
-// document: reference button toggles references on/off and draws a line between the document and the reference content
-// document: "read" button changed to "body" (and then hide it for now)
-// higher contrast environment
-// document: default height reduced slightly
-// references: slight redesign to handle, focus, and popup menu to match current design
-// references: refined what is visible in the popup menu to avoid bugs
-// document: outline appear to the right of the paper - slight box that reveals the outline on hover
+// lighter grip and popup menu
+// "fold" changed to "collapse"
+// version is now "acm" for the conference build
+// removed the selection lines from the catalog view
+// new white loading circle for documents
+// references now load relative to their parent document and have a transition on their first appearance
+// refined hit detection for outline
+// added mana menu option to exit XR
+// added mana menu options to set pointer beam to "always on" / "smart assist" / "always off"
+// added mana menu option to toggle debug mode
+// added mana menu option to toggle contrast (old colorspace and new)
+// added mana menu option to close all elements and reset the space (with a confirmation)

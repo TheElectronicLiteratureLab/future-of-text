@@ -175,6 +175,7 @@ body {
 #debugmode {
   position: fixed;
   color: white;
+  display: none;
 }
 
 #debugmode > label {
@@ -190,11 +191,23 @@ body {
 
 #description {
   position: fixed;
-  bottom: -25px;
+  top: -25px;
   margin: 10px;
   color: white;
 }
 
 #description span {
   font-style: italic;
+}
+
+
+
+#demotext {
+  position: fixed;
+  bottom: 0px;
+  max-width: 480px;
+  right: 15px;
+  color: #aaa;
+  text-align: justify;
+  font-size: 0.85em;
 }
