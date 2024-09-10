@@ -52,7 +52,7 @@ import TWEEN from '@tweenjs/tween.js';
 // Manna text color
     const _colorManaT = 0xffffff;
 // Hand model color
-    const _colorHands = 0x000000;
+    const _colorHands = 0x222222;
 // Box menu border color
     const _colorBXmain = 0xffffff;
 
@@ -2022,7 +2022,7 @@ function tryPointerSelect(object) {
                                 const height = boxpreview.userData.totalHeight;
                                 const catalog = docGroup;
 
-                                showBoxPreview( boxpreview, height, catalog, true );
+                                showBoxPreview( boxpreview, height, catalog, true, true );
 
                             }
                         } 
@@ -2422,7 +2422,7 @@ function popupMenu(target, variation = "citation") {
     // FIND IN DOCUMENT popup button
             const popupFind = new Text();
             scene.add(popupFind);
-            popupFind.text = "Find in Document";
+            popupFind.text = "Show in Document";
             popupFind.fontSize = 0.02;
             popupFind.userData.fontSize = 0.02;
             popupFind.color = _colorTXpopu;
@@ -2748,7 +2748,8 @@ function displayCitation(text, object, docGroup = undefined) {
     temporaryCitation = new Text();
     temporaryCitation.text = text;
     // temporaryCitation.userData.text = text;
-    temporaryCitation.fontSize = 0.015;
+    // temporaryCitation.fontSize = 0.015;
+    temporaryCitation.fontSize = 0.020;
     temporaryCitation.color = _colorTXalts;
     temporaryCitation.anchorX = 'left';
     temporaryCitation.anchorY = 'top';
@@ -3056,16 +3057,24 @@ function displayTextBlock(head, text, source, docGroup = undefined, lineTarget =
         textGroup.position.y = docGroup.position.y;
         textGroup.scale.y = 0;
 
-        new TWEEN.Tween( textGroup.rotation )
-            .to( {y: textGroup.rotation.y - ( 2.0 / (snapDistanceOneValue + specialReaderOffset) ) }, 700 )
-            .easing( TWEEN.Easing.Cubic.Out )
-            .start();
+        // new TWEEN.Tween( textGroup.rotation )
+        //     .to( {y: textGroup.rotation.y - ( 2.0 / (snapDistanceOneValue + specialReaderOffset) ) }, 700 )
+        //     .easing( TWEEN.Easing.Cubic.Out )
+        //     .start();
 
         new TWEEN.Tween( textGroup.scale )
-            .to( { y: 1 }, 500 )
+            .to( { y: 1 }, 700 )
             .easing( TWEEN.Easing.Cubic.Out )
             .start();
 
+        const docBot = docGroup.userData.clippingEnd.getWorldPosition( tempWorldPos );
+
+        // new TWEEN.Tween( textGroup.position )
+        //     .to( {y: tempWorldPos.y - 0.15 }, 700 )
+        //     .easing( TWEEN.Easing.Cubic.Out )
+        //     .start();
+
+        textGroup.position.y = tempWorldPos.y - 0.15;
 
     }
     
@@ -3298,11 +3307,11 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         // outlineText.layers.enable( 3 );
         // outlineText.userData.layers = 3;
         // let rightDividerText = newMenuBarText( '|', ( documentMaxWidth + documentMargin*2 )/2 + 0.00, menuBar, undefined, docGroup, 'center' );
-        let refText = newMenuBarText( 'References', ( documentMaxWidth + documentMargin*2 )/2 + 0.00, menuBar, 'menubarRef', docGroup, 'center' );
+        let refText = newMenuBarText( 'REFERENCES', ( documentMaxWidth + documentMargin*2 )/2 + 0.00, menuBar, 'menubarRef', docGroup, 'center' );
         refText.layers.enable( 3 );
         refText.userData.layers = 3;
 
-        let focusText = newMenuBarText( 'Collapse', 0.02, menuBar, 'menubarFold', docGroup );
+        let focusText = newMenuBarText( 'COLLAPSE', 0.02, menuBar, 'menubarFold', docGroup );
         focusText.layers.enable( 3 );
         focusText.userData.layers = 3;
         toCollapse.push(focusText);
@@ -3522,7 +3531,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             outlineBlock[i].translateY( totalHeight/2 );
         }
 
-        outlineGroup.userData.rotationOut = -(documentMaxWidth + documentMargin + 0.01) / (snapDistanceOneValue + specialReaderOffset);
+        outlineGroup.userData.rotationOut = -(documentMaxWidth + documentMargin + 0.07) / (snapDistanceOneValue + specialReaderOffset);
         outlineGroup.userData.rotationIn = -(documentMaxWidth + documentMargin - 0.8) / (snapDistanceOneValue + specialReaderOffset);
         outlineGroup.rotation.y = outlineGroup.userData.rotationIn;
         outlineGroup.userData.isOut = false;
@@ -3537,8 +3546,15 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         const outbg = new THREE.Mesh( outlinebgGeo, invisMat );
         outlineGroup.add(outbg);
-        outbg.scale.y = totalHeight * 4;
-        outbg.userData.scaleDefault = totalHeight;
+        
+        if ( totalHeight < 0.4 ) {
+            outbg.scale.y = 0.4 * 4;
+            outbg.userData.scaleDefault = 0.4;
+        } else {
+            outbg.scale.y = totalHeight * 4;
+            outbg.userData.scaleDefault = totalHeight;
+        }
+
         outbg.layers.enable( 3 );
         outbg.userData.type = "docoutline-bg";
         outlineGroup.userData.outbg = outbg;
@@ -3823,7 +3839,7 @@ function trySync() {
                 } else if (funct == 'textBlockBuilder') {
                     totalPostInstance++;
                     if (totalPostInstance >= totalPreInstance && totalPreInstance > 0) {
-                        createHandleTimeout(syncCheck[i], "useParentY");
+                        createHandleTimeout(syncCheck[i], "useParentY", 700);
                         var allTexts = syncCheck[i].parent.userData.textBlock;
                         for (var i = allTexts.length - 1; i >= 0; i--) {
                             allTexts[i].visible = false;
@@ -7435,8 +7451,7 @@ function tryHideBoxMenu( hide = true ) {
     }
 }
 
-
-function showBoxPreview( target, height, catalog, freeform=false ) {     // Toggle the chosen preview box to display
+function showBoxPreview( target, height, catalog, freeform=false, collapsed=false ) {     // Toggle the chosen preview box to display
     
     toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
 
@@ -7546,7 +7561,12 @@ function showBoxPreview( target, height, catalog, freeform=false ) {     // Togg
 
         // position the new preview
         newClone.visible = true;
-        newClone.position.y = toolSelectorDotWorld.y;
+
+        if (!collapsed) {
+            newClone.position.y = toolSelectorDotWorld.y;
+        } else {
+            newClone.position.y = catalog.position.y;
+        }
 
         catalog.getWorldQuaternion( tempWorldQuat );
         newClone.rotation.setFromQuaternion( tempWorldQuat );
@@ -7817,7 +7837,8 @@ if ( WebGL.isWebGLAvailable() ) {
     document.body.appendChild( VRButton.createButton( renderer ) );
 
     // Load the libarary and build it
-    initLibrary('./library-acm22.json');
+    // initLibrary('./library-acm22.json');
+    initLibrary('./library-acm24.json');
     initRays(sphereHelper);
 
     // navigator.xr.requestSession("immersive-vr").then( function(session) {
@@ -7904,8 +7925,6 @@ if ( WebGL.isWebGLAvailable() ) {
     } );
     // ================================================================================================================== //
 
-    
-
 } else {
 
     // const warning = WebGL.getWebGLErrorMessage();
@@ -7928,13 +7947,10 @@ camera.position.z = 1;
 // sphereHelper.visible=false;
 
 
-
-
-
 // BUGS:
 // Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
-// nearby select feature of the document background doesn't work on loaded workspaces
 // swap hands sometimes disables pointer until mana menu is viewed again
+// opening the menu catlog before things are done loading causes the menu to vanish
 
 // NOTES:
 // pass info to llm (chatgpt or claude) and return
@@ -7943,41 +7959,27 @@ camera.position.z = 1;
 // tags and sticky notes for document content
 // redesign energy lines
 // remove links from citation page?
-// focused objects popups should focus as well
-// multiple focused objects at once
 // close popup menu by tapping anywhere
 // history feature
-// memory leaks from not disposiing of THREE objects?
-// library visible at all times?
 // 3D selection box? But where would it start?
 // voice commands
 // align and sort map view
 // quick push/pull while dragging to change snap distances
-// replace library with new interface
-// quickpinch to swap document back to preview
 // export workspace
 
 // WIP:
 
-// Mana menu settings:
-    // left/right hand swap
-    // default reading distance
-    // pointer laser: always off | smart | always on
-    // color palette swap
-    // enable/disable debug mode
-
 
 // COMPLETE THIS UPDATE:
 
-// lighter grip and popup menu
-// "fold" changed to "collapse"
-// version is now "acm" for the conference build
-// removed the selection lines from the catalog view
-// new white loading circle for documents
-// references now load relative to their parent document and have a transition on their first appearance
-// refined hit detection for outline
-// added mana menu option to exit XR
-// added mana menu options to set pointer beam to "always on" / "smart assist" / "always off"
-// added mana menu option to toggle debug mode
-// added mana menu option to toggle contrast (old colorspace and new)
-// added mana menu option to close all elements and reset the space (with a confirmation)
+// Make 'Collapse' all upper case, to match 'EXPAND'
+// Make 'References" all upper case
+// Collapsing documents reults in an abstract box that is too low - make it spawn relative to the document not the pointer
+// Change hand color to be slightly lighter than the dark black
+// Change references generation position to be below the document instead of to the side
+// Fixed reference handle height inconsistency
+// Renamed "Find in Document" to to "Show in Document"
+// Made "Show in Document" spawned text slightly larger
+// Update library for ACM 2024 papers
+// Fixed ACM html structure by removing incorrect </meta> tags
+// Adjusted outline to match formatting changes with ACM 2024 paper headers
