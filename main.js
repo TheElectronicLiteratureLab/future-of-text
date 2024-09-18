@@ -185,6 +185,8 @@ const _fontserifitalic = './Wittgenstein-Italic.ttf';
 var currentDominant;
 var initialDominant;
 
+// save system
+var savedElement = [];
 
 
 
@@ -2011,6 +2013,7 @@ function tryPointerSelect(object) {
             .onComplete(() => {
                 try { 
 
+                    removeSaved(docGroup);
                     docGroup.parent.remove(docGroup); 
 
                     if (!collapsing) {
@@ -2261,6 +2264,7 @@ function tryPointerSelect(object) {
                 .easing( TWEEN.Easing.Back.In )
                 .start()
                 .onComplete(() => {
+                    removeSaved(thisGroup);
                     thisGroup.parent.remove(thisGroup);
                 });
 
@@ -3094,14 +3098,14 @@ var documentMaxWidth = 1.25;
 var startingScrollPercent = 0.0;
 
 
-function findDocumentContent(url,title=" ",author=" ") {
+function findDocumentContent(url,title=" ",author=" ",restoration=undefined) {
     $.ajax({
         url: url,
         type: 'GET',
         dataType: 'html',
         success: function(data) {
             var $html = $(data);
-            generateDocumentContent($html,title,author,url);
+            generateDocumentContent($html,title,author,url,restoration);
         },
         error: function(xhr, status, error) {
             console.error('Error fetching HTML: ', error);
@@ -3112,7 +3116,7 @@ function findDocumentContent(url,title=" ",author=" ") {
 
 
 var allHeaders = [];
-function generateDocumentContent(content,title,author,url) {
+function generateDocumentContent(content,title,author,url,restoration=undefined) {
     allHeaders = [];
     var fullText = [];
     // var title = content.find('.title').first().text();
@@ -3153,15 +3157,19 @@ function generateDocumentContent(content,title,author,url) {
 
     const centerPoint = (destinationClippingEnd - destinationClippingStart)/2 + destinationClippingStart;
 
-    addLoader(docGroup, [documentMaxWidth/2, centerPoint, - snapDistanceOneValue - specialReaderOffset]);
+    if ( restoration == undefined ) {
+        addLoader(docGroup, [documentMaxWidth/2, centerPoint, - snapDistanceOneValue - specialReaderOffset]);
+    } else {
+        addLoader(docGroup, [documentMaxWidth/2, centerPoint, - snapDistanceOneValue - specialReaderOffset], restoration.yRot );
+    }
 
-    generateDocumentContentStep(docGroup, fullText, 0);
+    generateDocumentContentStep(docGroup, fullText, 0, undefined, restoration);
 
 }
 
 
 
-function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined) {
+function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined, restoration = undefined) {
 
     const tempBox = new THREE.Box3().setFromObject(docGroup);
     tempBox.getSize(tempSize);
@@ -3174,7 +3182,13 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
     }
 
     let specialReaderOffset = docGroup.userData.specialReaderOffset;
+    let zdistance = snapDistanceOneValue + specialReaderOffset;
     const txtGroup = docGroup.userData.txtGroup;
+
+    if ( restoration != undefined ) {
+        zdistance = restoration.dist;
+        docGroup.userData.specialReaderOffset = restoration.dist - snapDistanceOneValue;
+    }
 
     if (fullText[i] != undefined) {
 
@@ -3190,8 +3204,8 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         newText.anchorY = 'top';
         newText.maxWidth = documentMaxWidth;
         newText.textAlign = 'justify';
-        newText.curveRadius = snapDistanceOneValue + specialReaderOffset;
-        newText.position.z = - snapDistanceOneValue - specialReaderOffset;
+        newText.curveRadius = zdistance;
+        newText.position.z = - zdistance;
 
         newText.userData.specialReaderOffset = docGroup.userData.specialReaderOffset;
         newText.userData.type = 'doccontent';
@@ -3239,6 +3253,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             newText.userData.syncDocGroup = docGroup;
             newText.userData.syncFullText = fullText;
             newText.userData.syncIteration = iteration;
+            newText.userData.syncRestoration = restoration;
             syncCheck.push(newText);
         }
 
@@ -3248,17 +3263,17 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         // Add top/bottom border lines for visualization
         const borderGeo = new THREE.CylinderGeometry(
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+            (zdistance),
+            (zdistance),
             0.01, 32, 1, true, 0,
-            (documentMaxWidth + documentMargin*2) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            (documentMaxWidth + documentMargin*2) / (zdistance)
             );
 
         const menubarGeo = new THREE.CylinderGeometry(
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset),
+            (zdistance),
+            (zdistance),
             0.08, 32, 1, true, 0,
-            (documentMaxWidth + documentMargin*2) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            (documentMaxWidth + documentMargin*2) / (zdistance)
             );
 
         // const borderBox = new THREE.CylinderGeometry(
@@ -3288,7 +3303,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         botBorder.add(menuBar);
         menuBar.position.y = - 0.04;
         menuBar.layers.enable( 3 );
-        menuBar.rotation.y = - documentMargin / (snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        menuBar.rotation.y = - documentMargin / (zdistance);
         menuBar.userData.layers = 3;
         menuBar.userData.type = "menuBar";
 
@@ -3346,9 +3361,9 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         const triGripGeo = new THREE.ExtrudeGeometry( triGripShape, extrudeSettings );
         const triGrip = new THREE.Mesh( triGripGeo, triGripMat );
         botBorder.add(triGrip);
-        triGrip.rotation.y = (documentMaxWidth + 0.02) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        triGrip.rotation.y = (documentMaxWidth + 0.02) / (zdistance);
         triGrip.position.y = -0.08;
-        triGrip.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset - 0.01) *1 );
+        triGrip.translateZ( (zdistance - 0.01) *1 );
         triGrip.layers.enable( 3 );
         triGrip.userData.layers = 3;
         triGrip.userData.type = "triGrip";
@@ -3373,13 +3388,13 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         scrollBar.userData.type = "scrollBar";
         docGroup.userData.scrollPercent = startingScrollPercent;
        
-        scrollNub.rotation.y = (documentMaxWidth + 0.1 - 0.03) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollNub.rotation.y = (documentMaxWidth + 0.1 - 0.03) / -(zdistance);
         scrollNub.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
-        scrollNub.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+        scrollNub.translateZ( (zdistance) *-1 );
 
-        scrollBar.rotation.y = (documentMaxWidth + 0.1) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollBar.rotation.y = (documentMaxWidth + 0.1) / -(zdistance);
         scrollBar.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
-        scrollBar.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+        scrollBar.translateZ( (zdistance) *-1 );
 
         scrollNub.rotateZ( Math.PI/2 );
 
@@ -3390,19 +3405,19 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         docGroup.add(scrollUp);
         docGroup.add(scrollDown);
 
-        scrollUp.rotation.y = (documentMaxWidth + 0.05) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollUp.rotation.y = (documentMaxWidth + 0.05) / -(zdistance);
         scrollUp.position.y = clippingStart - 0.07;
         scrollUp.rotation.z = Math.PI/2;
-        scrollUp.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+        scrollUp.translateZ( (zdistance) *-1 );
         docGroup.userData.scrollUp = scrollUp;
         scrollUp.layers.enable( 3 );
         scrollUp.userData.layers = 3;
         scrollUp.userData.type = "scrollUp";
 
-        scrollDown.rotation.y = (documentMaxWidth + 0.05) / -(snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        scrollDown.rotation.y = (documentMaxWidth + 0.05) / -(zdistance);
         scrollDown.position.y = clippingEnd + 0.07;
         scrollDown.rotation.z = -Math.PI/2;
-        scrollDown.translateZ( (snapDistanceOneValue + docGroup.userData.specialReaderOffset) *-1 );
+        scrollDown.translateZ( (zdistance) *-1 );
         docGroup.userData.scrollDown = scrollDown;
         scrollDown.layers.enable( 3 );
         scrollDown.userData.layers = 3;
@@ -3410,10 +3425,10 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         // Create background
         const backgroundGeo = new THREE.CylinderGeometry(
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.001),
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.001),
+            (zdistance + 0.001),
+            (zdistance + 0.001),
             1, 32, 1, true, 0,
-            (documentMaxWidth + documentMargin*2) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            (documentMaxWidth + documentMargin*2) / (zdistance)
             );
 
         const background = new THREE.Mesh( backgroundGeo, docBGmat );
@@ -3422,7 +3437,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         background.position.y = destinationClippingStart + (clippingEnd - clippingStart)/2;
         background.layers.enable( 3 );
         background.userData.layers = 3;
-        background.rotation.y = documentMargin / (snapDistanceOneValue + docGroup.userData.specialReaderOffset);
+        background.rotation.y = documentMargin / (zdistance);
         docGroup.userData.background = background;
         background.userData.type = "docbg";
         background.userData.nearby = [scrollUp, scrollDown, scrollNub];
@@ -3502,8 +3517,8 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             
             // newText.maxWidth = 1.00;
             newText.textAlign = 'left';
-            newText.curveRadius = snapDistanceOneValue + specialReaderOffset;
-            newText.position.z = - snapDistanceOneValue - specialReaderOffset - 0.001;
+            newText.curveRadius = zdistance;
+            newText.position.z = -(zdistance) - 0.001;
 
             newText.userData.specialReaderOffset = specialReaderOffset;
             newText.userData.text = newText.text;
@@ -3531,17 +3546,17 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             outlineBlock[i].translateY( totalHeight/2 );
         }
 
-        outlineGroup.userData.rotationOut = -(documentMaxWidth + documentMargin + 0.07) / (snapDistanceOneValue + specialReaderOffset);
-        outlineGroup.userData.rotationIn = -(documentMaxWidth + documentMargin - 0.8) / (snapDistanceOneValue + specialReaderOffset);
+        outlineGroup.userData.rotationOut = -(documentMaxWidth + documentMargin + 0.07) / (zdistance);
+        outlineGroup.userData.rotationIn = -(documentMaxWidth + documentMargin - 0.8) / (zdistance);
         outlineGroup.rotation.y = outlineGroup.userData.rotationIn;
         outlineGroup.userData.isOut = false;
 
         // Create outline background
         const outlinebgGeo = new THREE.CylinderGeometry(
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.002),
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.002),
+            (zdistance + 0.002),
+            (zdistance + 0.002),
             1, 32, 1, true, Math.PI,
-            -(1.1) / (snapDistanceOneValue + docGroup.userData.specialReaderOffset)
+            -(1.1) / (zdistance)
             );
 
         const outbg = new THREE.Mesh( outlinebgGeo, invisMat );
@@ -3561,8 +3576,8 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
 
         const outlineBarGeo = new THREE.CylinderGeometry(
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.002),
-            (snapDistanceOneValue + docGroup.userData.specialReaderOffset + 0.002),
+            (zdistance + 0.002),
+            (zdistance + 0.002),
             1, 1, 1, true, Math.PI, -0.001 );
 
         const outlineBar = new THREE.Mesh( outlineBarGeo, boxMat );
@@ -3570,7 +3585,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         outlineBar.userData.scaleOut = totalHeight + 0.1;
         outlineBar.userData.scaleIn = 0.3;
         outlineBar.scale.y = outlineBar.userData.scaleIn;
-        outlineBar.rotation.y = -(documentMaxWidth + documentMargin + 0.05) / (snapDistanceOneValue + specialReaderOffset);
+        outlineBar.rotation.y = -(documentMaxWidth + documentMargin + 0.05) / (zdistance);
 
         outlineGroup.userData.outlineBar = outlineBar;
 
@@ -3595,6 +3610,12 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         removeLoader(docGroup);
 
+        if ( restoration != undefined ) {
+            docGroup.position.y = restoration.yPos;
+            docGroup.userData.scrollPercent = restoration.scroll;
+            destinationClippingEnd = restoration.botPos;
+        }
+
         // Animate document in
         const centerPoint = (destinationClippingEnd - destinationClippingStart)/2 + destinationClippingStart;
 
@@ -3614,6 +3635,9 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             .to( {y: destinationClippingEnd}, 1000 )
             .easing( TWEEN.Easing.Back.Out )
             .start();
+
+
+        addSaved(docGroup);
 
     }
 }
@@ -3828,10 +3852,12 @@ function trySync() {
                     var docGroup = syncCheck[i].userData.syncDocGroup;
                     var fullText = syncCheck[i].userData.syncFullText;
                     var iteration = syncCheck[i].userData.syncIteration;
-                    generateDocumentContentStep(docGroup, fullText, iteration, syncCheck[i]);
+                    var restoration = syncCheck[i].userData.syncRestoration;
+                    generateDocumentContentStep(docGroup, fullText, iteration, syncCheck[i], restoration);
                     syncCheck[i].userData.syncDocGroup = undefined;
                     syncCheck[i].userData.syncFullText = undefined;
                     syncCheck[i].userData.syncIteration = undefined;
+                    syncCheck[i].userData.syncRestoration = undefined;
 
                 } else if (funct == 'createHandle') {
                     createHandle(syncCheck[i]);
@@ -5262,7 +5288,7 @@ function saveWorkspace() {
     const d = new Date();
     let year = d.getFullYear().toString().slice(2,4);
     let month = d.getMonth() + 1;
-    let day = d.getDay();
+    let day = d.getDate();
     let hour = d.getHours();
     let minute = d.getMinutes();
     // ======================================
@@ -5796,13 +5822,20 @@ var loaderMat = new THREE.MeshBasicMaterial( {
 var allLoaders = [];
 
 
-function addLoader(object, position = [0,0,0]) {
+function addLoader(object, position = [0,0,0], rotation = undefined) {
     object.visible = false;
     const spinner = new THREE.Mesh(loaderGeo, loaderMat);
     scene.add(spinner);
     object.userData.loader = spinner;
     // spinner.position.set(object.position.x + position[0] - (loaderSize / 4), object.position.y + position[1], object.position.z + position[2]);
-    spinner.rotation.y = camera.rotation.y;
+    
+    if ( rotation == undefined ) {
+        spinner.rotation.y = camera.rotation.y;
+    } else {
+        console.log("addloaderRot");
+        spinner.rotation.y = rotation;
+    }
+
     spinner.translateZ( -3.0 );
     allLoaders.push(spinner);
 }
@@ -6291,13 +6324,13 @@ function initManna() {
     /* connections */ [ 0,1,2,3,4,5,9 ],
     /* labels */      [ 0,2,3,4,5,9 ],
     /* offset */      [ 0.0, 0.0, 0.0 ] );
-    newMannaLabel(manna10000, "Reset Space");
+    newMannaLabel(manna10000, "Restore Space");
 
     /*2-2*/ const manna11000 = newMannaRing( manna10000,
         /* connections */ [ 0,1,2,3,4,5,9 ],
         /* labels */      [ 0,2,3,4,5,9 ],
         /* offset */      [ 0.015, 0.035, 0.0 ],
-        /* function */    'reset' );
+        /* function */    'restore' );
         newMannaLabel(manna11000, "Confirm?", true);
         newMannaLine(manna11000, 0.026, -24, [0.001,0,0], true);
 
@@ -6335,8 +6368,8 @@ function initManna() {
     /* connections */ [ 0,1,2,3,4,5 ],
     /* labels */      [ 0,1,2,4,5 ],
     /* offset */      [ 0.0, 0.0, 0.0 ],
-    /* function */    'togglecolorspace' );
-    newMannaLabel(manna30000, "Toggle Contrast");
+    /* function */    'savestate' );
+    newMannaLabel(manna30000, "Save Workspace");
 
 /*4*/ const manna40000 = newMannaRing( ringFingerTip1,
     /* connections */ [ 0,1,2,3,4,5 ],
@@ -6796,6 +6829,16 @@ function triggerManna(funct) {
             collapsing = false;
         }, 1000);
 
+    } else if ( funct == "savestate" ) {
+        saveState();
+
+    } else if ( funct == "restore" ) {
+        triggerManna('reset');
+
+        setTimeout(() => {
+            loadState();
+        }, 500);
+        
     }
 
 }
@@ -7451,7 +7494,7 @@ function tryHideBoxMenu( hide = true ) {
     }
 }
 
-function showBoxPreview( target, height, catalog, freeform=false, collapsed=false ) {     // Toggle the chosen preview box to display
+function showBoxPreview( target, height, catalog, freeform=false, collapsed=false, restoration=undefined ) {     // Toggle the chosen preview box to display
     
     toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
 
@@ -7557,19 +7600,30 @@ function showBoxPreview( target, height, catalog, freeform=false, collapsed=fals
         box.rotation.y = (margin/2)/distance;
 
         newClone.userData.totalHeight = totalHeight;
-        console.log(box);
+        // console.log(box);
 
         // position the new preview
         newClone.visible = true;
 
         if (!collapsed) {
             newClone.position.y = toolSelectorDotWorld.y;
-        } else {
+        } else if (restoration == undefined) {
             newClone.position.y = catalog.position.y;
         }
 
-        catalog.getWorldQuaternion( tempWorldQuat );
-        newClone.rotation.setFromQuaternion( tempWorldQuat );
+        if (restoration == undefined) {
+
+            catalog.getWorldQuaternion( tempWorldQuat );
+            newClone.rotation.setFromQuaternion( tempWorldQuat );
+
+        } else {
+
+            newClone.rotation.y = restoration.yRot;
+            newClone.position.y = restoration.yPos;
+
+        }
+
+        addSaved(newClone);
 
         newClone.scale.y = 0;
 
@@ -7815,6 +7869,204 @@ function genBar( parent, width, maxWidth = width, distance = snapDistanceMenuVal
 
 
 
+// REWORKED SAVE SYSTEM ========================================================================
+
+
+// global array that has a list of all elements that should be saved
+// each of those elements has a name for what type of element it is ( "document", "preview", etc )
+
+// when saving...
+    // write a json file
+    // include the current catalog
+    // every element (in the global array) is listed and includes...
+        // what type of element it is
+        // information to find the necessary data in the catalog
+        // y position of the element
+        // y rotation of the element
+        // z depth of the element
+
+// when loading...
+    // read the file and see if it has save data
+    // for each type of element, generate at the correct location
+        // if necessary, set further save information like scroll percentage
+
+
+function addSaved(object) {
+    savedElement.push(object);
+}
+
+
+function removeSaved(object) {
+    const index = savedElement.indexOf(object);
+    if ( index >= 0 ) {
+        savedElement.splice(index,1);
+    }
+}
+
+
+function saveState() {
+
+    // clear the savedState from before
+    if ( savedElement.length > 0 ) {
+        globalLIB.saveState = [];
+    } else {
+        globalLIB.saveState = null;
+    }
+
+    // iterate through all elements that need to be saved
+    for (var i = savedElement.length - 1; i >= 0; i--) {
+        try {
+
+            var newJSON = {};
+
+            newJSON.type = savedElement[i].userData.type;
+            newJSON.yPos = savedElement[i].position.y;
+            newJSON.yRot = savedElement[i].rotation.y;
+            
+            for (var j = globalLIB.documents.length - 1; j >= 0; j--) {
+                if ( globalLIB.documents[j].source == savedElement[i].userData.src ) {
+
+                    newJSON.docindex = j;
+
+                } else if ( globalLIB.documents[j].source == savedElement[i].userData.source ) {
+
+                    newJSON.docindex = j;
+
+                }
+            }
+
+            if ( savedElement[i].userData.type == "document" ) {
+
+                newJSON.dist = savedElement[i].userData.specialReaderOffset + snapDistanceOneValue;
+
+                newJSON.scroll = savedElement[i].userData.scrollPercent;
+
+                newJSON.botPos = savedElement[i].userData.clippingEnd.position.y;
+
+            }
+
+            globalLIB.saveState.push( newJSON );
+
+        } catch { } 
+    }
+
+    // ====== get the current timestamp ======
+    const d = new Date();
+    let year = d.getFullYear();
+    let month = d.getMonth() + 1;
+        if (month.toString().length < 2) { month = '0'.concat(month.toString()) };
+    let day = d.getDate();
+        if (day.toString().length < 2) { day = '0'.concat(day.toString()) };
+    let hour = d.getHours();
+    let minute = d.getMinutes();
+    let date = year + '-' + month + '-' + day + 'T' + hour + ':' + minute + ':' + '00.000Z';
+    // =======================================
+
+    globalLIB.savedOn = date;
+
+    // const file = new File([content], 'workspace-' + month + '.' + day + '.' + year + '-' + hour + '.' + minute + '.json', {
+    //     type: 'text/plain'
+    // });
+
+    // download(file);
+
+    console.log(globalLIB);
+
+}
+
+
+
+function loadState() {
+
+    savedElement = [];
+
+    for (var i = globalLIB.saveState.length - 1; i >= 0; i--) {
+
+        const type = globalLIB.saveState[i].type;
+
+        if ( type == "document" ) {
+
+            restoreDocument( 
+                globalLIB.saveState[i].docindex,
+                globalLIB.saveState[i].yPos,
+                globalLIB.saveState[i].yRot,
+                globalLIB.saveState[i].dist,
+                globalLIB.saveState[i].scroll,
+                globalLIB.saveState[i].botPos
+            );
+
+        } else if ( type == "boxpreview" ) {
+
+            restorePreview(
+                globalLIB.saveState[i].docindex,
+                globalLIB.saveState[i].yPos,
+                globalLIB.saveState[i].yRot
+            );
+
+        }
+
+    }
+
+}
+
+
+function restoreDocument( docindex, yPos, yRot, dist, scroll, botPos ) {
+
+    var restoration = { "yPos":yPos, "yRot":yRot, "dist":dist, "scroll":scroll, "botPos":botPos };
+
+    findDocumentContent( 
+        globalLIB.documents[docindex].source,
+        globalLIB.documents[docindex].title,
+        globalLIB.documents[docindex].author,
+        restoration );
+
+    consoleLog("Restored Document: " + docindex);
+}
+
+
+function restorePreview( docindex, yPos, yRot ) {
+
+    var restoration = { "yPos":yPos, "yRot":yRot }
+
+    const title = globalLIB.documents[docindex].title;
+    for (var i = boxPreviews.length - 1; i >= 0; i--) {
+        if ( title == boxPreviews[i].userData.title ) {
+
+            const boxpreview = boxPreviews[i];
+            const height = boxpreview.userData.totalHeight;
+
+            showBoxPreview( boxpreview, height, undefined, true, false, restoration );
+
+        }
+    } 
+
+    consoleLog("Restored Preview: " + docindex);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -7970,16 +8222,8 @@ camera.position.z = 1;
 // WIP:
 
 
-// COMPLETE THIS UPDATE:
 
-// Make 'Collapse' all upper case, to match 'EXPAND'
-// Make 'References" all upper case
-// Collapsing documents reults in an abstract box that is too low - make it spawn relative to the document not the pointer
-// Change hand color to be slightly lighter than the dark black
-// Change references generation position to be below the document instead of to the side
-// Fixed reference handle height inconsistency
-// Renamed "Find in Document" to to "Show in Document"
-// Made "Show in Document" spawned text slightly larger
-// Update library for ACM 2024 papers
-// Fixed ACM html structure by removing incorrect </meta> tags
-// Adjusted outline to match formatting changes with ACM 2024 paper headers
+// COMPLETE THIS UPDATE:
+// redesigned save/load system - it now works much more efficiently by tracking less information
+    // save system supports documents
+    // save system supports abstract previews
