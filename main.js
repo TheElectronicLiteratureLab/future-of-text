@@ -158,6 +158,7 @@ const testGeo = new THREE.BoxGeometry( 0.02, 0.02, 0.02 );
 const testMat = new THREE.MeshBasicMaterial( {
     color: Math.random() * 0xffffff,
     transparent: true,
+    side: THREE.DoubleSide,
     opacity: 0.8
 } );
 const testCube = new THREE.Mesh( testGeo, testMat );
@@ -1451,6 +1452,87 @@ function tryPointerOver(object) {
             tryHideBoxMenu( false );
         }
 
+        if ( object.userData.type == "boxMenu-background" ) {
+
+            if ( object.userData.typealt != undefined && object.userData.typealt == "flexbox" ) {
+                // This is the background of a preview box, and one that can flex
+
+                const target = object.parent.parent;
+                const box = object.parent;
+
+                if ( target.userData.minified == true ) {
+
+                    const boxjson = box.userData.box;
+
+                    var closeTxt = box.userData.closeTxt;
+                    var barTxt = box.userData.barTxt;
+                    var focusTxt = box.userData.focusTxt;
+                    var bar = box.userData.bar;
+
+                    var boxbot = boxjson.bot;
+                    var boxleft = boxjson.left;
+                    var boxright = boxjson.right;
+                    var boxback = boxjson.back;
+                    var boxistall = boxjson.tall;
+                    var boxheight = boxjson.height;
+                    var abstract = boxjson.abstract;
+                    var details = boxjson.details;
+
+                    // const newheight = 0.5;
+                    const newheight = target.userData.totalHeight + 0.2;
+                    const speed = 300;
+                    const ease = TWEEN.Easing.Quadratic.InOut;
+
+                    // boxleft.scale.y = newheight;
+                    // boxright.scale.y = newheight;
+                    // boxback.scale.y = newheight;
+                    new TWEEN.Tween( boxleft.scale ).to( {y: newheight}, 300 ).easing( ease ).start();
+                    new TWEEN.Tween( boxright.scale ).to( {y: newheight}, 300 ).easing( ease ).start();
+                    new TWEEN.Tween( boxback.scale ).to( {y: newheight}, 300 ).easing( ease ).start();
+
+                    // boxleft.position.y = -newheight/2;
+                    // boxright.position.y = -newheight/2;
+                    // boxback.position.y = -newheight/2;
+                    new TWEEN.Tween( boxleft.position ).to( {y: -newheight/2}, 300 ).easing( ease ).start();
+                    new TWEEN.Tween( boxright.position ).to( {y: -newheight/2}, 300 ).easing( ease ).start();
+                    new TWEEN.Tween( boxback.position ).to( {y: -newheight/2}, 300 ).easing( ease ).start();
+
+                    // boxbot.position.y = (-newheight) - 0.0;
+                    new TWEEN.Tween( boxbot.position ).to( {y: -newheight}, 300 ).easing( ease ).start();
+
+                    // closeTxt.position.y = -newheight + 0.2;
+                    // barTxt.position.y = -newheight + 0.2;
+                    // focusTxt.position.y = -newheight + 0.2;
+                    // bar.position.y = -newheight + 0.30;
+                    new TWEEN.Tween( closeTxt.position ).to( {y: -newheight + 0.18}, 300 ).easing( ease ).start();
+                    new TWEEN.Tween( barTxt.position ).to( {y: -newheight + 0.2}, 300 ).easing( ease ).start();
+                    new TWEEN.Tween( focusTxt.position ).to( {y: -newheight + 0.18}, 300 ).easing( ease ).start();
+                    new TWEEN.Tween( bar.position ).to( {y: -newheight + 0.30}, 300 ).easing( ease ).start();
+
+                    // abstract.scale.y = 1;
+                    abstract.visible = true;
+                    new TWEEN.Tween( abstract.scale ).to( {y: 1}, 300 ).easing( ease ).start();
+
+                    // details.position.y = -newheight + 0.50;
+                    // details.scale.y = 1;
+                    details.visible = true;
+                    new TWEEN.Tween( details.position ).to( {y: -newheight + 0.5}, 300 ).easing( ease ).start();
+                    new TWEEN.Tween( details.scale ).to( {y: 1}, 300 ).easing( ease ).start();
+
+                    target.userData.minified = false;
+
+                    target.userData.minitimer = 0;
+
+                    minifiyCountdown(target);
+
+                }
+
+                target.userData.minitimer = 0;
+
+            }
+
+        }
+
     } else if (object.userData.type == "docoutline-bg") {
         const outlineGroup = object.parent;
         const outlineGroupBG = outlineGroup.userData.outbg;
@@ -1469,12 +1551,12 @@ function tryPointerOver(object) {
             .start();
 
             new TWEEN.Tween( outlineGroupBG.rotation )
-            .to( { y: 0.2 }, 300 )
+            .to( { y: -0.2 }, 300 )
             .easing( TWEEN.Easing.Quadratic.Out )
             .start();
 
             new TWEEN.Tween( outlineGroupBG.scale )
-            .to( { y: outlineGroupBG.userData.scaleDefault }, 300 )
+            .to( { y: outlineBar.userData.scaleOut }, 300 )
             .easing( TWEEN.Easing.Quadratic.Out )
             .start();
 
@@ -1491,6 +1573,10 @@ function tryPointerOver(object) {
         const outlineGroup = object.parent.userData.outlineGroup;
         const outlineGroupBG = outlineGroup.userData.outbg;
         const outlineBar = outlineGroup.userData.outlineBar;
+        const docGroup = object.parent;
+        const clippingEnd = docGroup.userData.clippingEnd;
+        const clippingStart = docGroup.userData.clippingStart;
+        const height = clippingEnd.position.y - clippingStart.position.y;
 
         if ( outlineGroup != undefined && outlineGroup.userData.isOut == true ) {
 
@@ -1510,12 +1596,12 @@ function tryPointerOver(object) {
             .start();
 
             new TWEEN.Tween( outlineGroupBG.scale )
-            .to( { y: outlineGroupBG.userData.scaleDefault * 4 }, 300 )
+            .to( { y: -height * 4 }, 300 )
             .easing( TWEEN.Easing.Quadratic.Out )
             .start();
 
             new TWEEN.Tween( outlineBar.scale )
-            .to( { y: outlineBar.userData.scaleIn }, 300 )
+            .to( { y: -height }, 300 )
             .easing( TWEEN.Easing.Quadratic.Out )
             .start();
 
@@ -1523,7 +1609,7 @@ function tryPointerOver(object) {
 
         }
 
-    }
+    } 
                
 }
 
@@ -1995,6 +2081,16 @@ function tryPointerSelect(object) {
         const clippingEnd = docGroup.userData.clippingEnd;
         const centerPoint = (clippingEnd.position.y - clippingStart.position.y)/2 + clippingStart.position.y;
 
+        const outlineGroup = docGroup.userData.outlineGroup;
+        const outlineBar = outlineGroup.userData.outlineBar;
+
+        // tween the outline bar
+        new TWEEN.Tween( outlineBar.scale )
+            .to( {y: 0}, 400 )
+            .easing( TWEEN.Easing.Back.In )
+            .delay( 100 )
+            .start();
+
         // tween the bottom clip bounds
         new TWEEN.Tween( clippingEnd.position )
             .to( {y: centerPoint}, 500 )
@@ -2174,25 +2270,40 @@ function tryPointerSelect(object) {
                 boxMenuItems[i].font = _fontserif;
             }
 
-            object.userData.bold = true;
+            if ( thisfunction != activeBoxCatalog ) {
+                // switch to the new catalog
 
-            boxMenuDot.visible = true;
-            boxMenuDot.position.set( 0, 0, 0 );
-            boxMenuDot.position.y = object.position.y - 0.035;
+                object.userData.bold = true;
+                object.font = _fontserifbold;
 
-            boxMenuDot.rotation.y = - 0.1 / (snapDistanceMenuValue + 0.1);
+                boxMenuDot.visible = true;
+                boxMenuDot.position.set( 0, 0, 0 );
+                boxMenuDot.position.y = object.position.y - 0.035;
 
-            boxMenuDot.translateZ( - snapDistanceMenuValue - 0.1 );
+                boxMenuDot.rotation.y = - 0.1 / (snapDistanceMenuValue + 0.1);
 
-            boxMenuDot.scale.set( 0, 0, 0 );
+                boxMenuDot.translateZ( - snapDistanceMenuValue - 0.1 );
 
-            new TWEEN.Tween( boxMenuDot.scale )
-                .to( {x: 0.2, y: 0.2, z: 0.2}, 300 )
-                .easing( TWEEN.Easing.Quadratic.Out )
-                .start()
-            ;
-            
-            showBoxCatalog( thisfunction );
+                boxMenuDot.scale.set( 0, 0, 0 );
+
+                new TWEEN.Tween( boxMenuDot.scale )
+                    .to( {x: 0.2, y: 0.2, z: 0.2}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.Out )
+                    .start()
+                ;
+
+                activeBoxCatalog = thisfunction;
+                
+                showBoxCatalog( thisfunction );
+            } else {
+                // no active catalog
+
+                boxMenuDot.visible = false;
+                activeBoxCatalog = undefined;
+
+                showBoxCatalog( 'none' );
+            }
+
         }
         
     } else if (object.userData.type == "catalogPaper") {
@@ -3173,12 +3284,12 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
     const tempBox = new THREE.Box3().setFromObject(docGroup);
     tempBox.getSize(tempSize);
-    var totalHeight = tempSize.y;
-    docGroup.userData.totalHeight = totalHeight;
+    var docTotalHeight = tempSize.y;
+    docGroup.userData.totalHeight = docTotalHeight;
 
     // set the bounds for clipRect of the previous text
     if (lastText != undefined) {
-        lastText.userData.bounds = [lastText.position.y, -totalHeight];
+        lastText.userData.bounds = [lastText.position.y, -docTotalHeight];
     }
 
     let specialReaderOffset = docGroup.userData.specialReaderOffset;
@@ -3196,7 +3307,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         txtGroup.add(newText);
         
         // newText.position.set( 0, 0.0, -snapDistanceOneValue - specialReaderOffset );
-        newText.position.set(0, -totalHeight, 0);
+        newText.position.set(0, -docTotalHeight, 0);
 
         newText.text = fullText[i];
         newText.color = _colorTXmain;
@@ -3322,11 +3433,12 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         // outlineText.layers.enable( 3 );
         // outlineText.userData.layers = 3;
         // let rightDividerText = newMenuBarText( '|', ( documentMaxWidth + documentMargin*2 )/2 + 0.00, menuBar, undefined, docGroup, 'center' );
-        let refText = newMenuBarText( 'REFERENCES', ( documentMaxWidth + documentMargin*2 )/2 + 0.00, menuBar, 'menubarRef', docGroup, 'center' );
-        refText.layers.enable( 3 );
-        refText.userData.layers = 3;
+        // let refText = newMenuBarText( 'REFERENCES', ( documentMaxWidth + documentMargin*2 )/2 + 0.00, menuBar, 'menubarRef', docGroup, 'center' );
+        // refText.layers.enable( 3 );
+        // refText.userData.layers = 3;
 
-        let focusText = newMenuBarText( 'COLLAPSE', 0.02, menuBar, 'menubarFold', docGroup );
+        let focusText = newMenuBarText( '  -     #', 0.02, menuBar, 'menubarFold', docGroup );
+        focusText.clipRect = [0, -0.1, 0.05, 0.1];
         focusText.layers.enable( 3 );
         focusText.userData.layers = 3;
         toCollapse.push(focusText);
@@ -3370,8 +3482,8 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         
 
         // Create a scrollbar
-        const scrollCir = new THREE.BoxGeometry(0.03,0.06,0.01);
-        const scrollNub = new THREE.Mesh( scrollCir, scrollMat );
+        const scrollCir = new THREE.BoxGeometry(0.06,0.06,0.001);
+        const scrollNub = new THREE.Mesh( scrollCir, docBGmat );
         const scrollBox = new THREE.BoxGeometry(0.005,1,0.005);
         const scrollBar = new THREE.Mesh( scrollBox, invisMat );
 
@@ -3388,7 +3500,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         scrollBar.userData.type = "scrollBar";
         docGroup.userData.scrollPercent = startingScrollPercent;
        
-        scrollNub.rotation.y = (documentMaxWidth + 0.1 - 0.03) / -(zdistance);
+        scrollNub.rotation.y = (documentMaxWidth + 0.1 - 0.0) / -(zdistance);
         scrollNub.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
         scrollNub.translateZ( (zdistance) *-1 );
 
@@ -3396,7 +3508,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         scrollBar.position.y = (clippingEnd - clippingStart)/2 + clippingStart;
         scrollBar.translateZ( (zdistance) *-1 );
 
-        scrollNub.rotateZ( Math.PI/2 );
+        scrollNub.rotateZ( Math.PI/4 );
 
         // Create scroll buttons
         const scrollBtnGeo = new THREE.CircleGeometry( 0.03, 3 );
@@ -3512,11 +3624,11 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             }
 
             newText.color = _colorTXalts;
-            newText.anchorX = 'left';
+            newText.anchorX = 'right';
             newText.anchorY = 'middle';
             
             // newText.maxWidth = 1.00;
-            newText.textAlign = 'left';
+            newText.textAlign = 'right';
             newText.curveRadius = zdistance;
             newText.position.z = -(zdistance) - 0.001;
 
@@ -3546,8 +3658,10 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             outlineBlock[i].translateY( totalHeight/2 );
         }
 
-        outlineGroup.userData.rotationOut = -(documentMaxWidth + documentMargin + 0.07) / (zdistance);
-        outlineGroup.userData.rotationIn = -(documentMaxWidth + documentMargin - 0.8) / (zdistance);
+        // outlineGroup.userData.rotationOut = -(documentMaxWidth + documentMargin + 0.07) / (zdistance);
+        // outlineGroup.userData.rotationIn = -(documentMaxWidth + documentMargin - 0.8) / (zdistance);
+        outlineGroup.userData.rotationOut = (documentMargin + 0.07) / (zdistance);
+        outlineGroup.userData.rotationIn = -(0.8) / (zdistance);
         outlineGroup.rotation.y = outlineGroup.userData.rotationIn;
         outlineGroup.userData.isOut = false;
 
@@ -3556,21 +3670,21 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             (zdistance + 0.002),
             (zdistance + 0.002),
             1, 32, 1, true, Math.PI,
-            -(1.1) / (zdistance)
+            (1.1) / (zdistance)
             );
 
-        const outbg = new THREE.Mesh( outlinebgGeo, invisMat );
+        const outbg = new THREE.Mesh( outlinebgGeo, testMat );
         outlineGroup.add(outbg);
         
         if ( totalHeight < 0.4 ) {
             outbg.scale.y = 0.4 * 4;
             outbg.userData.scaleDefault = 0.4;
         } else {
-            outbg.scale.y = totalHeight * 4;
-            outbg.userData.scaleDefault = totalHeight;
+            outbg.scale.y = -(destinationClippingEnd - destinationClippingStart) * 4;
+            outbg.userData.scaleDefault = -(destinationClippingEnd - destinationClippingStart) * 4;
         }
 
-        outbg.layers.enable( 3 );
+        // outbg.layers.enable( 3 );
         outbg.userData.type = "docoutline-bg";
         outlineGroup.userData.outbg = outbg;
 
@@ -3583,9 +3697,10 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         const outlineBar = new THREE.Mesh( outlineBarGeo, boxMat );
         docGroup.add(outlineBar);
         outlineBar.userData.scaleOut = totalHeight + 0.1;
-        outlineBar.userData.scaleIn = 0.3;
-        outlineBar.scale.y = outlineBar.userData.scaleIn;
-        outlineBar.rotation.y = -(documentMaxWidth + documentMargin + 0.05) / (zdistance);
+        outlineBar.userData.scaleIn = -(destinationClippingEnd - destinationClippingStart);
+        outlineBar.scale.y = 0;
+        // outlineBar.rotation.y = -(documentMaxWidth + documentMargin + 0.05) / (zdistance);
+        outlineBar.rotation.y = (documentMargin + 0.05) / (zdistance);
 
         outlineGroup.userData.outlineBar = outlineBar;
 
@@ -3636,6 +3751,17 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             .easing( TWEEN.Easing.Back.Out )
             .start();
 
+        new TWEEN.Tween( outlineBar.scale )
+            .to( {y: outlineBar.userData.scaleIn}, 1000 )
+            .easing( TWEEN.Easing.Back.Out )
+            .delay( 300 )
+            .start()
+            .onComplete(() => {
+                outbg.layers.enable( 3 );
+                // console.log(outbg);
+            });
+
+
 
         addSaved(docGroup);
 
@@ -3667,14 +3793,14 @@ function reclipDocument(docGroup) {
     var scrollScale = clippingEnd - clippingStart;
     var scrollClamp = clamp(scrollScale, 0.5, 50);
     scrollBar.scale.y = scrollScale;
-    scrollNub.scale.set(scrollClamp,1,scrollClamp);
+    // scrollNub.scale.set(scrollClamp,1,scrollClamp);
 
     if (handle != undefined) {
         handle.position.y = scrollBar.position.y;
         handle.scale.y = scrollScale;
     }
 
-    var scrollPos = lerp( scrollPercent, clippingStart - 0.01, clippingEnd + 0.01 );
+    var scrollPos = lerp( scrollPercent, clippingStart - 0.05, clippingEnd + 0.05 );
     scrollNub.position.y = scrollPos;
 
     scrollUp.position.y = clippingStart - 0.07;
@@ -3763,7 +3889,7 @@ function newMenuBarText(text, xpos, parent, type, docGroup, align = 'left') {
     parent.add(newText);
     newText.text = text;
     newText.color = _colorTXmbar;
-    newText.fontSize = 0.03;
+    newText.fontSize = 0.06;
     newText.anchorX = align;
     newText.anchorY = 'middle';
     newText.textAlign = 'left';
@@ -4824,12 +4950,12 @@ function trySwipe() {
                         domswipeObj.position.y = clippingStart.position.y - 0.3;
                         movement = 0;
                 } else if (domswipeObj == scrollNub &&
-                    clippingStart.position.y - scrollNub.position.y - movement < 0.01) {
-                        domswipeObj.position.y = clippingStart.position.y - 0.01;
+                    clippingStart.position.y - scrollNub.position.y - movement < 0.05) {
+                        domswipeObj.position.y = clippingStart.position.y - 0.05;
                         movement = 0;
                 } else if (domswipeObj == scrollNub &&
-                    scrollNub.position.y - clippingEnd.position.y + movement < 0.01) {
-                        domswipeObj.position.y = clippingEnd.position.y + 0.01;
+                    scrollNub.position.y - clippingEnd.position.y + movement < 0.05) {
+                        domswipeObj.position.y = clippingEnd.position.y + 0.05;
                         movement = 0;
                 }
 
@@ -4837,7 +4963,7 @@ function trySwipe() {
 
                 // update scroll percentage
                 if (domswipeObj == scrollNub) {
-                    var scrollPercent = norm( domswipeObj.position.y, clippingStart.position.y - 0.01, clippingEnd.position.y + 0.01 );
+                    var scrollPercent = norm( domswipeObj.position.y, clippingStart.position.y - 0.05, clippingEnd.position.y + 0.05 );
                     docGroup.userData.scrollPercent = scrollPercent;
                     scrollDocument(docGroup);
                     reclipDocument(docGroup);
@@ -7374,6 +7500,7 @@ function stepBoxCatalog( parent, elements, step=0, lastText = undefined ) {
 
 }
 
+var activeBoxCatalog = undefined;
 
 function showBoxCatalog(argument) {     // Toggle the chosen box to display
     // consoleLog( argument );
@@ -7545,14 +7672,15 @@ function showBoxPreview( target, height, catalog, freeform=false, collapsed=fals
         newClone.add(closeTxt);
         closeTxt.color = _colorBXmain;
         closeTxt.curveRadius = snapDistanceMenuValue - 0.1;
-        closeTxt.fontSize = 0.030;
-        closeTxt.text = "CLOSE";
+        closeTxt.fontSize = 0.060;
+        closeTxt.text = "         -";
         closeTxt.anchorX = "right";
+        closeTxt.anchorY = "middle";
         closeTxt.sync();
 
         toCollapse.push(closeTxt);
 
-        closeTxt.position.y = -totalHeight - 0.2;
+        closeTxt.position.y = -totalHeight - 0.22;
         closeTxt.rotation.y = (((maxwidth+0.1)/2) - 0.03) / -distance;
         closeTxt.translateZ( -snapDistanceMenuValue + 0.1 );
 
@@ -7577,12 +7705,14 @@ function showBoxPreview( target, height, catalog, freeform=false, collapsed=fals
         newClone.add(focusTxt);
         focusTxt.color = _colorBXmain;
         focusTxt.curveRadius = snapDistanceMenuValue - 0.1;
-        focusTxt.fontSize = 0.030;
-        focusTxt.text = "EXPAND";
+        focusTxt.fontSize = 0.060;
+        focusTxt.text = "+         #";
+        focusTxt.clipRect = [0, -0.1, 0.17, 0.1];
         focusTxt.anchorX = "left";
+        focusTxt.anchorY = "middle";
         focusTxt.sync();
 
-        focusTxt.position.y = -totalHeight - 0.2;
+        focusTxt.position.y = -totalHeight - 0.22;
         focusTxt.rotation.y = (((maxwidth+0.1)/2) + 0.03) / -distance;
         focusTxt.translateZ( -snapDistanceMenuValue + 0.1 );
 
@@ -7595,12 +7725,72 @@ function showBoxPreview( target, height, catalog, freeform=false, collapsed=fals
 
         totalHeight = totalHeight + 0.2;
 
-        const box = genBox( newClone, maxwidth + margin, totalHeight + margin, snapDistanceMenuValue - 0.1 );
+        const box = genBox( newClone, maxwidth + margin, totalHeight + margin, snapDistanceMenuValue - 0.1, -1, 0.005, ["flexbox"] );
         box.position.y = margin/2;
         box.rotation.y = (margin/2)/distance;
 
         newClone.userData.totalHeight = totalHeight;
         // console.log(box);
+
+
+
+        // shrink the box - disabled so it starts full sized
+
+        for (var i = newClone.children.length - 1; i >= 0; i--) {
+            if (newClone.children[i].name == "abstract") {
+                box.userData.box.abstract = newClone.children[i];
+            } else if (newClone.children[i].name == "details") {
+                box.userData.box.details = newClone.children[i];
+            }
+        }
+
+        box.userData.closeTxt = closeTxt;
+        box.userData.barTxt = barTxt;
+        box.userData.focusTxt = focusTxt;
+        box.userData.bar = bar;
+
+        // var boxjson = box.userData.box;
+        // var boxbot = boxjson.bot;
+        // var boxleft = boxjson.left;
+        // var boxright = boxjson.right;
+        // var boxback = boxjson.back;
+        // var boxistall = boxjson.tall;
+        // var boxheight = boxjson.height;
+        // var abstract = boxjson.abstract;
+        // var details = boxjson.details;
+
+        // const newheight = newClone.userData.miniheight + 0.3;
+
+        // boxleft.scale.y = newheight;
+        // boxright.scale.y = newheight;
+        // boxback.scale.y = newheight;
+
+        // boxleft.position.y = -newheight/2;
+        // boxright.position.y = -newheight/2;
+        // boxback.position.y = -newheight/2;
+
+        // boxbot.position.y = (-newheight) - 0.0;
+
+        // closeTxt.position.y = -newheight + 0.2;
+        // barTxt.position.y = -newheight + 0.2;
+        // focusTxt.position.y = -newheight + 0.2;
+        // bar.position.y = -newheight + 0.25;
+
+        // abstract.scale.y = 0.0;
+        // abstract.visible = false;
+
+        // details.position.y = -newheight + 0.3;
+        // details.scale.y = 0.0;
+        // details.visible = false;
+
+        newClone.userData.minified = false;
+
+        newClone.userData.minitimer = 0;
+
+        minifiyCountdown(newClone);
+
+
+
 
         // position the new preview
         newClone.visible = true;
@@ -7692,6 +7882,7 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
         newText.font = _fontserifitalic;
     } else if ( step == 2 ) {
         // get abstract
+        parent.userData.miniheight = totalHeight;
 
         $.ajax({
             url: source,
@@ -7706,6 +7897,7 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
                 // console.log(result);
                 newText.text = "\n".concat(result);
                 newText.sync();
+                newText.name = "abstract";
                 newText.userData.sync = "previewBuilder";
                 newText.userData.syncParent = parent;
                 newText.userData.syncAuthor = author;
@@ -7730,6 +7922,7 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
         newText.position.z = 0;
         newText.rotation.y = (((maxwidth)/2) + 0.01 )/distance;
         newText.translateZ( distance );
+        newText.name = "details";
     } else if ( step == 4 ) {
         // generate box
         const margin = 0.2;
@@ -7778,7 +7971,7 @@ function genCurve( parent, width, weight = 0.005, distance = snapDistanceMenuVal
 }
 
 
-function genBox( parent, width, height, distance = snapDistanceMenuValue, mod = -1, weight = 0.005 ) {
+function genBox( parent, width, height, distance = snapDistanceMenuValue, mod = -1, weight = 0.005, customData = [] ) {
 
     const newGroup = new THREE.Group();
 
@@ -7792,14 +7985,14 @@ function genBox( parent, width, height, distance = snapDistanceMenuValue, mod = 
     const verticalGeo = new THREE.CylinderGeometry(
         distance,
         distance,
-        height, 1, 1, true, 0,
+        1, 1, 1, true, 0,
         weight / distance
         );
 
     const fullGeo = new THREE.CylinderGeometry(
         distance + 0.001,
         distance + 0.001,
-        height + (weight*2), 32, 1, true, 0,
+        1, 32, 1, true, 0,
         (width + weight) / distance
         );
 
@@ -7808,6 +8001,10 @@ function genBox( parent, width, height, distance = snapDistanceMenuValue, mod = 
     const left = new THREE.Mesh( verticalGeo, boxMat );
     const right = new THREE.Mesh( verticalGeo, boxMat );
     const back = new THREE.Mesh( fullGeo, sceneMat );
+
+    left.scale.y = height;
+    right.scale.y = height;
+    back.scale.y = height + (weight*2);
 
     newGroup.add( top );
     newGroup.add( bot );
@@ -7835,6 +8032,22 @@ function genBox( parent, width, height, distance = snapDistanceMenuValue, mod = 
     back.layers.enable( 3 );
     back.userData.type = "boxMenu-background";
 
+    if ( customData.length > 0 ) {
+        back.userData.typealt = customData[0];
+
+        var boxjson = {};
+        boxjson.top = top;
+        boxjson.bot = bot;
+        boxjson.left = left;
+        boxjson.right = right;
+        boxjson.back = back;
+        boxjson.tall = true;
+        boxjson.height = height;
+
+        newGroup.userData.box = boxjson;
+        parent.userData.box = newGroup;
+    }
+
     return newGroup;
 }
 
@@ -7855,6 +8068,92 @@ function genBar( parent, width, maxWidth = width, distance = snapDistanceMenuVal
     bar.rotateY(Math.PI);
 
     return bar;
+}
+
+
+function minifiyCountdown( target ) {
+
+    const threshold = 3;
+
+    if ( target.userData.minitimer != undefined && target.userData.minitimer < threshold ) {
+
+        if ( !isDomPinching ) {
+            target.userData.minitimer += 1;
+        }
+
+        setTimeout(() => {
+            minifiyCountdown( target );
+            consoleLog( "minify countdown: " + target.userData.minitimer );
+        }, 1000);
+
+    } else if ( target.userData.minitimer != undefined && target.userData.minitimer >= threshold ) {
+
+        const box = target.userData.box;
+
+        if ( target.userData.minified == false ) {
+
+            const boxjson = box.userData.box;
+
+            var closeTxt = box.userData.closeTxt;
+            var barTxt = box.userData.barTxt;
+            var focusTxt = box.userData.focusTxt;
+            var bar = box.userData.bar;
+
+            var boxbot = boxjson.bot;
+            var boxleft = boxjson.left;
+            var boxright = boxjson.right;
+            var boxback = boxjson.back;
+            var boxistall = boxjson.tall;
+            var boxheight = boxjson.height;
+            var abstract = boxjson.abstract;
+            var details = boxjson.details;
+
+            // const newheight = 0.5;
+            const newheight = target.userData.miniheight + 0.3;
+            const speed = 300;
+            const ease = TWEEN.Easing.Quadratic.InOut
+
+            // boxleft.scale.y = newheight;
+            // boxright.scale.y = newheight;
+            // boxback.scale.y = newheight;
+            new TWEEN.Tween( boxleft.scale ).to( {y: newheight}, 300 ).easing( ease ).start();
+            new TWEEN.Tween( boxright.scale ).to( {y: newheight}, 300 ).easing( ease ).start();
+            new TWEEN.Tween( boxback.scale ).to( {y: newheight}, 300 ).easing( ease ).start();
+
+            // boxleft.position.y = -newheight/2;
+            // boxright.position.y = -newheight/2;
+            // boxback.position.y = -newheight/2;
+            new TWEEN.Tween( boxleft.position ).to( {y: -newheight/2}, 300 ).easing( ease ).start();
+            new TWEEN.Tween( boxright.position ).to( {y: -newheight/2}, 300 ).easing( ease ).start();
+            new TWEEN.Tween( boxback.position ).to( {y: -newheight/2}, 300 ).easing( ease ).start();
+
+            // boxbot.position.y = -newheight;
+            new TWEEN.Tween( boxbot.position ).to( {y: -newheight}, 300 ).easing( ease ).start();
+
+            // closeTxt.position.y = -newheight + 0.2;
+            // barTxt.position.y = -newheight + 0.2;
+            // focusTxt.position.y = -newheight + 0.2;
+            // bar.position.y = -newheight + 0.25;
+            new TWEEN.Tween( closeTxt.position ).to( {y: -newheight + 0.18}, 300 ).easing( ease ).start();
+            new TWEEN.Tween( barTxt.position ).to( {y: -newheight + 0.2}, 300 ).easing( ease ).start();
+            new TWEEN.Tween( focusTxt.position ).to( {y: -newheight + 0.18}, 300 ).easing( ease ).start();
+            new TWEEN.Tween( bar.position ).to( {y: -newheight + 0.25}, 300 ).easing( ease ).start();
+
+            // abstract.scale.y = 0;
+            // abstract.visible = false;
+            new TWEEN.Tween( abstract.scale ).to( {y: 0}, 300 ).easing( ease ).start().onComplete(() => { abstract.visible = false; });
+
+            // details.position.y = -newheight + 0.3;
+            // details.scale.y = 0;
+            // details.visible = false;
+            new TWEEN.Tween( details.position ).to( {y: -newheight + 0.3}, 300 ).easing( ease ).start();
+            new TWEEN.Tween( details.scale ).to( {y: 0}, 300 ).easing( ease ).start().onComplete(() => { details.visible = false; });
+
+
+            target.userData.minified = true;
+            
+        }
+    }
 }
 
 
@@ -8216,14 +8515,33 @@ camera.position.z = 1;
 // 3D selection box? But where would it start?
 // voice commands
 // align and sort map view
-// quick push/pull while dragging to change snap distances
+// dominant wrist slider to change snap distances?
 // export workspace
 
 // WIP:
-
+// add reference bar to the right of the document that behaves in the same way as the outline bar
+// references now stack vertically (using step generation)
+    // max width to now support word wrap
+    // references no longer contain the link text, just "[##]"? + "title" + " - " + "<i>Author(s)</i>"
+    // references are absolute-justified (or left)
+    // quick-tap to mark the reference
+        // cycle through: yellow highlight, green highlight, none
+    // drag each individual text element with the same 'spring' effect as the catalog
+        // drag and drop (to open space) to open a preview box
+        // drag and drop (to the document) to scroll to the reference
+// citation preview boxes have the reference title, author, 'further info'
+    // bar at the bottom with "   -   |   +   " to close/open link externally
+        // popup warning when opening external link
 
 
 // COMPLETE THIS UPDATE:
-// redesigned save/load system - it now works much more efficiently by tracking less information
-    // save system supports documents
-    // save system supports abstract previews
+// abstracts now shrink after a set amount of time and expand when pointed at
+// select active catalog category again to close the catalog
+// fixed edge case where selecting a catalog category wouldn't bold
+// remove "REFERENCES" button and functionality from document
+// changed document notch to triangle
+// change buttons with words like "Expand" to "   +   " and words like "Collapse" and "Close" to "   -   "
+// change document outline bar to be tall first, then adaptive
+// move outline to the left of the document now instead
+// expanded trigger zone for outline (visible in debug)
+
