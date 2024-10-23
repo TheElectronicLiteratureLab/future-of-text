@@ -25,6 +25,10 @@ import TWEEN from '@tweenjs/tween.js';
     const _colorTXmain = 0x000000;
 // Alt text color
     const _colorTXalts = 0xeeeeee;
+    const _colorTXaltsrgb = {r: 238, g: 238, b: 238};
+// Off or defocused text color
+    const _colorTXoffs = 0xcccccc;
+    const _colorTXoffsrgb = {r: 204, g: 204, b: 204};
 // Popup menu text color
     const _colorTXpopu = 0xffffff;
 // Bounding box color - for document bounds and UI
@@ -38,7 +42,8 @@ import TWEEN from '@tweenjs/tween.js';
 // Debug log text color
     const _colorTXclog = 0xffffff;
 // Text markup highlight colors
-    const _colorHImark = [0xE6DE54, 0x4FE362, 0x55BBE6, 0xE08DE5, 0xE6556F];
+    const _colorHImark = [0x000000, 0x604600, 0x004700, 0x222B5C];
+    // const _colorHImark = [0xE6DE54, 0x4FE362, 0x55BBE6, 0xE08DE5, 0xE6556F];
 // Map text color
     const _colorTXmap = 0x000000;
 // Map background color
@@ -1374,7 +1379,7 @@ function disablePreviews(group) {
 
 
 function tryPointerOver(object) {
-    // console.log(intersect);
+    // console.log(object);
     // Show connection lines, if applicable
     if (object.userData.lines != undefined && object.userData.type != "menubarRef") {
         const lines = object.userData.lines;
@@ -1540,6 +1545,10 @@ function tryPointerOver(object) {
 
         if ( outlineGroup != undefined && outlineGroup.userData.isOut == false ) {
 
+            for (var i = outlineGroup.children.length - 1; i >= 0; i--) {
+                outlineGroup.children[i].visible = true;
+            }
+
             new TWEEN.Tween( outlineGroup.rotation )
             .to( { y: outlineGroup.userData.rotationOut}, 300 )
             .easing( TWEEN.Easing.Quadratic.Out )
@@ -1577,6 +1586,14 @@ function tryPointerOver(object) {
         const clippingEnd = docGroup.userData.clippingEnd;
         const clippingStart = docGroup.userData.clippingStart;
         const height = clippingEnd.position.y - clippingStart.position.y;
+        const refGroup = object.parent.userData.refGroup;
+        var refGroupBG;
+        var refBar;
+
+        if ( refGroup != undefined ) {
+            refGroupBG = refGroup.userData.refbg;
+            refBar = refGroup.userData.refBar;
+        }
 
         if ( outlineGroup != undefined && outlineGroup.userData.isOut == true ) {
 
@@ -1603,13 +1620,128 @@ function tryPointerOver(object) {
             new TWEEN.Tween( outlineBar.scale )
             .to( { y: -height }, 300 )
             .easing( TWEEN.Easing.Quadratic.Out )
-            .start();
+            .start()
+            .onComplete(() => {
+                if ( outlineGroup.userData.isOut == false ) {
+
+                    for (var i = outlineGroup.children.length - 1; i >= 0; i--) {
+                        if ( outlineGroup.children[i].name != "bg" ) {
+                            outlineGroup.children[i].visible = false;
+                        }
+                    }
+
+                }
+            });
 
             outlineGroup.userData.isOut = false;
 
         }
 
-    } 
+        if ( refGroup != undefined && refGroup.userData.isOut == true ) {
+
+            new TWEEN.Tween( refGroup.rotation )
+            .to( { y: refGroup.userData.rotationIn}, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( refGroup.scale )
+            .to( { y: 0.2}, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( refGroupBG.rotation )
+            .to( { y: 0 }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( refGroupBG.scale )
+            .to( { y: -height * 4 }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( refBar.scale )
+            .to( { y: -height }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start()
+            .onComplete(() => {
+                if ( refGroup.userData.isOut == false ) {
+
+                    for (var i = refGroup.children.length - 1; i >= 0; i--) {
+                        if ( refGroup.children[i].name != "bg" ) {
+                            refGroup.children[i].visible = false;
+                        }
+                    }
+
+                }
+            });
+
+            refGroup.userData.isOut = false;
+
+        }
+
+    } else if (object.userData.type == "docref-bg") {
+        const refGroup = object.parent;
+        const refGroupBG = refGroup.userData.refbg;
+        const refBar = refGroup.userData.refBar;
+
+        if ( refGroup != undefined && refGroup.userData.isOut == false ) {
+
+            for (var i = refGroup.children.length - 1; i >= 0; i--) {
+                refGroup.children[i].visible = true;
+            }
+
+            new TWEEN.Tween( refGroup.rotation )
+            .to( { y: refGroup.userData.rotationOut}, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( refGroup.scale )
+            .to( { y: 1}, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( refGroupBG.rotation )
+            .to( { y: 0.05 }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( refGroupBG.scale )
+            .to( { y: refBar.userData.scaleOut }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            new TWEEN.Tween( refBar.scale )
+            .to( { y: refBar.userData.scaleOut }, 300 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .start();
+
+            refGroup.userData.isOut = true;
+
+        }
+
+        // for (var i = refGroup.children.length - 1; i >= 0; i--) {
+        //     if ( refGroup.children[i].name != 'bg' ) {
+        //         refGroup.children[i].children[0].color = _colorTXalts;
+        //     }
+        // }
+
+    } else if (object.userData.type == "refline") {
+
+        const refGroup = object.parent.parent;
+
+        for (var i = refGroup.children.length - 1; i >= 0; i--) {
+            if ( refGroup.children[i].name != 'bg' && refGroup.children[i] != object.parent ) {
+                // refGroup.children[i].children[0].color = _colorTXoffs;
+                refGroup.children[i].children[0].fillOpacity = 0.5;
+            } else if ( refGroup.children[i] == object.parent ) {
+                // object.color = _colorTXalts;
+                object.fillOpacity = 1;
+            }
+        }
+
+        tryRefDim( refGroup );
+
+    }
                
 }
 
@@ -2084,6 +2216,19 @@ function tryPointerSelect(object) {
         const outlineGroup = docGroup.userData.outlineGroup;
         const outlineBar = outlineGroup.userData.outlineBar;
 
+        const referenceGroup = docGroup.userData.refGroup;
+        var referenceBar;
+        if ( referenceGroup != undefined ) {
+            referenceBar = referenceGroup.userData.refBar;
+
+            // tween the reference bar
+            new TWEEN.Tween( referenceBar.scale )
+                .to( {y: 0}, 400 )
+                .easing( TWEEN.Easing.Back.In )
+                .delay( 100 )
+                .start();
+        }
+
         // tween the outline bar
         new TWEEN.Tween( outlineBar.scale )
             .to( {y: 0}, 400 )
@@ -2250,9 +2395,11 @@ function tryPointerSelect(object) {
     } else if (object.userData.type == "triGrip") {
         const clippingEnd = object.parent.parent.userData.clippingEnd;
         startSwipe(clippingEnd, "clipBot");
+        popupMenu(undefined);
     } else if (object.userData.type == "docbg") {
         const txtGroup = object.parent.userData.txtGroup;
         startSwipe(txtGroup,"docbg");
+        popupMenu(undefined);
     } else if (object.userData.type.slice(0,8) == "boxMenu-") {
         var thisfunction = object.userData.type.slice(8,99);
         if ( thisfunction == "background" ) {
@@ -2305,16 +2452,29 @@ function tryPointerSelect(object) {
             }
 
         }
+    popupMenu(undefined);
         
     } else if (object.userData.type == "catalogPaper") {
         startSwipe( object );
+        popupMenu(undefined);
     } else if (object.userData.type.slice(0,11) == "boxpreview-") {
         const targetValue = object.userData.type.slice(11,99);
 
         if ( targetValue == "close" ) {
 
             try {
-                object.parent.parent.remove(object.parent);
+
+                const thisGroup = object.parent;
+
+                new TWEEN.Tween( thisGroup.scale )
+                .to( {y: 0}, 300 )
+                .easing( TWEEN.Easing.Back.In )
+                .start()
+                .onComplete(() => {
+                    removeSaved(thisGroup);
+                    thisGroup.parent.remove(thisGroup);
+                });
+
             } catch {}
 
         } else if ( targetValue == "focus" ) {
@@ -2382,16 +2542,80 @@ function tryPointerSelect(object) {
             }
 
         }
+        popupMenu(undefined);
+    } else if ( object.userData.type == "refline" ) {
+
+        startSwipe( object );
+        popupMenu(undefined);
+
+    } else if (object.userData.type.slice(0,12) == "boxcitation-") {
+        const targetValue = object.userData.type.slice(12,99);
+
+        if ( targetValue == "close" ) {
+
+            try {
+
+                const thisGroup = object.parent;
+
+                new TWEEN.Tween( thisGroup.scale )
+                .to( {y: 0}, 300 )
+                .easing( TWEEN.Easing.Back.In )
+                .start()
+                .onComplete(() => {
+                    removeSaved(thisGroup);
+                    thisGroup.parent.remove(thisGroup);
+                    popupMenu(undefined);
+                });
+
+            } catch {}
+
+        } else if ( targetValue == "expand" ) {
+
+            const thisGroup = object.parent;
+
+            if ( thisGroup.userData.type == "boxpreview" ) {
+
+                const source = thisGroup.userData.source;
+                
+                warnCitation( thisGroup, source );
+
+            }
+        }
+
+    } else if ( object.userData.type == "warncitation-confirm") {
+
+        try {
+
+            const parentGroup = object.parent.userData.parent;
+            const source = object.parent.userData.source;
+
+            new TWEEN.Tween( parentGroup.scale )
+                .to( {y: 0}, 300 )
+                .easing( TWEEN.Easing.Back.In )
+                .start()
+                .onComplete(() => {
+                    removeSaved(parentGroup);
+                    scene.remove(parentGroup);
+                    popupMenu(undefined);
+
+                    // exit space and open source url in new tab
+                    renderer.xr.getSession().end();
+                    window.open( source, '_blank' );
+
+                });
+
+        } catch {}
+
     }
 }
 
 function tryQuickPointerSelect(object) {
     consoleLog("Quick Select: " + object.userData.type);
     if (object.userData.type == "mapcontent-title") {
-        const source = object.userData.source;
-        const title = object.userData.title;
-        const author = object.userData.author;
-        findDocumentContent(source,title,author);
+        // const source = object.userData.source;
+        // const title = object.userData.title;
+        // const author = object.userData.author;
+        // findDocumentContent(source,title,author);
     // Catch for any objects that do not have their type set, but can trigger the event
     } else if (object.userData.type == undefined) {
         // console.log("No over event for this object");
@@ -2438,6 +2662,24 @@ function tryQuickPointerSelect(object) {
 
         // }
 
+    } else if ( object.userData.type == "refline" ) {
+
+        if ( object.userData.highlight == undefined ) {
+            object.userData.highlight = 1;
+        } else if ( object.userData.highlight == _colorHImark.length - 1 ) {
+            object.userData.highlight = 0;
+        } else {
+            object.userData.highlight++;
+        }
+
+        object.outlineColor = _colorHImark[object.userData.highlight];
+
+        if ( object.userData.highlight == 0 ) {
+            object.outlineWidth = 0;
+        } else {
+            object.outlineWidth = 0.01;
+        }
+
     }
 }
 
@@ -2447,7 +2689,7 @@ function tryQuickPointerSelect(object) {
 
 
 
-
+var citationwarning;
 var newPopup;
 var tempWorldPos = new THREE.Vector3();
 var tempWorldQuat = new THREE.Quaternion();
@@ -2460,271 +2702,296 @@ var centerSource = new THREE.Vector3();
 
 function popupMenu(target, variation = "citation") {
 
-    var popupItems = [];
 
-    if (newPopup != undefined) { newPopup.parent.remove(newPopup); newPopup = undefined; };
-    
-    if (target != undefined) {
 
-        // popup background panel
-        const popupGeo = new THREE.PlaneGeometry(0.25, 0.4);
-        newPopup = new THREE.Mesh( popupGeo, popupMat );
+    if ( citationwarning != undefined ) {
 
-        // popup header text
-        const popupHead = new Text();
-        scene.add(popupHead);
-        popupHead.fontSize = 0.015;
-        popupHead.color = _colorTXpopu;
-        popupHead.anchorX = 'center';
-        if (target.text.length >= 30) {
-            popupHead.text = target.text.slice(0,28) + '...';
-        } else {
-            popupHead.text = target.text;
-        }
-        newPopup.attach(popupHead);
-        popupHead.position.y = 0.185;
-        popupItems.push(popupHead);
+        try {
 
-        if (variation == "citation") {  //======================================================
-    // DETACH / REATTACH popup button
-            const popupDetach = new Text();
-            scene.add(popupDetach);
-            if (target.userData.detachedParent != undefined && !target.userData.isClone) {
-            // ATTACH
-                popupDetach.text = "Reattach to Group";
-                popupDetach.userData.type = "popup-attach";
-            } else if (target.userData.detachedParent == undefined) {
-            // DETACH
-                popupDetach.text = "Detach from Group";
-                popupDetach.userData.type = "popup-detach";
-            }
-            popupDetach.fontSize = 0.02;
-            popupDetach.userData.fontSize = 0.02;
-            popupDetach.color = _colorTXpopu;
-            popupDetach.anchorX = 'left';
-            popupDetach.anchorY = 'middle';
-            newPopup.attach(popupDetach);
-            popupDetach.position.x = -0.11;
-            popupDetach.position.y = 0.1;
-            popupDetach.layers.enable( 3 );
-            popupDetach.userData.target = target;
-            popupItems.push(popupDetach);
-
-    // CLONE / RETURN popup button
-            const popupClone = new Text();
-            scene.add(popupClone);
-            if (target.userData.detachedParent != undefined && target.userData.isClone) {
-            // RETURN
-                popupClone.text = "Return to Group";
-                popupClone.userData.type = "popup-return";
-            } else if (target.userData.detachedParent == undefined) {
-            // CLONE
-                popupClone.text = "Clone from Group";
-                popupClone.userData.type = "popup-clone";
-            }
-            popupClone.fontSize = 0.02;
-            popupClone.userData.fontSize = 0.02;
-            popupClone.color = _colorTXpopu;
-            popupClone.anchorX = 'left';
-            popupClone.anchorY = 'middle';
-            newPopup.attach(popupClone);
-            popupClone.position.x = -0.11;
-            popupClone.position.y = 0.05;
-            popupClone.layers.enable( 3 );
-            popupClone.userData.target = target;
-            popupItems.push(popupClone);
-
-    // FIND IN DOCUMENT popup button
-            const popupFind = new Text();
-            scene.add(popupFind);
-            popupFind.text = "Show in Document";
-            popupFind.fontSize = 0.02;
-            popupFind.userData.fontSize = 0.02;
-            popupFind.color = _colorTXpopu;
-            popupFind.anchorX = 'left';
-            popupFind.anchorY = 'middle';
-            newPopup.attach(popupFind);
-            popupFind.position.x = -0.11;
-            popupFind.position.y = 0.0;
-            popupFind.layers.enable( 3 );
-            popupFind.userData.type = "popup-find";
-            popupFind.userData.target = target;
-            popupItems.push(popupFind);
-
-    // MARK THIS TEXT popup button
-            const popupMark = new Text();
-            scene.add(popupMark);
-            if (target.userData.hasMarkup != undefined) {
-            // REMOVE COLOR
-            popupMark.text = "Unmark this Text";
-            popupMark.userData.type = "popup-unmark";
-            } else {
-            // ADD COLOR
-            popupMark.text = "Mark this Text";
-            popupMark.userData.type = "popup-mark";
-            }
-            popupMark.fontSize = 0.02;
-            popupMark.userData.fontSize = 0.02;
-            popupMark.color = _colorTXpopu;
-            popupMark.anchorX = 'left';
-            popupMark.anchorY = 'middle';
-            newPopup.attach(popupMark);
-            popupMark.position.x = -0.11;
-            popupMark.position.y = -0.05;
-            popupMark.layers.enable( 3 );
-            popupMark.userData.target = target;
-            popupItems.push(popupMark);
-
-    // FOCUS popup button
-            if ( target.userData.detachedParent == undefined ) {
-                const popupFocus = new Text();
-                scene.add(popupFocus);
-                if (target.parent.userData.focusBG != undefined) {
-                // UNFOCUS
-                popupFocus.text = "Unfocus";
-                popupFocus.userData.type = "popup-unfocus";
-                } else {
-                // FOCUS
-                popupFocus.text = "Focus";
-                popupFocus.userData.type = "popup-focus";
-                }
-                popupFocus.fontSize = 0.02;
-                popupFocus.userData.fontSize = 0.02;
-                popupFocus.color = _colorTXpopu;
-                popupFocus.anchorX = 'left';
-                popupFocus.anchorY = 'middle';
-                newPopup.attach(popupFocus);
-                popupFocus.position.x = -0.11;
-                popupFocus.position.y = -0.10;
-                popupFocus.layers.enable( 3 );
-                popupFocus.userData.target = target;
-                popupItems.push(popupFocus);
-            }
-
-        } else if (variation == "reference") { //======================================================
-    // REMOVE popup button
-            const popupRemove = new Text();
-            scene.add(popupRemove);
-            popupRemove.text = "Remove";
-            popupRemove.userData.type = "popup-remove";
-            popupRemove.fontSize = 0.02;
-            popupRemove.userData.fontSize = 0.02;
-            popupRemove.color = _colorTXpopu;
-            popupRemove.anchorX = 'left';
-            popupRemove.anchorY = 'middle';
-            newPopup.attach(popupRemove);
-            popupRemove.position.x = -0.11;
-            popupRemove.position.y = 0.1;
-            popupRemove.layers.enable( 3 );
-            popupRemove.userData.target = target;
-            popupItems.push(popupRemove);
-
-    // SHOW / HIDE CONNECTIONS popup button
-            const popupConnections = new Text();
-            scene.add(popupConnections);
-            if (target.userData.persistentLines != undefined) {
-            // HIDE
-                popupConnections.text = "Hide Connections";
-                popupConnections.userData.type = "popup-connections-hide";
-            } else {
-            // SHOW
-                popupConnections.text = "Show Connections";
-                popupConnections.userData.type = "popup-connections-show";
-            }
-            popupConnections.fontSize = 0.02;
-            popupConnections.userData.fontSize = 0.02;
-            popupConnections.color = _colorTXpopu;
-            popupConnections.anchorX = 'left';
-            popupConnections.anchorY = 'middle';
-            newPopup.attach(popupConnections);
-            popupConnections.position.x = -0.11;
-            popupConnections.position.y = 0.0;
-            popupConnections.layers.enable( 3 );
-            popupConnections.userData.target = target;
-            popupItems.push(popupConnections);
-
-        } else if (variation == "markup") { //======================================================
-
-    // COLOR / REMOVE HIGHLIGHTS popup buttons
-            for (var i = _colorHImark.length - 1; i >= 0; i--) {
-                var popupColor = new Text();
-                scene.add(popupColor);
-                popupColor.text = "Highlight Text";
-                popupColor.fontSize = 0.02;
-                popupColor.userData.fontSize = 0.02;
-                popupColor.anchorX = 'left';
-                popupColor.anchorY = 'middle';
-                newPopup.attach(popupColor);
-                popupColor.position.x = -0.11;
-                popupColor.layers.enable( 3 );
-                popupColor.userData.target = target;
-                popupColor.userData.color = _colorHImark[i];
-                target.userData.hasMarkup = true;
-                popupColor.userData.type = "popup-color";
-                popupColor.color = _colorHImark[i];
-                popupColor.position.y = 0.1 - (0.05 * i);
-
-                popupItems.push(popupColor);
-            }
-            
-            
-
-        }
-
-// CLOSE popup button
-        const popupClose = new Text();
-        scene.add(popupClose);
-        popupClose.text = "Close";
-        popupClose.fontSize = 0.02;
-        popupClose.userData.fontSize = 0.02;
-        popupClose.color = _colorTXpopu;
-        popupClose.anchorX = 'left';
-        popupClose.anchorY = 'middle';
-        newPopup.attach(popupClose);
-        popupClose.position.x = -0.11;
-        popupClose.position.y = -0.173;
-        popupClose.layers.enable( 3 );
-        popupClose.userData.type = "popup-close";
-        popupItems.push(popupClose);
-
-        // display and position popup
-        toolSelectorDot.getWorldPosition(tempWorldPos);
-        newPopup.position.set( tempWorldPos.x, tempWorldPos.y, tempWorldPos.z );
-
-        centerSource.set( camera.position.x, tempWorldPos.y, camera.position.z );
-
-        var newRot = new THREE.Quaternion().setFromRotationMatrix(
-            new THREE.Matrix4().lookAt( centerSource, newPopup.position, _yforward ) 
-        );
-
-        newPopup.quaternion.copy( newRot );
-
-        // newPopup.rotation.set( target.parent.rotation.x, target.parent.rotation.y, target.parent.rotation.z );
-
-        for (var i = popupItems.length - 1; i >= 0; i--) {
-            popupItems[i].translateZ(0.001);
-            popupItems[i].sync();
-        }
-
-        newPopup.translateZ(0.1);
-        
-        scene.add(newPopup);
-        newPopup.layers.enable( 3 );
-        // newPopup.userData.type = "popup-background";
-
-        popupHead.sync();
-
-        newPopup.scale.set( 0, 0, 0 );
-
-        var tempScale = camera.position.distanceTo(newPopup.position);
-
-        // tween the popup
-        new TWEEN.Tween( newPopup.scale )
-                .to( {x: tempScale, y: tempScale, z: tempScale}, 300 )
-                .easing( TWEEN.Easing.Quadratic.Out )
+            new TWEEN.Tween( citationwarning.scale )
+                .to( {y: 0}, 300 )
+                .easing( TWEEN.Easing.Back.In )
                 .start()
-        ;
+                .onComplete(() => {
+                    scene.remove(citationwarning);
+                    citationwarning = undefined;
+                });
+
+        } catch {}
+
     }
+
+
+
+
+
+
+
+//     var popupItems = [];
+
+//     if (newPopup != undefined) { newPopup.parent.remove(newPopup); newPopup = undefined; };
+    
+//     if (target != undefined) {
+
+//         // popup background panel
+//         const popupGeo = new THREE.PlaneGeometry(0.25, 0.4);
+//         newPopup = new THREE.Mesh( popupGeo, popupMat );
+
+//         // popup header text
+//         const popupHead = new Text();
+//         scene.add(popupHead);
+//         popupHead.fontSize = 0.015;
+//         popupHead.color = _colorTXpopu;
+//         popupHead.anchorX = 'center';
+//         if (target.text.length >= 30) {
+//             popupHead.text = target.text.slice(0,28) + '...';
+//         } else {
+//             popupHead.text = target.text;
+//         }
+//         newPopup.attach(popupHead);
+//         popupHead.position.y = 0.185;
+//         popupItems.push(popupHead);
+
+//         if (variation == "citation") {  //======================================================
+//     // DETACH / REATTACH popup button
+//             const popupDetach = new Text();
+//             scene.add(popupDetach);
+//             if (target.userData.detachedParent != undefined && !target.userData.isClone) {
+//             // ATTACH
+//                 popupDetach.text = "Reattach to Group";
+//                 popupDetach.userData.type = "popup-attach";
+//             } else if (target.userData.detachedParent == undefined) {
+//             // DETACH
+//                 popupDetach.text = "Detach from Group";
+//                 popupDetach.userData.type = "popup-detach";
+//             }
+//             popupDetach.fontSize = 0.02;
+//             popupDetach.userData.fontSize = 0.02;
+//             popupDetach.color = _colorTXpopu;
+//             popupDetach.anchorX = 'left';
+//             popupDetach.anchorY = 'middle';
+//             newPopup.attach(popupDetach);
+//             popupDetach.position.x = -0.11;
+//             popupDetach.position.y = 0.1;
+//             popupDetach.layers.enable( 3 );
+//             popupDetach.userData.target = target;
+//             popupItems.push(popupDetach);
+
+//     // CLONE / RETURN popup button
+//             const popupClone = new Text();
+//             scene.add(popupClone);
+//             if (target.userData.detachedParent != undefined && target.userData.isClone) {
+//             // RETURN
+//                 popupClone.text = "Return to Group";
+//                 popupClone.userData.type = "popup-return";
+//             } else if (target.userData.detachedParent == undefined) {
+//             // CLONE
+//                 popupClone.text = "Clone from Group";
+//                 popupClone.userData.type = "popup-clone";
+//             }
+//             popupClone.fontSize = 0.02;
+//             popupClone.userData.fontSize = 0.02;
+//             popupClone.color = _colorTXpopu;
+//             popupClone.anchorX = 'left';
+//             popupClone.anchorY = 'middle';
+//             newPopup.attach(popupClone);
+//             popupClone.position.x = -0.11;
+//             popupClone.position.y = 0.05;
+//             popupClone.layers.enable( 3 );
+//             popupClone.userData.target = target;
+//             popupItems.push(popupClone);
+
+//     // FIND IN DOCUMENT popup button
+//             const popupFind = new Text();
+//             scene.add(popupFind);
+//             popupFind.text = "Show in Document";
+//             popupFind.fontSize = 0.02;
+//             popupFind.userData.fontSize = 0.02;
+//             popupFind.color = _colorTXpopu;
+//             popupFind.anchorX = 'left';
+//             popupFind.anchorY = 'middle';
+//             newPopup.attach(popupFind);
+//             popupFind.position.x = -0.11;
+//             popupFind.position.y = 0.0;
+//             popupFind.layers.enable( 3 );
+//             popupFind.userData.type = "popup-find";
+//             popupFind.userData.target = target;
+//             popupItems.push(popupFind);
+
+//     // MARK THIS TEXT popup button
+//             const popupMark = new Text();
+//             scene.add(popupMark);
+//             if (target.userData.hasMarkup != undefined) {
+//             // REMOVE COLOR
+//             popupMark.text = "Unmark this Text";
+//             popupMark.userData.type = "popup-unmark";
+//             } else {
+//             // ADD COLOR
+//             popupMark.text = "Mark this Text";
+//             popupMark.userData.type = "popup-mark";
+//             }
+//             popupMark.fontSize = 0.02;
+//             popupMark.userData.fontSize = 0.02;
+//             popupMark.color = _colorTXpopu;
+//             popupMark.anchorX = 'left';
+//             popupMark.anchorY = 'middle';
+//             newPopup.attach(popupMark);
+//             popupMark.position.x = -0.11;
+//             popupMark.position.y = -0.05;
+//             popupMark.layers.enable( 3 );
+//             popupMark.userData.target = target;
+//             popupItems.push(popupMark);
+
+//     // FOCUS popup button
+//             if ( target.userData.detachedParent == undefined ) {
+//                 const popupFocus = new Text();
+//                 scene.add(popupFocus);
+//                 if (target.parent.userData.focusBG != undefined) {
+//                 // UNFOCUS
+//                 popupFocus.text = "Unfocus";
+//                 popupFocus.userData.type = "popup-unfocus";
+//                 } else {
+//                 // FOCUS
+//                 popupFocus.text = "Focus";
+//                 popupFocus.userData.type = "popup-focus";
+//                 }
+//                 popupFocus.fontSize = 0.02;
+//                 popupFocus.userData.fontSize = 0.02;
+//                 popupFocus.color = _colorTXpopu;
+//                 popupFocus.anchorX = 'left';
+//                 popupFocus.anchorY = 'middle';
+//                 newPopup.attach(popupFocus);
+//                 popupFocus.position.x = -0.11;
+//                 popupFocus.position.y = -0.10;
+//                 popupFocus.layers.enable( 3 );
+//                 popupFocus.userData.target = target;
+//                 popupItems.push(popupFocus);
+//             }
+
+//         } else if (variation == "reference") { //======================================================
+//     // REMOVE popup button
+//             const popupRemove = new Text();
+//             scene.add(popupRemove);
+//             popupRemove.text = "Remove";
+//             popupRemove.userData.type = "popup-remove";
+//             popupRemove.fontSize = 0.02;
+//             popupRemove.userData.fontSize = 0.02;
+//             popupRemove.color = _colorTXpopu;
+//             popupRemove.anchorX = 'left';
+//             popupRemove.anchorY = 'middle';
+//             newPopup.attach(popupRemove);
+//             popupRemove.position.x = -0.11;
+//             popupRemove.position.y = 0.1;
+//             popupRemove.layers.enable( 3 );
+//             popupRemove.userData.target = target;
+//             popupItems.push(popupRemove);
+
+//     // SHOW / HIDE CONNECTIONS popup button
+//             const popupConnections = new Text();
+//             scene.add(popupConnections);
+//             if (target.userData.persistentLines != undefined) {
+//             // HIDE
+//                 popupConnections.text = "Hide Connections";
+//                 popupConnections.userData.type = "popup-connections-hide";
+//             } else {
+//             // SHOW
+//                 popupConnections.text = "Show Connections";
+//                 popupConnections.userData.type = "popup-connections-show";
+//             }
+//             popupConnections.fontSize = 0.02;
+//             popupConnections.userData.fontSize = 0.02;
+//             popupConnections.color = _colorTXpopu;
+//             popupConnections.anchorX = 'left';
+//             popupConnections.anchorY = 'middle';
+//             newPopup.attach(popupConnections);
+//             popupConnections.position.x = -0.11;
+//             popupConnections.position.y = 0.0;
+//             popupConnections.layers.enable( 3 );
+//             popupConnections.userData.target = target;
+//             popupItems.push(popupConnections);
+
+//         } else if (variation == "markup") { //======================================================
+
+//     // COLOR / REMOVE HIGHLIGHTS popup buttons
+//             for (var i = _colorHImark.length - 1; i >= 0; i--) {
+//                 var popupColor = new Text();
+//                 scene.add(popupColor);
+//                 popupColor.text = "Highlight Text";
+//                 popupColor.fontSize = 0.02;
+//                 popupColor.userData.fontSize = 0.02;
+//                 popupColor.anchorX = 'left';
+//                 popupColor.anchorY = 'middle';
+//                 newPopup.attach(popupColor);
+//                 popupColor.position.x = -0.11;
+//                 popupColor.layers.enable( 3 );
+//                 popupColor.userData.target = target;
+//                 popupColor.userData.color = _colorHImark[i];
+//                 target.userData.hasMarkup = true;
+//                 popupColor.userData.type = "popup-color";
+//                 popupColor.color = _colorHImark[i];
+//                 popupColor.position.y = 0.1 - (0.05 * i);
+
+//                 popupItems.push(popupColor);
+//             }
+            
+            
+
+//         }
+
+// // CLOSE popup button
+//         const popupClose = new Text();
+//         scene.add(popupClose);
+//         popupClose.text = "Close";
+//         popupClose.fontSize = 0.02;
+//         popupClose.userData.fontSize = 0.02;
+//         popupClose.color = _colorTXpopu;
+//         popupClose.anchorX = 'left';
+//         popupClose.anchorY = 'middle';
+//         newPopup.attach(popupClose);
+//         popupClose.position.x = -0.11;
+//         popupClose.position.y = -0.173;
+//         popupClose.layers.enable( 3 );
+//         popupClose.userData.type = "popup-close";
+//         popupItems.push(popupClose);
+
+//         // display and position popup
+//         toolSelectorDot.getWorldPosition(tempWorldPos);
+//         newPopup.position.set( tempWorldPos.x, tempWorldPos.y, tempWorldPos.z );
+
+//         centerSource.set( camera.position.x, tempWorldPos.y, camera.position.z );
+
+//         var newRot = new THREE.Quaternion().setFromRotationMatrix(
+//             new THREE.Matrix4().lookAt( centerSource, newPopup.position, _yforward ) 
+//         );
+
+//         newPopup.quaternion.copy( newRot );
+
+//         // newPopup.rotation.set( target.parent.rotation.x, target.parent.rotation.y, target.parent.rotation.z );
+
+//         for (var i = popupItems.length - 1; i >= 0; i--) {
+//             popupItems[i].translateZ(0.001);
+//             popupItems[i].sync();
+//         }
+
+//         newPopup.translateZ(0.1);
+        
+//         scene.add(newPopup);
+//         newPopup.layers.enable( 3 );
+//         // newPopup.userData.type = "popup-background";
+
+//         popupHead.sync();
+
+//         newPopup.scale.set( 0, 0, 0 );
+
+//         var tempScale = camera.position.distanceTo(newPopup.position);
+
+//         // tween the popup
+//         new TWEEN.Tween( newPopup.scale )
+//                 .to( {x: tempScale, y: tempScale, z: tempScale}, 300 )
+//                 .easing( TWEEN.Easing.Quadratic.Out )
+//                 .start()
+//         ;
+//     }
 }
 
 
@@ -3330,6 +3597,53 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         docGroup.userData.textBlock.push(newText);
 
+
+        // find any citation in the text
+        console.log( fullText[i] );
+        var re = /\[\d/g;
+        let match;
+        
+        var starts = [];
+        var ends = [];
+
+        var allTheseRefs = [];
+
+        while ((match = re.exec( fullText[i] )) !== null) {
+            var temp = fullText[i].slice( match.index );
+            var breakpoint = temp.search( ']' );
+            temp = temp.slice( 1, breakpoint );
+
+            var commacheck = (temp.match(/,/g) || []).length;
+
+            if ( commacheck == 0 ) {
+                allTheseRefs.push( temp )
+            } else {
+
+                for (var j = commacheck; j >= 0; j--) {
+
+                    if ( j > 0 ) {
+                        var commabreak = temp.search( ',' );
+                        var newtemp = temp.slice( 0, commabreak );
+                        allTheseRefs.push( newtemp );
+                        temp = temp.slice( commabreak + 2 );
+                    } else {
+                        allTheseRefs.push( temp );
+                    }
+
+                }
+
+            }
+
+        }
+
+        // // check for any spaces (unnecessary?)
+        // for (var j = allTheseRefs.length - 1; j >= 0; j--) {
+        //     var space = allTheseRefs[j].search( ' ' );
+        //     console.log(space);
+        // }
+
+        newText.userData.citations = allTheseRefs;
+
         // newText.outlineWidth = 1;
         // newText.outlineColor = 0xffffff * Math.random();
 
@@ -3482,7 +3796,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         
 
         // Create a scrollbar
-        const scrollCir = new THREE.BoxGeometry(0.06,0.06,0.001);
+        const scrollCir = new THREE.BoxGeometry(0.03,0.03,0.001);
         const scrollNub = new THREE.Mesh( scrollCir, docBGmat );
         const scrollBox = new THREE.BoxGeometry(0.005,1,0.005);
         const scrollBar = new THREE.Mesh( scrollBox, invisMat );
@@ -3677,7 +3991,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         outlineGroup.add(outbg);
         
         if ( totalHeight < 0.4 ) {
-            outbg.scale.y = 0.4 * 4;
+            outbg.scale.y = -(destinationClippingEnd - destinationClippingStart) * 4;
             outbg.userData.scaleDefault = 0.4;
         } else {
             outbg.scale.y = -(destinationClippingEnd - destinationClippingStart) * 4;
@@ -3686,6 +4000,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         // outbg.layers.enable( 3 );
         outbg.userData.type = "docoutline-bg";
+        outbg.name = "bg";
         outlineGroup.userData.outbg = outbg;
 
 
@@ -3708,6 +4023,8 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         outlineGroup.visible = true;
         outlineGroup.scale.y = 0.2;
 
+        // Start generating the references
+        findReferences( docGroup );
 
         // Final organization and presentation of the document
 
@@ -3786,6 +4103,8 @@ function reclipDocument(docGroup) {
     const closeBtn = docGroup.userData.closeBtn;
     const outlineGroup = docGroup.userData.outlineGroup;
     const outlineBar = outlineGroup.userData.outlineBar;
+    var refGroup;
+    var refBar;
     // const outlineBlock = docGroup.userData.outlineBlock;
 
     // scrollBar.position.set(documentMaxWidth + 0.1, (clippingEnd - clippingStart)/2 + clippingStart, 0);
@@ -3813,6 +4132,20 @@ function reclipDocument(docGroup) {
 
     outlineGroup.position.y = clippingStart + (clippingEnd - clippingStart)/2;
     outlineBar.position.y = outlineGroup.position.y;
+
+    if ( docGroup.userData.refGroup != undefined ) {
+
+        refGroup = docGroup.userData.refGroup;
+
+        if ( refGroup.userData.refBar != undefined ) {
+
+            refBar = refGroup.userData.refBar;
+            refGroup.position.y = clippingStart + (clippingEnd - clippingStart)/2;
+            refBar.position.y = refGroup.position.y;
+
+        }
+        
+    }
 
     const viewHeight = clippingEnd - clippingStart + 0.05;
 
@@ -3946,6 +4279,449 @@ var scrollMat = new THREE.ShaderMaterial({
 });
 
 
+function findReferences( docGroup ) {
+
+    // get the html of the source paper
+        // after returning... pass to generateReferences()
+
+    var url;
+
+    if ( docGroup.type == 'Group' ) {
+        url = docGroup.userData.src;
+    } else {
+        url = docGroup;
+    }
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'html',
+        success: function(data) {
+            generateReferences( docGroup, $(data) );
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching HTML: ', error);
+        }
+    });
+
+
+}
+
+
+function generateReferences( docGroup, html ) {
+
+    // set up the variables
+    var displayHead, allrefs;
+    var $html = html;
+
+    // get the title
+    var results = $html.find('.title');
+    results.each(function() {
+        displayHead = $(this).text();
+    });
+
+    // get the citations
+    var allrefs = {};
+    allrefs.refs = [];
+    var citationMain = $html.find('.bibUl').first();
+    var allCitations = citationMain.find('li');
+    var citationNum = 0;
+
+    allCitations.each(function() {
+        citationNum++;
+        var rawcitation = $(this).html();
+        var txtcitation = $(this).text();
+        var number = "[" + citationNum + "]";
+
+        // =============== title ===============
+
+        // slice off the url at the end
+        const breakpoint = rawcitation.search('<a');
+        var title = rawcitation.slice(0,breakpoint);
+
+        // find the first year and slice it off
+        var yearpoint = title.search(/\d{4}/);
+        var potential = title.slice( yearpoint + 6 );
+
+        // setup some variables for later
+        const nums = [0,1,2,3,4,5,6,7,8,9];
+        var potentials = [];
+        var current = 0;
+
+        // remove the html tags and recombine the content
+        var pieces = $.parseHTML( potential );
+        var recombined = '';
+        for (var i = pieces.length - 1; i >= 0; i--) {
+            recombined = $(pieces[i]).text() + recombined;
+        }
+
+        // if the result is now empty, roll back
+        if ( recombined.length <= 1 ) {
+            recombined = title;
+        }
+
+        // check for a residual tag
+        var firstBracket = recombined.search('<');
+        var lastBracket = recombined.search('>');
+        if ( firstBracket != -1 && lastBracket != -1 ) {
+            var firstHalf = recombined.slice(0,firstBracket);
+            var secondHalf = recombined.slice(lastBracket+1);
+            recombined = firstHalf + secondHalf;
+        }
+
+        // slice off any trailing periods
+        if ( recombined.slice(recombined.length-2) == '. ' ) {
+            recombined = recombined.slice( 0,recombined.length-2 );
+        }
+
+        // check for a remaining period and assume it would be a location reference
+        var location = recombined.indexOf('. ');
+        var stripped = '';
+        if ( location != -1 ) {
+            stripped = recombined.slice( 0, location );
+        } else {
+            stripped = recombined;
+        }
+
+        // check if the result was cut at the wrong place, like at a common abbreviation
+        var abbscheck = stripped.slice( stripped.length -2 );
+        const abbreviations = ['Mt','Mr'];
+        for (var i = abbreviations.length - 1; i >= 0; i--) {
+            if ( abbreviations[i] == abbscheck ) {
+                stripped = recombined;
+            }
+        }
+
+        // =============== authors ===============
+
+        // find some numbers after a space, probably the year
+        potentials = [];
+        for (var i = nums.length - 1; i >= 0; i--) {
+            const result = txtcitation.indexOf( ' ' + i);
+            if ( result != -1 ) {
+                potentials.push(txtcitation.slice(0, result));
+            }
+        }
+
+        // checks the results and only keep the shortest one
+        current = 0;
+        for (var i = potentials.length - 1; i >= 0; i--) {
+            if ( potentials[i].length < potentials[current].length ) {
+                current = i;
+            }
+        }
+
+        // slice off any trailing periods
+        var authors = potentials[current];
+        if ( authors.slice(authors.length-1) == '.' ) {
+            authors = authors.slice( 0,authors.length-1 );
+        }
+
+        // check if the authors are invalid
+        for (var i = nums.length - 1; i >= 0; i--) {
+            if ( nums[i] == authors[1] ) {
+                authors = '';
+            }
+        }
+
+        // check if the authors end in a comma (probabaly part of a date) and remove it
+        if ( authors.slice( authors.length-1 ) == ',' ) {
+            authors = authors.slice( 0, authors.length-1 );
+        }
+
+        // check if we have a month at the end and remove it
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        for (var i = months.length - 1; i >= 0; i--) {
+            if ( authors.slice( authors.length-months[i].length ) == months[i] ) {
+                authors = authors.slice( 0, authors.length-months[i].length-2 );
+            }
+        }
+
+        // =============== url ===============
+
+        // get the url at the end
+        const linkstart = rawcitation.indexOf( 'href="' );
+        var link = rawcitation.slice( linkstart+6 );
+        const linkend = link.indexOf( '"' );
+        link = link.slice( 0, linkend );
+
+        if ( link.slice( 0, 8 ) != "https://" ) {
+            link = '';
+        }
+
+        console.log( link );
+
+        // =============== year ===============
+
+        // find the first number following a period and space, probably the year
+        var result = 0;
+        for (var i = nums.length - 1; i >= 0; i--) {
+            const startpoint = txtcitation.indexOf( '. ' + i);
+            if ( startpoint != -1 ) {
+                var temp = txtcitation.slice( startpoint + 2, startpoint + 6 );
+                if ( Number.isInteger(Number(temp)) ) {
+                    result = Number(temp);
+                }
+            }
+        }
+
+        // make sure the result is not empty
+        var year;
+        if ( result != 0 ) {
+            year = result;
+        }
+
+        // =============== ======== ===============
+
+        var newListItem = '';
+        if ( authors.length > 0 ) {
+            newListItem = number + ' ' + stripped + ' - ' + authors;
+        } else {
+            newListItem = number + ' ' + stripped;
+        }
+
+        var thisref = {};
+        
+        thisref.ref = newListItem;
+        thisref.num = citationNum;
+        thisref.title = stripped;
+        thisref.author = authors;
+        thisref.source = link;
+        thisref.year = year;
+
+        allrefs.refs.push(thisref);
+
+        if ( citationNum == allCitations.length ) {
+            generateReferencesStep( docGroup, allrefs, 0 );
+        }
+
+    })
+
+    console.log( allrefs );
+
+}
+
+
+function generateReferencesStep( docGroup, refs, index ) {
+
+    var totalHeight;
+    var padding = 0.01;
+    var refGroup;
+    var zdistance = snapDistanceOneValue + docGroup.userData.specialReaderOffset;
+
+    if ( index == 0 ) {
+
+        refGroup = new THREE.Group();
+        docGroup.userData.refGroup = refGroup;
+        docGroup.add( refGroup );
+        refGroup.userData.type = "refgroup";
+
+    } else {
+
+        refGroup = docGroup.userData.refGroup;
+    }
+
+
+    if ( index > 0 ) {
+
+        const tempBox = new THREE.Box3().setFromObject( refGroup );
+        tempBox.getSize( tempSize );
+        totalHeight = tempSize.y;
+
+    } else {
+
+        totalHeight = 0;
+
+    }
+
+
+    if ( index > 0 && index < refs.refs.length ) {
+        totalHeight += padding;
+    }
+
+
+    if ( index < refs.refs.length ) {
+
+        var newText = new Text();
+        const newTextGroup = new THREE.Group();
+
+        newTextGroup.add( newText );
+        refGroup.add( newTextGroup );
+
+        // console.log(refs.refs[index]);
+        // console.log(totalHeight);
+
+        newText.text = refs.refs[index].ref;
+        newText.color = _colorTXalts;
+        newText.fontSize = 0.02;
+        newText.anchorX = 'left';
+        newText.anchorY = 'top';
+        newText.maxWidth = 0.95;
+        newText.textAlign = 'justify';
+        newText.curveRadius = zdistance + 0.005;
+        newText.position.z = - zdistance - 0.005;
+        newTextGroup.position.y = - totalHeight;
+        newTextGroup.rotation.y = 0;
+        newTextGroup.userData.type = "reflineGroup";
+
+        newTextGroup.userData.num = refs.refs[index].num;
+        newTextGroup.userData.title = refs.refs[index].title;
+        newTextGroup.userData.author = refs.refs[index].author;
+        newTextGroup.userData.year = refs.refs[index].year;
+        newTextGroup.userData.source = refs.refs[index].source;
+
+        newText.userData.type = "refline";
+        newText.userData.fontSize = 0.02;
+        newText.layers.enable( 3 );
+
+        newText.sync();
+        newText.userData.syncDocGroup = docGroup;
+        newText.userData.syncRefs = refs;
+        newText.userData.syncIndex = index + 1;
+
+        newText.userData.sync = 'refline';
+        syncCheck.push(newText);
+
+        newTextGroup.visible = false;
+
+    } else if ( index == refs.refs.length ) {
+
+        refGroup.rotation.y = -(documentMaxWidth + documentMargin + 0.08) / (zdistance);
+        refGroup.position.y = (docGroup.userData.clippingStart.position.y + (docGroup.userData.clippingEnd.position.y - docGroup.userData.clippingStart.position.y) / 2 );
+
+        // Create reference bar
+        const refBarGeo = new THREE.CylinderGeometry(
+            (zdistance + 0.002),
+            (zdistance + 0.002),
+            1, 1, 1, true, Math.PI, -0.001 );
+
+        const refBar = new THREE.Mesh( refBarGeo, boxMat );
+        docGroup.add(refBar);
+        refBar.userData.scaleOut = totalHeight + 0.1;
+        // refBar.userData.scaleIn = -(docGroup.userData.clippingEnd.position.y - docGroup.userData.clippingStart.position.y);
+        refBar.scale.y = 0;
+        refBar.rotation.y = -(documentMaxWidth + documentMargin + 0.05) / (zdistance);
+        refBar.position.y = refGroup.position.y;
+
+        refGroup.userData.refBar = refBar;
+
+        // reposition the texts
+        for (var i = refGroup.children.length - 1; i >= 0; i--) {
+            refGroup.children[i].translateY( totalHeight/2 );
+            refGroup.children[i].userData.magnetRotY = refGroup.children[i].rotation.y;
+            refGroup.children[i].userData.magnetPosY = refGroup.children[i].position.y;
+        }
+
+        // Create reference background
+        const refbgGeo = new THREE.CylinderGeometry(
+            (zdistance + 0.006),
+            (zdistance + 0.006),
+            1, 32, 1, true, Math.PI,
+            (-1.2) / (zdistance)
+            );
+
+        const refbg = new THREE.Mesh( refbgGeo, testMat );
+        refGroup.add( refbg );
+
+        refbg.scale.y = -(destinationClippingEnd - destinationClippingStart);
+        refGroup.userData.rotationOut = -(documentMaxWidth + documentMargin + 0.07) / (zdistance);
+        refGroup.userData.rotationIn = -(documentMaxWidth + documentMargin - 1.0) / (zdistance);
+        refGroup.rotation.y = refGroup.userData.rotationIn;
+
+        refbg.userData.type = "docref-bg";
+        refbg.name = "bg";
+
+        refGroup.userData.refbg = refbg;
+        refGroup.userData.refBar = refBar;
+        refGroup.userData.isOut = false;
+
+        refGroup.scale.y = 0.2;
+        refbg.scale.y = refbg.scale.y * 5;
+        // refGroup.visible = false;
+
+
+
+
+
+
+
+        // animate in the outline
+        new TWEEN.Tween( refBar.scale )
+            .to( {y: -(destinationClippingEnd - destinationClippingStart) }, 1000 )
+            .easing( TWEEN.Easing.Back.Out )
+            .start()
+            .onComplete(() => {
+                refbg.layers.enable( 3 );
+            });
+    
+    }
+
+}
+
+
+const refsToDim = [];
+const refDimMax = 0.5;
+function tryRefDim( refGroup = undefined ) {
+    
+    if ( refGroup != undefined ) {
+
+        const isRefd = refsToDim.indexOf( refGroup );
+
+        if ( isRefd == -1 ) {
+            refsToDim.push( refGroup );
+            refGroup.userData.dimTimer = 0;
+        } else{
+            refGroup.userData.dimTimer = 0;
+        }
+
+    } else {
+
+        for (var i = refsToDim.length - 1; i >= 0; i--) {
+
+            if ( refsToDim[i].userData.dimTimer + deltaTime < refDimMax ) {
+
+                refsToDim[i].userData.dimTimer = refsToDim[i].userData.dimTimer + deltaTime;
+
+            } else {
+
+                const thisRef = refsToDim[i];
+
+                for (var j = thisRef.children.length - 1; j >= 0; j--) {
+                    if ( thisRef.children[j].name != 'bg' ) {
+
+
+                        new TWEEN.Tween( thisRef.children[j].children[0] )
+                            .to( {fillOpacity: 1}, 400 )
+                            .easing( TWEEN.Easing.Quadratic.InOut )
+                            .start()
+                        ;
+
+                        // thisRef.children[j].children[0].color = _colorTXalts;
+                    }
+                }
+
+                refsToDim.splice(i,1);
+
+            }
+
+        }
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4028,6 +4804,32 @@ function trySync() {
                     syncCheck[i].userData.syncType = undefined;
                     syncCheck[i].userData.syncStep = undefined;
                     stepBoxPreview( parent, "", author, year, source, type, step );
+
+                } else if (funct == 'refline') {
+
+                    var docGroup = syncCheck[i].userData.syncDocGroup;
+                    var refs = syncCheck[i].userData.syncRefs;
+                    var index = syncCheck[i].userData.syncIndex;
+                    syncCheck[i].userData.syncDocGroup = undefined;
+                    syncCheck[i].userData.syncRefs = undefined;
+                    syncCheck[i].userData.syncIndex = undefined;
+                    generateReferencesStep( docGroup, refs, index );
+
+                } else if (funct == 'citationBoxBuilder') {
+
+                    var group = syncCheck[i].userData.syncGroup;
+                    var author = syncCheck[i].userData.syncAuthor;
+                    var year = syncCheck[i].userData.syncYear;
+                    var source = syncCheck[i].userData.syncSource;
+                    var step = syncCheck[i].userData.syncStep;
+                    var zdistance = syncCheck[i].userData.syncZdistance;
+                    syncCheck[i].userData.syncGroup = undefined;
+                    syncCheck[i].userData.syncAuthor = undefined;
+                    syncCheck[i].userData.syncYear = undefined;
+                    syncCheck[i].userData.syncSource = undefined;
+                    syncCheck[i].userData.syncStep = undefined;
+                    syncCheck[i].userData.syncZdistance = undefined;
+                    stepBoxCitation( group, "", author, year, source, step, zdistance );
 
                 }
 
@@ -4863,9 +5665,101 @@ function stopSwipe() {
             console.log("Swipe Distance: " + swipeDistance);
 
             const boxpreview = domswipeObj.children[0].userData.boxpreview;
-            if ( boxpreview != undefined && swipeTime > pinchThreshold && swipeDistance > swipeThreshold) {
+            if ( swipeTime > pinchThreshold && swipeDistance > swipeThreshold) {
                 
-                showBoxPreview( boxpreview, 0, domswipeObj, true );
+                if ( boxpreview != undefined ) {
+                    showBoxPreview( boxpreview, 0, domswipeObj, true );
+                }
+
+
+                if ( domswipeObj.userData.type == "reflineGroup" ) {
+
+                    toolSelectorCast.getWorldQuaternion(tempSelectorQuat);
+                    var rayForward = new THREE.Vector3(0.0, 0.0, -1.0).applyQuaternion(tempSelectorQuat);
+                    raycaster.set(tempSelectorWorld, rayForward);
+                    var intersects = raycaster.intersectObjects(scene.children);
+
+                    var triggertype = 'none';
+
+                    for (var i = intersects.length - 1; i >= 0; i--) {
+
+                        if ( intersects[i].object.userData != undefined && 
+                            intersects[i].object.userData.type != undefined && 
+                            intersects[i].object.userData.type == "docbg" ) {
+
+                                triggertype = "docbg";
+                        }
+                    }
+
+                    if ( triggertype == 'docbg' ) {
+
+                        console.log( domswipeObj );
+
+                        // jump to citation
+                        var num = domswipeObj.userData.num;
+                        var docGroup = domswipeObj.parent.parent;
+                        var textBlock = docGroup.userData.textBlock;
+                        var textBlockToScrollTo = undefined;
+                        
+                        for (var i = textBlock.length - 1; i >= 0; i--) {
+                            var element = textBlock[i];
+                            var citations = element.userData.citations;
+                            console.log( element );
+                            console.log( citations );
+                            for (var j = citations.length - 1; j >= 0; j--) {
+                                if ( citations[j] == num && textBlockToScrollTo == undefined ) {
+                                    textBlockToScrollTo = textBlock[i];
+                                }
+                            }
+                        }
+
+                        // console.log( "Scroll to: " + textBlockToScrollTo );
+
+                        const thisText = textBlockToScrollTo;
+                        var scrollPercent;
+
+                            const clippingStart = docGroup.userData.clippingStart.position.y;
+                            const clippingEnd = docGroup.userData.clippingEnd.position.y;
+                            const viewHeight = clippingEnd - clippingStart + 0.05;
+                            const totalHeight = docGroup.userData.totalHeight;
+
+                            scrollPercent = norm( thisText.position.y, textBlock[0].position.y - 0.1, -totalHeight - viewHeight + 0.1 );
+                            scrollPercent = clamp( scrollPercent, 0, 1 );
+
+                        // scroll to that position
+                        docGroup.userData.scrollPercent = scrollPercent;
+                        scrollDocument(docGroup);
+                        reclipDocument(docGroup);
+
+                        // briefly tween the text
+                        const targetPos = thisText.position.y;
+                        thisText.position.y = thisText.position.y + 0.05;
+
+                        new TWEEN.Tween( thisText.position )
+                            .to( {y: targetPos}, 1000 )
+                            .easing( TWEEN.Easing.Elastic.Out )
+                            .start()
+                        ;
+
+                    } else {
+                        // spawn reference preview box
+                        const title = domswipeObj.userData.title;
+                        const author = domswipeObj.userData.author;
+                        const year = domswipeObj.userData.year;
+                        const source = domswipeObj.userData.source;
+
+                        toolSelectorDot.getWorldPosition(toolSelectorDotWorld);
+
+                        const objOrigin = new THREE.Vector3( toolSelectorDotWorld.x, 0, toolSelectorDotWorld.z );
+                        const zdistance = objOrigin.distanceTo( _zero );
+
+                        initBoxCitation( domswipeObj, title, author, year, source, zdistance );
+
+                    }
+
+                }
+
+
                 domswipeObj.position.y = domswipeObj.userData.magnetPosY;
                 domswipeObj.rotation.y = domswipeObj.userData.magnetRotY;
 
@@ -4878,7 +5772,7 @@ function stopSwipe() {
                 ;
 
                 if ( domswipeObj.rotation.y <= -Math.PI || domswipeObj.rotation.y >= Math.PI ) {
-                    console.log("GREATER");
+                    // console.log("GREATER");
                     new TWEEN.Tween( domswipeObj )
                         .to( {rotation: {y: domswipeObj.userData.magnetRotY + (Math.PI * 2) }}, magnetTime )
                         .easing( TWEEN.Easing.Circular.Out )
@@ -4890,7 +5784,7 @@ function stopSwipe() {
                         });
                     ;
                 } else {
-                    console.log("LESSER");
+                    // console.log("LESSER");
                     new TWEEN.Tween( domswipeObj.rotation )
                         .to( {y: domswipeObj.userData.magnetRotY}, magnetTime )
                         .easing( TWEEN.Easing.Circular.Out )
@@ -7949,6 +8843,272 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
 }
 
 
+
+
+
+
+
+function initBoxCitation( swipeObj, title, author, year, source, zdistance ) {     // The preview box that displays the citation info
+    // console.log( title, author, year, source );
+
+    const newGroup = new THREE.Group();
+    scene.add( newGroup );
+
+    swipeObj.children[0].getWorldPosition(tempWorldPos);
+
+    newGroup.position.y = tempWorldPos.y;
+    newGroup.rotation.y = swipeObj.rotation.y + swipeObj.parent.parent.rotation.y - ( 1.6 / zdistance );
+    newGroup.visible = false;
+
+    newGroup.userData.type = "boxpreview";
+    newGroup.userData.source = source;
+    newGroup.userData.title = title;
+    newGroup.userData.author = author;
+    newGroup.userData.year = year;
+    newGroup.userData.zdistance = zdistance;
+
+    stepBoxCitation( newGroup, title, author, year, source, 0, zdistance );
+}
+
+
+function stepBoxCitation( parent, title, author, year, source, step = 0, zdistance = snapDistanceOneValue ) {
+    // citation preview boxes have the reference title, author, 'further info' (the year, maybe?)
+    // bar at the bottom with "   -   |   +   " to [close] and [open link externally]
+
+    const maxwidth = 1.6;
+    const distance = -zdistance + 0.01
+    const newText = new Text();
+    var totalHeight = 0;
+
+    if ( step > 0 ) {
+        const tempBox = new THREE.Box3().setFromObject(parent);
+        tempBox.getSize(tempSize);
+        totalHeight = tempSize.y;
+    }
+
+    parent.add(newText);
+    newText.color = _colorBXmain;
+    newText.maxWidth = maxwidth;
+    newText.position.set(0, -totalHeight, distance);
+    newText.curveRadius = -distance;
+    newText.fontSize = 0.035;
+    newText.font = _fontserif;
+
+    if ( step == 0 ) {
+        // Title
+        newText.text = title;
+        newText.fontSize = 0.038;
+        newText.font = _fontserifblack;
+    } else if ( step == 1 ) {
+        // author
+        newText.text = author;
+        newText.font = _fontserifitalic;
+    } else if ( step == 2 ) {
+        // year
+        var prePadder = "\n";
+        newText.text = prePadder.concat(year);
+        newText.anchorX = 'center';
+        newText.fontSize = 0.03;
+        newText.position.z = 0;
+        newText.rotation.y = ( (maxwidth)/2 )/distance;
+        newText.translateZ( distance );
+        newText.name = "details";
+    } else if ( step == 3 ) {
+        // bar and buttons
+        const bar = genCurve( parent, 1.2, 0.0025, -distance );
+        bar.rotation.y = ( -(maxwidth/2) - 0.6) / distance;
+        bar.position.y = -totalHeight - 0.05;
+
+
+        const closeTxt = new Text();
+        parent.add(closeTxt);
+        closeTxt.color = _colorBXmain;
+        closeTxt.curveRadius = -distance;
+        closeTxt.fontSize = 0.060;
+        closeTxt.text = "         -";
+        closeTxt.anchorX = "right";
+        closeTxt.anchorY = "middle";
+        closeTxt.sync();
+
+        toCollapse.push(closeTxt);
+
+        closeTxt.position.y = -totalHeight - 0.12;
+        closeTxt.rotation.y = (((maxwidth)/2) - 0.03) / distance;
+        closeTxt.translateZ( distance );
+
+        closeTxt.layers.enable( 3 );
+        closeTxt.userData.fontSize = closeTxt.fontSize;
+        closeTxt.userData.type = "boxcitation-close";
+
+        const barTxt = new Text();
+        parent.add(barTxt);
+        barTxt.color = _colorBXmain;
+        barTxt.curveRadius = -distance;
+        barTxt.fontSize = 0.030;
+        barTxt.text = "|";
+        barTxt.anchorX = "center";
+        barTxt.sync();
+
+        barTxt.position.y = -totalHeight - 0.1;
+        barTxt.rotation.y = ((maxwidth)/2) / distance;
+        barTxt.translateZ( distance );
+
+        const focusTxt = new Text();
+        parent.add(focusTxt);
+        focusTxt.color = _colorBXmain;
+        focusTxt.curveRadius = -distance;
+        focusTxt.fontSize = 0.060;
+        focusTxt.text = "+         #";
+        focusTxt.clipRect = [0, -0.1, 0.17, 0.1];
+        focusTxt.anchorX = "left";
+        focusTxt.anchorY = "middle";
+        focusTxt.sync();
+
+        focusTxt.position.y = -totalHeight - 0.12;
+        focusTxt.rotation.y = (((maxwidth)/2) + 0.03) / distance;
+        focusTxt.translateZ( distance );
+
+        focusTxt.layers.enable( 3 );
+        focusTxt.userData.fontSize = focusTxt.fontSize;
+
+        // console.log( parent.userData.source );
+
+        if ( parent.userData.source.length < 4 ) {
+            focusTxt.fillOpacity = 0.3;
+        } else {
+            focusTxt.userData.type = "boxcitation-expand";
+        }
+
+        parent.userData.focusTxt = focusTxt;
+
+    } else if ( step == 4 ) {
+        // generate box
+        const margin = 0.2;
+        const box = genBox( parent, maxwidth + margin, totalHeight + margin, -distance );
+        box.position.y = margin/2;
+        box.rotation.y = -(margin/2)/distance;
+
+        parent.userData.maxWidth = maxwidth;
+        parent.userData.totalHeight = totalHeight;
+        parent.userData.distance = distance;
+
+        parent.visible = true;
+
+        parent.scale.y = 0;
+
+        // tween in the citation
+        new TWEEN.Tween( parent.scale )
+            .to( {y: 1}, 300 )
+            .easing( TWEEN.Easing.Circular.Out )
+            .start()
+        ;
+
+    }
+
+    newText.sync();
+
+    if ( step < 4 ) {
+        newText.userData.sync = "citationBoxBuilder";
+        newText.userData.syncGroup = parent;
+        newText.userData.syncAuthor = author;
+        newText.userData.syncYear = year;
+        newText.userData.syncSource = source;
+        newText.userData.syncStep = step + 1;
+        newText.userData.syncZdistance = zdistance;
+        syncCheck.push( newText );
+    }
+}
+
+
+function warnCitation( parent, source ) {
+        // popup warning when opening external link
+        // tapping anywhere else triggers closePopup() and cancels the warning
+        // tapping "confirm" closes the XR experience and opens the link in a new tab
+            // "This document is not in your library"
+            //       "and will open externally."
+            // 
+            //          ____________________
+            // 
+            //                confirm
+
+    if ( citationwarning != undefined ) {
+        scene.remove( citationwarning );
+        citationwarning = undefined;
+    }
+
+    const maxwidth = 0.8;
+    const distance = parent.userData.distance + 0.003;
+    const newText = new Text();
+    const newGroup = new THREE.Group();
+
+    scene.add( newGroup );
+    newGroup.add( newText );
+    newGroup.userData.parent = parent;
+    newGroup.userData.source = source;
+
+    newGroup.rotation.y = parent.rotation.y + ( ( ( parent.userData.maxWidth/2 ) - 0.4 ) / (distance-0.003) );
+    newGroup.position.y = parent.position.y - parent.userData.totalHeight - 0.1;
+
+    newText.text = "This document is not in your library\nand will open externally."
+    newText.color = _colorBXmain;
+    newText.maxWidth = maxwidth;
+    newText.curveRadius = -distance;
+    newText.fontSize = 0.035;
+    newText.font = _fontserif;
+    newText.anchorX = 'center';
+    newText.textAlign = 'center';
+    newText.fontSize = 0.03;
+    newText.position.z = 0;
+    newText.rotation.y = ( (maxwidth)/2 )/distance;
+    newText.translateZ( distance );
+    newText.name = "details";
+
+
+    const bar = genCurve( newGroup, 0.6, 0.0025, -distance );
+    bar.rotation.y = ( -(maxwidth/2) - 0.3) / distance;
+    bar.position.y = - 0.12;
+
+
+    const confirm = new Text();
+    newGroup.add(confirm);
+    confirm.color = _colorBXmain;
+    confirm.curveRadius = -distance;
+    confirm.fontSize = 0.030;
+    confirm.text = "confirm";
+    confirm.anchorX = "center";
+    confirm.layers.enable( 3 );
+    confirm.userData.fontSize = confirm.fontSize;
+    confirm.userData.type = "warncitation-confirm";
+    confirm.sync();
+
+    confirm.position.y = - 0.15;
+    confirm.rotation.y = ((maxwidth)/2) / distance;
+    confirm.translateZ( distance );
+
+    const margin = 0.1;
+    const box = genBox( newGroup, maxwidth + margin, 0.2 + margin, -distance );
+    box.position.y = margin/2;
+    box.rotation.y = -(margin/2)/distance;
+
+    newGroup.scale.y = 0;
+
+    citationwarning = newGroup;
+
+    // tween in the warning
+    new TWEEN.Tween( newGroup.scale )
+        .to( {y: 1}, 300 )
+        .easing( TWEEN.Easing.Circular.Out )
+        .start()
+    ;
+
+}
+
+
+
+
+
+
+
 function genCurve( parent, width, weight = 0.005, distance = snapDistanceMenuValue, mod = -1, ) {
 
     const horizontalGeo = new THREE.CylinderGeometry(
@@ -8459,6 +9619,7 @@ if ( WebGL.isWebGLAvailable() ) {
 
                 tryVelocity();
                 tryHideBoxMenu();
+                tryRefDim();
 
                 animateCitationLines();
                 animateConsoleLog();
@@ -8496,10 +9657,10 @@ camera.position.z = 1;
 // loadTextBlock('./_ref/htconference/2022/3511095.3531270.html');
 // findDocumentContent('./_ref/htconference/2022/3511095.3531270.html','Placeholder Title','Author Name');
 // sphereHelper.visible=false;
+// findReferences('./_ref/htconference/2024/ht24-35.html');
 
 
 // BUGS:
-// Multiple lines from a single source do not properly save and load. The lines work when pointing at their end, but not the start.
 // swap hands sometimes disables pointer until mana menu is viewed again
 // opening the menu catlog before things are done loading causes the menu to vanish
 
@@ -8519,29 +9680,26 @@ camera.position.z = 1;
 // export workspace
 
 // WIP:
-// add reference bar to the right of the document that behaves in the same way as the outline bar
-// references now stack vertically (using step generation)
-    // max width to now support word wrap
-    // references no longer contain the link text, just "[##]"? + "title" + " - " + "<i>Author(s)</i>"
-    // references are absolute-justified (or left)
-    // quick-tap to mark the reference
-        // cycle through: yellow highlight, green highlight, none
-    // drag each individual text element with the same 'spring' effect as the catalog
-        // drag and drop (to open space) to open a preview box
-        // drag and drop (to the document) to scroll to the reference
-// citation preview boxes have the reference title, author, 'further info'
-    // bar at the bottom with "   -   |   +   " to close/open link externally
-        // popup warning when opening external link
+
 
 
 // COMPLETE THIS UPDATE:
-// abstracts now shrink after a set amount of time and expand when pointed at
-// select active catalog category again to close the catalog
-// fixed edge case where selecting a catalog category wouldn't bold
-// remove "REFERENCES" button and functionality from document
-// changed document notch to triangle
-// change buttons with words like "Expand" to "   +   " and words like "Collapse" and "Close" to "   -   "
-// change document outline bar to be tall first, then adaptive
-// move outline to the left of the document now instead
-// expanded trigger zone for outline (visible in debug)
+// slightly shrunk the document scroll nub
+// added some open/close animations to elements that were missing them
+
+// added reference bar to the right of the document that behaves in the same way as the outline bar
+// references now stack vertically (using step generation)
+    // max width to now support word wrap
+    // references no longer contain the link text, just "[##]" + "title" + " - " + "<i>Author(s)</i>"
+    // references are absolute-justified
+    // quick-tap to mark the reference
+        // cycle through: yellow highlight, green highlight, blue highlight, none
+    // drag each individual text element with the same 'spring' effect as the catalog
+        // drag and drop (to open space) to open a preview box
+        // drag and drop (to the document) to scroll to the reference
+// citation preview boxes have the reference title, author, and year
+    // bar at the bottom with "   -   |   +   " to [close] and [open link externally]
+        // popup warning when opening external link
+        // tapping anywhere else cancels the warning and doesn't open the link
+        // tapping "confirm" closes the XR experience and opens the link in a new tab
 
