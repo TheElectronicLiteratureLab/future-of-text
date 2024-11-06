@@ -1,10 +1,13 @@
 {
   "library": "ACM Hypertext 2024",
   "year": "2024",
-  "version": 1.0,
+  "version": 1.2,
   "user": "Andrew Thompson",
   "generator": "objgen.com",
-  "generatedOn": "2024-09-09T10:48:00.000Z",
+  "generatedOn": "2024-10-28T19:48:00.000Z",
+  "savedOn": "2024-10-28T19:48:00.000Z",
+  "saveState": "null",
+  "xanLines": true,
   "documents": [
     {
       "title": "Human Factors in Hypertext (HUMAN'24)",
@@ -38,50 +41,7 @@
             "adaptive hypertext",
             "intercultural aspects",
             "scientific community"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Claus Atzenbeck",
-            "Jessica Rubart"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -105,51 +65,7 @@
             "Transmedia",
             "Interfaces",
             "Communities"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Francesca Benatti",
-            "Linda Berube",
-            "Ernesto Priego"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -171,51 +87,7 @@
             "Decentralization",
             "Blockchain",
             "AI for Social Media"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Barbara Guidi",
-            "Andrea Michienzi",
-            "Laura Ricci"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -247,53 +119,7 @@
             "High-Recall Retrieval",
             "Hybrid Approaches",
             "Generative AI"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Sabine Wehnert",
-            "Manuel Fiorelli",
-            "Davide Picca",
-            "Ernesto William De Luca",
-            "Armando Stellato"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -314,49 +140,7 @@
             "digital analytics",
             "actionable knowledge discovery",
             "data mining"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Tom Alby"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -380,52 +164,7 @@
             "Digital Humanities",
             "Narrative Games",
             "Interactive Digital Narratives"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Charlie Hargood",
-            "David Millard",
-            "Valentina Nisi",
-            "Nuno Nunes"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -447,50 +186,7 @@
             "Health Humanities",
             "Digital Health",
             "Bibliotherapy"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Alessio Antonini",
-            "Iman Naja"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -512,50 +208,7 @@
             "GPT",
             "Hypercomics",
             "Large Language Models"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Valentin Grimm",
-            "Jessica Rubart"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -576,50 +229,7 @@
             "Interventions",
             "Prebunking",
             "Nudges"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Dipto Barman",
-            "Owen Conlan"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -642,50 +252,7 @@
             "Content Quality",
             "Cross-cultural understanding",
             "Knowledge sharing"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Marta Alet",
-            "Diego Saez-Trumper"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -706,51 +273,7 @@
             "Hypermedia",
             "Hypermedia Controls",
             "htmx"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Carson Gross",
-            "Dillon Shaffer",
-            "Matt Revelle"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -771,50 +294,7 @@
             "conspiracy theories",
             "longitudinal audit",
             "content labeling"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Lillie Godinez",
-            "Eni Mustafaraj"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -837,52 +317,7 @@
             "Digital Humanities",
             "Research Infrastructures",
             "Chatbot"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Francesca Benatti",
-            "Shafquat Towheed",
-            "Sally Blackburn-Daniels",
-            "Alessio Antonini"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -901,51 +336,7 @@
           "isFavorite": false,
           "keywords": [
             "AI"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Gaole He",
-            "Abri Bharos",
-            "Ujwal Gadiraju"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -968,50 +359,7 @@
             "Tainacan",
             "Latin America",
             "Decoloniality"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Vinicius Carvalho Pereira",
-            "Cristiano Maciel"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1034,52 +382,7 @@
             "Knowledge Graphs",
             "Cultural heritage",
             "Curation"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Paul Mulholland",
-            "Peter Van Kranenburg",
-            "Jason Carvalho",
-            "Enrico Daga"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1104,50 +407,7 @@
             "Interactive Digital Narrative",
             "Game Design",
             "Design Patterns"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Joey Donald Jones",
-            "David Millard"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1175,56 +435,7 @@
             "Claims Analysis",
             "Knowledge Graphs",
             "Mis- and disinformation"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Susmita Gangopadhyay",
-            "Sebastian Schellhammer",
-            "Salim Hafid",
-            "Danilo Dessi",
-            "Christian KoB",
-            "Konstantin Todorov",
-            "Stefan Dietze",
-            "Hajira Jabeen"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1248,51 +459,7 @@
             "ChatGPT",
             "Llama2",
             "Mistral"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Navid Ayoobi",
-            "Sadat Shahriar",
-            "Arjun Mukherjee"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1316,51 +483,7 @@
             "information representation",
             "visualization",
             "information exploration"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Daniel RoBner",
-            "Lisa Eidloth",
-            "Claus Atzenbeck"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1381,50 +504,7 @@
             "Information Organization",
             "Personal Information Management",
             "Digital Network of Practice"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Chayapatr Archiwaranguprok",
-            "Manachai Toahchoodee"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1449,53 +529,7 @@
             "Dataset",
             "Image Ads",
             "Video Ads"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Satwik Ram Kodandaram",
-            "Mohan Sunkara",
-            "Javedul Ferdous",
-            "Faryaneh Poursardar",
-            "Vikas Ashok"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1520,53 +554,7 @@
             "Creative AI",
             "NLP",
             "Hermeneutics"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Daniel Baumartz",
-            "Maxim Konca",
-            "Alexander Mehler",
-            "Patrick Schrottenbacher",
-            "Dominik Braunheim"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1591,53 +579,7 @@
             "Instagram",
             "Twitter",
             "Generative AI"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Kholoud Aldous",
-            "Joni Salminen",
-            "Ali Farooq",
-            "Soon-Gyo Jung",
-            "Bernard Jansen"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1658,51 +600,7 @@
             "News analysis",
             "TARO",
             "Multiculture"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Giuseppe Carrino",
-            "Angelo Di Iorio",
-            "Davide Picca"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1723,51 +621,7 @@
             "Social Media",
             "Smart Cities",
             "Hypertext Paradigm"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Iman Naja",
-            "Miguel Valdez",
-            "Alessio Antonini"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1786,49 +640,7 @@
             "peer production",
             "editors overlap",
             "online communities"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Siyu Zhang"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1851,52 +663,7 @@
             "Comparison",
             "Digital Platforms",
             "Online Co-presence"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Tiziano Citro",
-            "Maria Angela Pellegrino",
-            "Vittorio Scarano",
-            "Carmine Spagnuolo"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1915,49 +682,7 @@
             "Classical hypertext",
             "Tinderbox",
             "DASH"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Mark Bernstein"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -1979,50 +704,7 @@
             "compulsive behavior",
             "infinite scroll",
             "notifications"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Eelco Herder",
-            "Paulina Moerland"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2044,49 +726,7 @@
             "Hyperlepsis",
             "Metalepsis",
             "Poetics"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Mariusz Pisarski"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2109,50 +749,7 @@
             "Natural Language Processing",
             "Compression",
             "Algorithm"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Amit Arjun Verma",
-            "Simran Setia"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2178,52 +775,7 @@
             "linguistic analysis",
             "screen readers",
             "blind"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Nithiya Venkatraman",
-            "Anand Aiyer",
-            "Yash Prakash",
-            "Vikas Ashok"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2247,52 +799,7 @@
             "Natural Language Processing",
             "Text Congruence",
             "Personalized Text Adaptation"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Reader Profile",
-            "Natural Language Processing",
-            "Text Congruence",
-            "Personalized Text Adaptation"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2317,55 +824,7 @@
             "Social Media Research",
             "LLMs",
             "Synthetic Data"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Henry Tari",
-            "M. Danial Khan",
-            "Justus Rutten",
-            "Darian Othman",
-            "Thales Bertaglia",
-            "Rishabh Kaushal",
-            "Adriana Iamnitchi"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2390,52 +849,7 @@
             "Collaborative Simulation",
             "Ubiq",
             "Environmental Event System"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Giuseppe Abrami",
-            "Dominik Alexander Wontke",
-            "Gurpreet Singh",
-            "Alexander Mehler"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2455,49 +869,7 @@
             "Queering",
             "Speculative design",
             "Queer spatiality"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Danuta Jedrusiak"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2516,49 +888,7 @@
             "Hypertext",
             "interdisciplinarity",
             "literary studies"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Sam Brooker"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2580,50 +910,7 @@
             "feral hypertext",
             "netprov",
             "non-lineaer narrative"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Mariusz Pisarski",
-            "Artur Klimaszewski"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2641,50 +928,7 @@
           "isFavorite": false,
           "keywords": [
             "Games"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Kimera Anderson-Ellis-Brown Royal",
-            "Charlie Hargood"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2713,53 +957,7 @@
             "Cultural Preservation",
             "Social Impacts",
             "Artistic Representation"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Joanna Pigulak",
-            "Kacper Kajetan Kidziak",
-            "Zuzanna Szymczak",
-            "Joachim Kaj Walega",
-            "Klara Jastrzebska"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2793,52 +991,7 @@
             "transition",
             "interaction",
             "visualisation"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Dene Grigar",
-            "Frode Hegland",
-            "Andrew Thompson",
-            "Mark W R Anderson"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2862,52 +1015,7 @@
             "user churn",
             "user behavior",
             "social media ads"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Joni Salminen",
-            "Risqo Wahid",
-            "Yanwu Yang",
-            "Bernard Jansen"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2928,51 +1036,7 @@
             "3D hypertext",
             "large language models",
             "visualization"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Kevin Bonisch",
-            "Manuel Stoeckel",
-            "Alexander Mehler"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -2996,53 +1060,7 @@
             "hypertext system",
             "decentralized architecture",
             "open collaboration"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Gabo Beaumont",
-            "Horacio Herrera Garcia",
-            "Alexandr Burdiyan",
-            "Julio Garcia",
-            "Eric Vicenti"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3065,51 +1083,7 @@
             "OJS",
             "JATS XML",
             "Sustainable Workflow"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Elisa Bastianello",
-            "Christopher Tomlinson",
-            "Alessandro Adamou"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3129,50 +1103,7 @@
             "digital junkfood",
             "social media addiction",
             "compulsive social media behavior"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Eelco Herder",
-            "Jouke Staring"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3193,50 +1124,7 @@
             "text apparatus",
             "Vernon Lee",
             "digital publishing"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Sally Blackburn-Daniels",
-            "Matthew Bradley"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3263,49 +1151,7 @@
             "deontology",
             "consequentialism",
             "virtue ethics"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Claus Atzenbeck"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3324,49 +1170,7 @@
             "Hypertext",
             "User Interface",
             "Voronoi Diagram"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Mark Bernstein"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3401,49 +1205,7 @@
             "machine reading",
             "viewspecs",
             "visualisation"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Mark W R Anderson"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3463,49 +1225,7 @@
             "AI Ethics",
             "Hypertext",
             "Cultural Impact"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Sam Brooker"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3529,53 +1249,7 @@
             "non-linearity",
             "podcast",
             "blueprints"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Jan K. Argasinski",
-            "Katarzyna Baliga-Nicholson",
-            "Anna Partyka",
-            "Kamil Pilch",
-            "Joan Falco-Roget"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3601,49 +1275,7 @@
             "Hybridity",
             "UBU Lab",
             "Genre boundaries"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Krzysztof A. Ziembik"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3667,49 +1299,7 @@
             "mental health",
             "trauma",
             "recovery"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Richard Smyth"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3730,50 +1320,7 @@
             "LLMs",
             "uncreative writing",
             "literary arts"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Jan K. Argasinski",
-            "Piotr Marecki"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3792,49 +1339,7 @@
             "emotional hermeneutics",
             "emotion understanding",
             "human-computer interaction"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Davide Picca"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     },
@@ -3859,54 +1364,7 @@
             "Positive Computing",
             "Digital Health",
             "Engaged Research"
-          ],
-          "keywordsPosY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsRotY": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "keywordsDist": [
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "names": [
-            "Iman Naja",
-            "Natalie Divin",
-            "Sarah Coward",
-            "Siobhan Campbell",
-            "Francesca Benatti",
-            "Alessio Antonini"
-          ],
-          "namesPosY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesRotY": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "namesDist": [
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000",
-            "0.000"
-          ],
-          "titlePosY": "0.000",
-          "titleRotY": "0.000",
-          "titleDist": "0.000"
+          ]
         }
       ]
     }
