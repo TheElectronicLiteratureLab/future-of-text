@@ -2719,7 +2719,7 @@ function popupMenu(target, variation = "citation") {
                 .easing( TWEEN.Easing.Back.In )
                 .start()
                 .onComplete(() => {
-                    scene.remove(citationwarning);
+                    workspace.remove(citationwarning);
                     citationwarning = undefined;
                 });
 
@@ -6736,15 +6736,36 @@ function loadWorkspace() {
 var libraryTitle, libraryAuthor, libraryYear, libraryAbstract;
 const library = new THREE.Group();
 var globalLIB;
+var globalSAVE = false;
+var libFileName = '';
 
-function initLibrary(source) {
+function initLibrary( source = undefined ) {
 
-    // sphereHelper.add(library);
+    var source = source;
+
+    let params = new URLSearchParams( location.search );
+    let src = params.get( 'src' );
+
+    if ( src != null ) {
+        source = src;
+    }
+
+    if ( source == undefined ) {
+        source = './lib.json';
+    }
+
+    var endofpath = source.lastIndexOf( '/' );
+    libFileName = source.slice( endofpath + 1, source.length - 5 );
     
     fetch(source)
     .then((response) => response.json())
     .then((json) => {
         globalLIB = json;
+
+        if ( globalLIB.saveState != undefined ) {
+            console.log( globalLIB.saveState );
+            globalSAVE = true;
+        }
 
         // for (var i = json.documents.length - 1; i >= 0; i--) {
         
@@ -8255,6 +8276,8 @@ function checkBoxMenu() {
         removeLoader( boxMenu );
         boxMenu.position.y = camera.position.y;
         boxMenuPremiered = true;
+
+        if ( globalSAVE ) { loadState() };
     }
 
 }
@@ -8977,19 +9000,25 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
 
 
 
-function initBoxCitation( swipeObj, title, author, year, source, zdistance, parentTitle ) {     // The preview box that displays the citation info
+function initBoxCitation( swipeObj, title, author, year, source, zdistance, parentTitle, restoration = undefined ) {     // The preview box that displays the citation info
     // console.log( title, author, year, source );
 
     const newGroup = new THREE.Group();
     workspace.add( newGroup );
 
-    swipeObj.children[0].getWorldPosition(tempWorldPos);
+    if ( restoration == undefined ) {
+        swipeObj.children[0].getWorldPosition(tempWorldPos);
+        newGroup.position.y = tempWorldPos.y;
+        newGroup.rotation.y = swipeObj.rotation.y + swipeObj.parent.parent.rotation.y - ( 1.6 / zdistance );
+    } else {
+        newGroup.position.y = restoration.yPos;
+        newGroup.rotation.y = restoration.yRot;
+    }
 
-    newGroup.position.y = tempWorldPos.y;
-    newGroup.rotation.y = swipeObj.rotation.y + swipeObj.parent.parent.rotation.y - ( 1.6 / zdistance );
     newGroup.visible = false;
 
     newGroup.userData.type = "boxpreview";
+    newGroup.userData.typealt = "refpreview";
     newGroup.userData.source = source;
     newGroup.userData.title = title;
     newGroup.userData.author = author;
@@ -9137,6 +9166,8 @@ function stepBoxCitation( parent, title, author, year, source, step = 0, zdistan
         // tween in the citation
         parent.visible = true;
 
+        addSaved(parent);
+
         parent.scale.y = 0;
 
         new TWEEN.Tween( parent.scale )
@@ -9174,7 +9205,7 @@ function warnCitation( parent, source ) {
             //                confirm
 
     if ( citationwarning != undefined ) {
-        scene.remove( citationwarning );
+        workspace.remove( citationwarning );
         citationwarning = undefined;
     }
 
@@ -9507,12 +9538,20 @@ function removeSaved(object) {
 
 function saveState() {
 
+    consoleLog( "SAVE STATE", 0xffccff );
+
+    console.log( savedElement );
+
     // clear the savedState from before
     globalLIB.saveState = [];
 
     // iterate through all elements that need to be saved
     for (var i = savedElement.length - 1; i >= 0; i--) {
         try {
+
+            console.log( savedElement );
+            console.log( i );
+            console.log( savedElement[i] );
 
             var newJSON = {};
 
@@ -9543,16 +9582,26 @@ function saveState() {
                 const allRefs = savedElement[i].userData.refGroup.userData.allRefs;
                 var refHighlights = [];
 
-                for (var i = allRefs.length - 1; i >= 0; i--) {
-                    if ( allRefs[i].children[0].userData.highlight != undefined ) {
+                for (var j = allRefs.length - 1; j >= 0; j--) {
+                    if ( allRefs[j].children[0].userData.highlight != undefined ) {
                         var thisJSON = {};
                         thisJSON.index = i;
-                        thisJSON.highlight = allRefs[i].children[0].userData.highlight;
+                        thisJSON.highlight = allRefs[j].children[0].userData.highlight;
                         refHighlights.push( thisJSON );
                     }
                 }
 
                 newJSON.highlights = refHighlights;
+
+            } else if ( savedElement[i].userData.type == "boxpreview" && savedElement[i].userData.typealt == "refpreview" ) {
+
+                newJSON.type = savedElement[i].userData.typealt;
+                newJSON.title = savedElement[i].userData.title;
+                newJSON.author = savedElement[i].userData.author;
+                newJSON.year = savedElement[i].userData.year;
+                newJSON.source = savedElement[i].userData.source;
+                newJSON.zdistance = savedElement[i].userData.zdistance;
+                newJSON.parentTitle = savedElement[i].userData.parentTitle;
 
             }
 
@@ -9586,11 +9635,13 @@ function saveState() {
 
     globalLIB.savedOn = date;
 
-    // const file = new File([content], 'workspace-' + month + '.' + day + '.' + year + '-' + hour + '.' + minute + '.json', {
-    //     type: 'text/plain'
-    // });
+    var content = JSON.stringify( globalLIB );
 
-    // download(file);
+    const file = new File( [content], libFileName + '_' + month + '.' + day + '.' + year + '-' + hour + '.' + minute + '.json', {
+        type: 'text/plain'
+    });
+
+    download(file);
 
     console.log(globalLIB);
 
@@ -9599,6 +9650,8 @@ function saveState() {
 
 
 function loadState() {
+
+    consoleLog( "LOAD STATE", 0xffccff );
 
     savedElement = [];
 
@@ -9634,12 +9687,26 @@ function loadState() {
                 globalLIB.saveState[i].yRot
             );
 
+        } else if ( type == "refpreview" ) {
+
+            restoreReference(
+                globalLIB.saveState[i].yPos, 
+                globalLIB.saveState[i].yRot, 
+                globalLIB.saveState[i].title, 
+                globalLIB.saveState[i].author, 
+                globalLIB.saveState[i].year, 
+                globalLIB.saveState[i].source, 
+                globalLIB.saveState[i].zdistance, 
+                globalLIB.saveState[i].parentTitle
+            );
+
         }
 
-
-
-
     }
+
+    // setTimeout(() => {
+    //     console.log( savedElement );
+    // }, 2000);
 
 }
 
@@ -9654,7 +9721,7 @@ function restoreDocument( docindex, yPos, yRot, dist, scroll, botPos, highlights
         globalLIB.documents[docindex].author,
         restoration );
 
-    consoleLog("Restored Document: " + docindex);
+    consoleLog( "Restored Document: " + globalLIB.documents[docindex].title );
 }
 
 
@@ -9674,7 +9741,7 @@ function restorePreview( docindex, yPos, yRot ) {
         }
     } 
 
-    consoleLog("Restored Preview: " + docindex);
+    consoleLog( "Restored Preview: " + globalLIB.documents[docindex].title );
 }
 
 
@@ -9692,10 +9759,20 @@ function restoreMenu( active, yPos, yRot ) {
 
     showBoxCatalog( active );
 
+    consoleLog( "Restored Menu: " + active );
+
 }
 
 
+function restoreReference( yPos, yRot, title, author, year, source, zdistance, parentTitle ) {
 
+    var restoration = { "yPos":yPos, "yRot":yRot }
+
+    initBoxCitation( undefined, title, author, year, source, zdistance, parentTitle, restoration )
+
+    consoleLog( "Restored Reference: " + title );
+
+}
 
 
 
@@ -9738,7 +9815,10 @@ if ( WebGL.isWebGLAvailable() ) {
 
     // Load the libarary and build it
     // initLibrary('./library-acm22.json');
-    initLibrary('./library-acm24.json');
+    // initLibrary('./library-acm24.json');
+    // initLibrary('./library-acm24-save.json');
+    initLibrary();
+
     initRays(sphereHelper);
 
     // navigator.xr.requestSession("immersive-vr").then( function(session) {
@@ -9813,7 +9893,7 @@ if ( WebGL.isWebGLAvailable() ) {
                 animateCitationLines();
                 animateConsoleLog();
 
-
+                console.log( savedElement );
                 
             }
 
@@ -9869,27 +9949,21 @@ camera.position.z = 1;
 // align and sort map view
 // dominant wrist slider to change snap distances?
 // export workspace
+// catalog loader for each category instead of global
+
 
 // WIP:
-// save system to support citation boxes
-// catalog loader for each category instead of global
-// support for reading data from the url
-    // read library .json from url data
-// save & download library .json
-    // special 'live' library that uploads directly?
 
 // COMPLETE THIS UPDATE:
-// updated library .json by removing unused data
-// fixed edge case where tapping a catalog category at just the right time would cause it to jump
-// fixed box menu rotation inconsistency
-// save system now saves box menu data (current active catalog & position)
-// save system now saves reference highlights
-// moved scroll bar to the left, and inverted the nub to be gray instead
-// made box line width 50% smaller
-// added a loader when first entering the space to prevent users from navigating to unloaded spaces and crashing the environment
+// save system to support citation boxes
+// Bugfix: fixed multiple popup warning boxes stacking
+// loading a library .json now checks for an embedded save and loads the state if it exists
+// libraries can be linked in the url using the ?src param (ex: https://code.futuretextlab.info/andrew/latest/?src=./library-acm24-save.json)
+// saving state downloads the library .json file
+// Bugfix: when saving over an old save, the new save export would lose preview boxes
+// update saved-on data in a save
 
-// xanlines boolean in the library
-    // while dragging a citation preview box, draw lines between the box and the document it came from
-    // lines are removed when the dragging stops, and find their source live (support for save system)
+
+
 
 

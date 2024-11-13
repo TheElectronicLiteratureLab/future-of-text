@@ -1,0 +1,1372 @@
+{
+  "library": "ACM Hypertext 2024",
+  "year": "2024",
+  "version": 1.2,
+  "user": "Andrew Thompson",
+  "generator": "objgen.com",
+  "generatedOn": "2024-10-28T19:48:00.000Z",
+  "savedOn": "2024-10-28T19:48:00.000Z",
+  "saveState": "null",
+  "xanLines": true,
+  "documents": [
+    {
+      "title": "Human Factors in Hypertext (HUMAN'24)",
+      "author": [
+        "Claus Atzenbeck",
+        "Jessica Rubart"
+      ],
+      "year": "2024",
+      "type": "workshop",
+      "source": "./_ref/htconference/2024/ht24-1.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "hypertext",
+            "hypermedia",
+            "human factors",
+            "augmentation",
+            "user-centric",
+            "human-centered AI",
+            "user interfaces",
+            "user interaction",
+            "cognitive aspects",
+            "collaboration",
+            "information structuring",
+            "information systems",
+            "communication",
+            "decision making",
+            "annotation",
+            "digital humanities",
+            "adaptive hypertext",
+            "intercultural aspects",
+            "scientific community"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Webcomics 2024: Creativity in Small Spaces [Web/Comics]",
+      "author": [
+        "Francesca Benatti",
+        "Linda Berube",
+        "Ernesto Priego"
+      ],
+      "year": "2024",
+      "type": "workshop",
+      "source": "./_ref/htconference/2024/ht24-2.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Webcomics",
+            "Hypercomics",
+            "Creativity",
+            "Transmedia",
+            "Interfaces",
+            "Communities"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Open Challenges in Online Social Networks (OASIS)",
+      "author": [
+        "Barbara Guidi",
+        "Andrea Michienzi",
+        "Laura Ricci"
+      ],
+      "year": "2024",
+      "type": "workshop",
+      "source": "./_ref/htconference/2024/ht24-3.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Social Networks and Media: analysis and mining",
+            "Decentralization",
+            "Blockchain",
+            "AI for Social Media"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "LIRAI'24: 2nd Workshop on Legal Information Retrieval meets Artificial Intelligence",
+      "author": [
+        "Sabine Wehnert",
+        "Manuel Fiorelli",
+        "Davide Picca",
+        "Ernesto William De Luca",
+        "Armando Stellato"
+      ],
+      "year": "2024",
+      "type": "workshop",
+      "source": "./_ref/htconference/2024/ht24-4.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Legal Informatics",
+            "Legal Information Retrieval",
+            "Legal Knowledge Representation",
+            "Legal Text Mining",
+            "Legal Compliance",
+            "FAIRness",
+            "Semantic Web",
+            "Linguistic Legal Linked Open Data",
+            "Explainable AI",
+            "High-Recall Retrieval",
+            "Hybrid Approaches",
+            "Generative AI"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Bridging the Analytics Gap: Optimizing Content Performance using Actionable Knowledge Discovery",
+      "author": [
+        "Tom Alby"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-5.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "content curation",
+            "web analytics",
+            "digital analytics",
+            "actionable knowledge discovery",
+            "data mining"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Workshop on Narrative and Hypertext 2024 (NHT24): The Ethics of Mixed Reality Narrative Hypertext",
+      "author": [
+        "Charlie Hargood",
+        "David Millard",
+        "Valentina Nisi",
+        "Nuno Nunes"
+      ],
+      "year": "2024",
+      "type": "workshop",
+      "source": "./_ref/htconference/2024/ht24-6.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Narrative",
+            "Hypertext",
+            "Digital Humanities",
+            "Narrative Games",
+            "Interactive Digital Narratives"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Positive Intelligent Media - PiM'24",
+      "author": [
+        "Alessio Antonini",
+        "Iman Naja"
+      ],
+      "year": "2024",
+      "type": "workshop",
+      "source": "./_ref/htconference/2024/ht24-7.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Positive Computing",
+            "Hypertext",
+            "Health Humanities",
+            "Digital Health",
+            "Bibliotherapy"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Authoring Educational Hypercomics assisted by Large Language Models",
+      "author": [
+        "Valentin Grimm",
+        "Jessica Rubart"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-8.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Storytelling",
+            "Authoring",
+            "GPT",
+            "Hypercomics",
+            "Large Language Models"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Evaluating Prebunking and Nudge Techniques in Tackling Misinformation: A Between-Subject Study on Social Media Platforms",
+      "author": [
+        "Dipto Barman",
+        "Owen Conlan"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-9.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Misinformation",
+            "Interventions",
+            "Prebunking",
+            "Nudges"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Constructing a Common Ground: Analyzing the quality and usage of International Auxiliary Languages in Wikipedia",
+      "author": [
+        "Marta Alet",
+        "Diego Saez-Trumper"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-10.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Wikipedia",
+            "International Auxiliary Language",
+            "Inclusive web",
+            "Content Quality",
+            "Cross-cultural understanding",
+            "Knowledge sharing"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hypermedia Controls: Feral to Formal",
+      "author": [
+        "Carson Gross",
+        "Dillon Shaffer",
+        "Matt Revelle"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-11.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Hypermedia",
+            "Hypermedia Controls",
+            "htmx"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "YouTube and Conspiracy Theories: A Longitudinal Audit of Information Panels",
+      "author": [
+        "Lillie Godinez",
+        "Eni Mustafaraj"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-12.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "YouTube",
+            "conspiracy theories",
+            "longitudinal audit",
+            "content labeling"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "@TellMeWhatUReadingbot: the Multi-modal Strategy of the READ-IT Project for Collecting Experiences of Reading",
+      "author": [
+        "Francesca Benatti",
+        "Shafquat Towheed",
+        "Sally Blackburn-Daniels",
+        "Alessio Antonini"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-13.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Reading Experience",
+            "Digital Humanities",
+            "Research Infrastructures",
+            "Chatbot"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "To Err Is AI! Debugging as an Intervention to Facilitate Appropriate Reliance on AI Systems",
+      "author": [
+        "Gaole He",
+        "Abri Bharos",
+        "Ujwal Gadiraju"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-14.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "AI"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Decolonizing and peripheralizing e-lit in Latin America: the case of the Acervo de Literatura Digital Mato-Grossense, Brazil",
+      "author": [
+        "Vinicius Carvalho Pereira",
+        "Cristiano Maciel"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-15.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Digital Literature",
+            "Hypertextual Archive",
+            "Curatorship",
+            "Tainacan",
+            "Latin America",
+            "Decoloniality"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Supporting the End-User Curation of Cultural Heritage Knowledge Graphs",
+      "author": [
+        "Paul Mulholland",
+        "Peter Van Kranenburg",
+        "Jason Carvalho",
+        "Enrico Daga"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-16.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Hypertext paths",
+            "Knowledge Graphs",
+            "Cultural heritage",
+            "Curation"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Experiencing The Authorial Burden",
+      "author": [
+        "Joey Donald Jones",
+        "David Millard"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-18.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Authoring",
+            "Hypertext",
+            "Hypertext Fiction",
+            "Literary Hypertext",
+            "Interactive Fiction",
+            "Interactive Digital Narrative",
+            "Game Design",
+            "Design Patterns"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Investigating Characteristics, Biases and Evolution of Fact-Checked Claims on the Web",
+      "author": [
+        "Susmita Gangopadhyay",
+        "Sebastian Schellhammer",
+        "Salim Hafid",
+        "Danilo Dessi",
+        "Christian KoB",
+        "Konstantin Todorov",
+        "Stefan Dietze",
+        "Hajira Jabeen"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-19.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Fact-checking",
+            "Claims Classification",
+            "Claims Analysis",
+            "Knowledge Graphs",
+            "Mis- and disinformation"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Seeing Through AI's Lens: Enhancing Human Skepticism Towards LLM-Generated Fake News",
+      "author": [
+        "Navid Ayoobi",
+        "Sadat Shahriar",
+        "Arjun Mukherjee"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-20.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Fake news",
+            "Large language models",
+            "LLM-generated news",
+            "ChatGPT",
+            "Llama2",
+            "Mistral"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "PAIRWISE – From Spatial Structure to Knowledge",
+      "author": [
+        "Daniel RoBner",
+        "Lisa Eidloth",
+        "Claus Atzenbeck"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-21.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "spatial hypertext",
+            "knowledge",
+            "user study",
+            "information representation",
+            "visualization",
+            "information exploration"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "On Digital Gardening: A Feral Hypertext in Practice",
+      "author": [
+        "Chayapatr Archiwaranguprok",
+        "Manachai Toahchoodee"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-22.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Digital Garden",
+            "Information Organization",
+            "Personal Information Management",
+            "Digital Network of Practice"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Unveiling Coyote Ads: Detecting Human Smuggling Advertisements on Social Media",
+      "author": [
+        "Satwik Ram Kodandaram",
+        "Mohan Sunkara",
+        "Javedul Ferdous",
+        "Faryaneh Poursardar",
+        "Vikas Ashok"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-23.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Coyote Adverts",
+            "Human Smuggling",
+            "Dataset",
+            "Image Ads",
+            "Video Ads"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Measuring Group Creativity of Dialogic Interaction Systems by Means of Remote Entailment Analysis",
+      "author": [
+        "Daniel Baumartz",
+        "Maxim Konca",
+        "Alexander Mehler",
+        "Patrick Schrottenbacher",
+        "Dominik Braunheim"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-24.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Creativity",
+            "Generative AI",
+            "Creative AI",
+            "NLP",
+            "Hermeneutics"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Using ChatGPT in Content Marketing: Enhancing Users’ Social Media Engagement in Cross-Platform Content Creation through Generative AI",
+      "author": [
+        "Kholoud Aldous",
+        "Joni Salminen",
+        "Ali Farooq",
+        "Soon-Gyo Jung",
+        "Bernard Jansen"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-26.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Social media",
+            "Facebook",
+            "Instagram",
+            "Twitter",
+            "Generative AI"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Publishing, linking and translating news in multilingual communities: a mirror of cultural differences?",
+      "author": [
+        "Giuseppe Carrino",
+        "Angelo Di Iorio",
+        "Davide Picca"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-27.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "News analysis",
+            "TARO",
+            "Multiculture"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Social Media and Cities: a case-study based analysis of how digital life influences the urban physical environment",
+      "author": [
+        "Iman Naja",
+        "Miguel Valdez",
+        "Alessio Antonini"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-28.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Social Media",
+            "Smart Cities",
+            "Hypertext Paradigm"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Uncovering Peer Production's Homogeneity: A Synthesis of Serious Information and Entertainment",
+      "author": [
+        "Siyu Zhang"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-29.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "peer production",
+            "editors overlap",
+            "online communities"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "As a Grain of Link: How Far Should We Take Link Granularity",
+      "author": [
+        "Tiziano Citro",
+        "Maria Angela Pellegrino",
+        "Vittorio Scarano",
+        "Carmine Spagnuolo"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-30.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Link granularity",
+            "Comparison",
+            "Digital Platforms",
+            "Online Co-presence"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "A Novel Architecture for Classical Hypertext",
+      "author": [
+        "Mark Bernstein"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-31.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Classical hypertext",
+            "Tinderbox",
+            "DASH"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Defeat the feed: evaluating interface designs to support users in managing their social media use",
+      "author": [
+        "Eelco Herder",
+        "Paulina Moerland"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-32.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "social media",
+            "social media addiction",
+            "compulsive behavior",
+            "infinite scroll",
+            "notifications"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hyperlepis - a secret weapon of hypertext rhetoric",
+      "author": [
+        "Mariusz Pisarski"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-33.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Hypertext fiction",
+            "Creativity",
+            "Hypertext rhetoric",
+            "Hyperlepsis",
+            "Metalepsis",
+            "Poetics"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "An Efficient Approach to Store and Access Wikipedia's Revision History for Large-Scale Analysis",
+      "author": [
+        "Amit Arjun Verma",
+        "Simran Setia"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-34.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Wikipedia",
+            "Edit-History",
+            "Datasets",
+            "Natural Language Processing",
+            "Compression",
+            "Algorithm"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "You Shall Know a Forum by the Words they Keep: Analyzing Language Use in Accessibility Forums for Blind Users",
+      "author": [
+        "Nithiya Venkatraman",
+        "Anand Aiyer",
+        "Yash Prakash",
+        "Vikas Ashok"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-35.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Social media",
+            "accessibility online forums",
+            "discussion forums",
+            "language usage",
+            "linguistic analysis",
+            "screen readers",
+            "blind"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Reader-aware Writing Assistance through Reader Profiles",
+      "author": [
+        "Ge Li",
+        "Danai Vachtsevanou",
+        "Jeremy Lemee",
+        "Simon Mayer",
+        "Jannis Strecker"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-36.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Reader Profile",
+            "Natural Language Processing",
+            "Text Congruence",
+            "Personalized Text Adaptation"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Leveraging GPT for the Generation of Multi-Platform Social Media Datasets for Research",
+      "author": [
+        "Henry Tari",
+        "M. Danial Khan",
+        "Justus Rutten",
+        "Darian Othman",
+        "Thales Bertaglia",
+        "Rishabh Kaushal",
+        "Adriana Iamnitchi"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-37.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Social Media Research",
+            "LLMs",
+            "Synthetic Data"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Va.Si.Li-ES: VR-based Dynamic Event Processing, Environment Change and User Feedback in Va.Si.Li-Lab",
+      "author": [
+        "Giuseppe Abrami",
+        "Dominik Alexander Wontke",
+        "Gurpreet Singh",
+        "Alexander Mehler"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-38.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Virtual Reality",
+            "Va.Si.Li-Lab",
+            "Hypertext",
+            "Collaborative Simulation",
+            "Ubiq",
+            "Environmental Event System"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Queering AI as a Speculative Practice: An Analysis of the Artistic Explorations of New Paradigms for Developing Inclusive AI",
+      "author": [
+        "Danuta Jedrusiak"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-39.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Artificial Intelligence",
+            "Queering",
+            "Speculative design",
+            "Queer spatiality"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Navigating Intersections: Negotiating language and collaboration in hypertext scholarship",
+      "author": [
+        "Sam Brooker"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-40.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Hypertext",
+            "interdisciplinarity",
+            "literary studies"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Puffball (2000): a participatory radio hypertext",
+      "author": [
+        "Mariusz Pisarski",
+        "Artur Klimaszewski"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/htconference/2024/ht24-42.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "interactive radio",
+            "participatory storytelling",
+            "feral hypertext",
+            "netprov",
+            "non-lineaer narrative"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Parabolic Emotion: An anthology of poetic games employing ludonarrative techniques in exploring alienation",
+      "author": [
+        "Kimera Anderson-Ellis-Brown Royal",
+        "Charlie Hargood"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/htconference/2024/ht24-43.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Games"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Creative Everyday Life: Various Dimensions of Human-Technological Daily Life",
+      "author": [
+        "Joanna Pigulak",
+        "Kacper Kajetan Kidziak",
+        "Zuzanna Szymczak",
+        "Joachim Kaj Walega",
+        "Klara Jastrzebska"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/htconference/2024/ht24-44.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Artificial intelligence",
+            "Human computer interaction",
+            "Arts and humanities",
+            "Creative cooperation",
+            "Humans and Technology",
+            "Technological Experiences",
+            "Cultural Preservation",
+            "Social Impacts",
+            "Artistic Representation"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Demonstration of The Future of Text in XR: Year 1",
+      "author": [
+        "Dene Grigar",
+        "Frode Hegland",
+        "Andrew Thompson",
+        "Mark W R Anderson"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/htconference/2024/ht24-45.html",
+      "customData": [
+        {
+          "isFavorite": true,
+          "keywords": [
+            "XR",
+            "VR",
+            "Augmented Text",
+            "Future of Text",
+            "augmentation",
+            "academic reading",
+            "open source",
+            "Hypertext",
+            "viewspecs",
+            "views",
+            "Vision Pro",
+            "Meta Quest",
+            "transition",
+            "interaction",
+            "visualisation"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Engagement Patterns in TikTok: An Analysis of Short Video Ads",
+      "author": [
+        "Joni Salminen",
+        "Risqo Wahid",
+        "Yanwu Yang",
+        "Bernard Jansen"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-46.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "TikTok advertising",
+            "short video ads",
+            "user churn",
+            "user behavior",
+            "social media ads"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "HyperCausal: Visualizing Causal Inference in 3D Hypertext",
+      "author": [
+        "Kevin Bonisch",
+        "Manuel Stoeckel",
+        "Alexander Mehler"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-47.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "3D hypertext",
+            "large language models",
+            "visualization"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Seed Hypermedia: bringing scalable collaboration to the decentralized Web",
+      "author": [
+        "Gabo Beaumont",
+        "Horacio Herrera Garcia",
+        "Alexandr Burdiyan",
+        "Julio Garcia",
+        "Eric Vicenti"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-48.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Seed hypermedia",
+            "hypertext system",
+            "decentralized architecture",
+            "open collaboration"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "PubLink: Editorial Workflow for Digital Scholarly Publications in the Humanities",
+      "author": [
+        "Elisa Bastianello",
+        "Christopher Tomlinson",
+        "Alessandro Adamou"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-49.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Digital publishing",
+            "Digital Humanities",
+            "OJS",
+            "JATS XML",
+            "Sustainable Workflow"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Digital Junkfood on Social Media: To Each Their Own Poison",
+      "author": [
+        "Eelco Herder",
+        "Jouke Staring"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-50.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "digital junkfood",
+            "social media addiction",
+            "compulsive social media behavior"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Handling of Vernon Lee's Words: Literary Editions in the Age of Hypertext",
+      "author": [
+        "Sally Blackburn-Daniels",
+        "Matthew Bradley"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-51.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Text editing",
+            "text apparatus",
+            "Vernon Lee",
+            "digital publishing"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Unwinding AI's Moral Maze: Hypertext's Ethical Potential",
+      "author": [
+        "Claus Atzenbeck"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-52.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "hypertext",
+            "AI",
+            "AI ethics",
+            "digital ethics",
+            "moral philosophy",
+            "moral agents",
+            "moral systems",
+            "responsible systems",
+            "deontology",
+            "consequentialism",
+            "virtue ethics"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "A New View",
+      "author": [
+        "Mark Bernstein"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-53.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Hypertext",
+            "User Interface",
+            "Voronoi Diagram"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Beyond The Page-Break: Towards Better Tools for Remediation of Born-Digital Documents",
+      "author": [
+        "Mark W R Anderson"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-54.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "documents",
+            "hypertext",
+            "XR",
+            "VR",
+            "AR",
+            "data",
+            "remediation",
+            "exploration",
+            "narrative",
+            "provenance",
+            "metadata",
+            "linkbases",
+            "stand-off metadata",
+            "citation",
+            "addressing",
+            "AI",
+            "machine reading",
+            "viewspecs",
+            "visualisation"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Computer, Enhance! Augmentation, Ideation, Hypertext",
+      "author": [
+        "Sam Brooker"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-55.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Robotics",
+            "AI Ethics",
+            "Hypertext",
+            "Cultural Impact"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Disrupting scientific podcasts. Prototype and blueprints for an ergodic neuroscientific talk",
+      "author": [
+        "Jan K. Argasinski",
+        "Katarzyna Baliga-Nicholson",
+        "Anna Partyka",
+        "Kamil Pilch",
+        "Joan Falco-Roget"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-56.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "hypertext",
+            "non-linearity",
+            "podcast",
+            "blueprints"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Interactive fiction using demoscene and computer game aesthetics to portray a catastrophic vision of the world",
+      "author": [
+        "Krzysztof A. Ziembik"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-58.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Interactive fiction",
+            "Electronic literature",
+            "Computer game",
+            "Paragraph text game",
+            "Demoscene",
+            "Hypertext novel",
+            "Immersivity",
+            "Hybridity",
+            "UBU Lab",
+            "Genre boundaries"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Pre-Socratic Postmodern Self-Help Manual",
+      "author": [
+        "Richard Smyth"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/htconference/2024/ht24-59.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "hypertext",
+            "hypermedia",
+            "twine",
+            "philosophy",
+            "selfhood",
+            "mental health",
+            "trauma",
+            "recovery"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Exercises in unimaginativeness. Case study of GPT based translation and travesty of Alfred Jarry's “Ubu King”",
+      "author": [
+        "Jan K. Argasinski",
+        "Piotr Marecki"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-60.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "translation",
+            "LLMs",
+            "uncreative writing",
+            "literary arts"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Emotional Hermeneutics. Exploring the Limits of Artificial Intelligence from a Diltheyan Perspective",
+      "author": [
+        "Davide Picca"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-61.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "emotional hermeneutics",
+            "emotion understanding",
+            "human-computer interaction"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Conversational Media for Inclusive Access to Mental Health Interventions for Schoolchildren",
+      "author": [
+        "Iman Naja",
+        "Natalie Divin",
+        "Sarah Coward",
+        "Siobhan Campbell",
+        "Francesca Benatti",
+        "Alessio Antonini"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/htconference/2024/ht24-62.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": [
+            "Conversational Media",
+            "Positive Computing",
+            "Digital Health",
+            "Engaged Research"
+          ]
+        }
+      ]
+    }
+  ]
+}
