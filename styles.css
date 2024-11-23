@@ -1,5 +1,6 @@
 body {
   margin: 0;
+  background-color: #353535;
 }
 
 /*#VRButton::before {
@@ -205,9 +206,98 @@ body {
 #demotext {
   position: fixed;
   bottom: 0px;
-  max-width: 480px;
-  right: 15px;
+  max-width: 490px;
+  left: 15px;
   color: #aaa;
   text-align: justify;
   font-size: 0.85em;
+}
+
+
+#libtext {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  height: 100%;
+  width: 200px;
+  text-align: center;
+  font-style: italic;
+  color: #ffffffdd;
+}
+
+#libchooser {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  top: 40px;
+  right: 0px;
+  height: 500px;
+  width: 200px;
+/*  background: black;*/
+}
+
+#libchooser > button {
+  flex: none;
+  width: 100px;
+  height: 100px;
+  margin: 10px;
+  border-radius: 50%;
+  background: black;
+  border-color: #ffbd66;
+  box-shadow: -5px -5px 10px 2px #D19A3B55;
+  color: #ffffffdd;
+  font-weight: medium;
+  font-size: 1.1em;
+  cursor: pointer;
+  position: relative;
+}
+
+#libchooser > button:hover {
+  font-size: 1.15em;
+  box-shadow: -5px -5px 15px 2px #D19A3B99;
+}
+
+#libchooser > button.libsave {
+  transform: translateY(-30px);
+  width: 75px;
+  height: 75px;
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+#libchooser > button.libsave:hover {
+  font-size: 1.05em;
+}
+
+#libchooser > .libactive::before {
+  content: '';
+  background-image: url("./ray-1.png");
+  background-repeat: repeat;
+  background-size: 100%;
+/*  background-color: #ff0000dd;*/
+  position: absolute;
+  display: block;
+  left: -2px;
+  top: -2px;
+  width: 100px;
+  height: 100px;
+  animation: spin 2s infinite linear;
+}
+
+#libchooser > .libactive.libsave::before {
+  left: -15px;
+  top: -16px;
+  animation: smallspin 2s infinite linear;
+}
+
+@keyframes spin {
+  from {transform: scale(1.3) rotateZ(0deg);}
+  to {transform: scale(1.3) rotateZ(360deg);}
+}
+
+@keyframes smallspin {
+  from {transform: scale(1.0) rotateZ(0deg);}
+  to {transform: scale(1.0) rotateZ(360deg);}
 }

@@ -1,0 +1,690 @@
+{
+  "library": "Future of Text Vol 5",
+  "year": "2024",
+  "version": 1.0,
+  "user": "Andrew Thompson",
+  "generator": "user",
+  "generatedOn": "2024-11-19T11:50:00.000Z",
+  "savedOn": "2024-11-19T11:50:00.000Z",
+  "saveState": null,
+  "xanLines": true,
+  "documents": [
+    {
+      "title": "What is in store for the “Future of Text”?",
+      "author": [
+        "Ismail Serageldin"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/fot24/00Foreword.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["Language", "Communication", "Media", "Technology"]
+        }
+      ]
+    },
+    {
+      "title": "Dedication",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/fot24/01Dedication.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["PhD", "ignorance", "metadata", "XR"]
+        }
+      ]
+    },
+    {
+      "title": "Welcome",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/fot24/01Welcome.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["smartphones", "laptops", "headsets", "Apple Vision Pro"]
+        }
+      ]
+    },
+    {
+      "title": "How to Read this Book",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/fot24/02How to Read this Book.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["dialog", "openness", "experience", "metadata"]
+        }
+      ]
+    },
+    {
+      "title": "Our Ability to Create and Use Symbols",
+      "author": [
+        "Doug Engelbart"
+      ],
+      "year": "2024",
+      "type": "short",
+      "source": "./_ref/fot24/03Doug Engelbart.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["Symbols", "Abstractions", "Digital Computers", "Innovation"]
+        }
+      ]
+    },
+    {
+      "title": "Managing Artefacts of Text and Data in the AI Age",
+      "author": [
+        "Chris Gebhardt"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Chris Gebhardt Managing Artefact's of Text & Data in the AI Age.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["AI authorship", "human-machine collaboration", "non-linear text", "reliable reference"]
+        }
+      ]
+    },
+    {
+      "title": "Claude AI on conversation with Jack Park and Marc-Antoine Parent at FTL Monday meeting 21 October 2024",
+      "author": [
+        "Claude AI"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Claude AI on conversation with Jack Park and Marc-Antoine Parent at FTL Monday meeting 21 October 2024.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["topic maps", "persistent identity", "knowledge objects", "federation"]
+        }
+      ]
+    },
+    {
+      "title": "The Most Important Text is Context",
+      "author": [
+        "Daveed Benjamin"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Daveed Benjamin The Most Important Text is Context-2.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["context", "weaving", "Overweb", "universal content graph"]
+        }
+      ]
+    },
+    {
+      "title": "Links conquer the universe",
+      "author": [
+        "David W. Weinberger"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/David Weinberger Links conquer the universe.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["hyperlinks", "Large Language Models", "vectors", "relationships"]
+        }
+      ]
+    },
+    {
+      "title": "Spatial Computing for Use with Physical Artifacts Held in Museum and Library Repositories",
+      "author": [
+        "Dene Grigar"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Dene Grigar Spatial Computing for Use with Physical Artifacts Held in Museum and Library Repositories.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["Spatial Computing", "Museum Repositories", "Library Repositories", "Virtual Reality"]
+        }
+      ]
+    },
+    {
+      "title": "Space Art: My Trajectory",
+      "author": [
+        "Eduardo Kac"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Eduardo Kac Space Art- My Trajectory.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": ["space art", "multimedia", "technology", "holography"]
+        }
+      ]
+    },
+    {
+      "title": "Against poor AI practices, in text and beyond",
+      "author": [
+        "Fabien Benetou"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Fabien Benetou Against poor AI practices, in text and beyond.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "A Wall of Knowledge",
+      "author": [
+        "Fabien Benetou"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Fabien Benetou Demo based text.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Do files matter in virtual worlds?",
+      "author": [
+        "Fabien Benetou"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Fabien Benetou Do files matter in virtual worlds.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Design Principles",
+      "author": [
+        "Fabien Benetou"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Fabien Benetou White paper.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Authoring Two Page Extended Spreads",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Frode Hegland Authoring Two Page Extended Spreads.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Reading Two Page Extended Spreads",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Frode Hegland Reading Two Page Spread Extended.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Shareable Knowledge Objects & Sculptures",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Frode Hegland Shareable Knowledge Objects.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "The Right Tool",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Frode Hegland The Right Tool.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Regarding Threat",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Frode Security Letter via Vint draft.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Evolution of Hypertext: Integrating AI for Augmented Cognition",
+      "author": [
+        "Ge Li"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Ge Li Evolution of Hypertext- Integrating AI for Augmented Cognition.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Text Interaction and National Security",
+      "author": [
+        "Google Gemini"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Google Gemini Improved Text Interaction and National Security Google Gemini AI based o FoT 1-4.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "We need reliable text",
+      "author": [
+        "Harold Thimbleby"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Harold Thimbleby We need reliable text.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "App fatigue: Going back to plain text",
+      "author": [
+        "Herman Martinus"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Herman Martinus App fatigue,  Going back to plain text.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "History of Text Timeline",
+      "author": [
+        "Frode Alexander Hegland"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/History of Text Timeline 2024.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Large Language Models as (Co-)Authors",
+      "author": [
+        "Jessica Rubart"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Jessica Rubart Large Language Models as (Co-)Authors.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Legibility in the Past and the Future",
+      "author": [
+        "Jonathan Finn"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Jonathan Finn Legibility.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "How Do We Author in 3D Virtual Spaces?",
+      "author": [
+        "Karl A. Smink"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Karl Atrhur Smink How Do We Author in 3D Virtual Spaces.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Typing on Air: Paradigms for xR Text Entry without Peripherals",
+      "author": [
+        "Karl Arthur Smink"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Karl Atrhur Smink Typing on Air.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "The Role of Eyes and Hands in the Evolution of Computer Interfaces",
+      "author": [
+        "Ken Pfeuffer"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Ken Pfeuffer The Role of Eyes and Hands in the Evolution of Computer Interfaces.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "A short invention of text",
+      "author": [
+        "Mar Gonzalez-Franco"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Mar Gonzalez-Franco A short invention of text.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Towards Knowledge Federation",
+      "author": [
+        "Marc-Antoine Parent",
+        "Jack Park"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Marc-Antoine Parent and Jack Park A Towards Knowledge Federation with endnotes.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Writing for XR",
+      "author": [
+        "Mark Anderson"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Mark Anderson Writing for XR.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Evolving Personal and Collective Stories: Changing Participation and Engagement in the Age of AI",
+      "author": [
+        "Mei Lin Fung",
+        "Chat GPT 4.0"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Mei Lin Fung Evolving Personal and Collective Stories.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "From Mezangelle to Microstories: Experimental Storytelling in VR and AI",
+      "author": [
+        "Mez Breeze"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Mez Breeze From Mezangelle to Microstories.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Spatial theory and spatial text - into immersion",
+      "author": [
+        "Patrick Lichty"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Patrick Lichty Spatial theory and spatial text.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Grayspace - Enhancing the Optical Character Recognition (OCR) of Visual-Meta",
+      "author": [
+        "Peter J. Wasilko"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Peter J. Wasilko Grayspace.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Lab Work - Software Development at The Future Text Lab",
+      "author": [
+        "Peter J. Wasilko"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Peter J. Wasilko Lab Work.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Toward Next Generation Detachable Visual-Meta",
+      "author": [
+        "Peter J. Wasilko"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Peter J. Wasilko Next Generation Visual Meta.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "The Prototypist's Toolkit - Using IMBA to Give Babylon.js an A-Frame Vibe",
+      "author": [
+        "Peter J. Wasilk"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Peter J. Wasilko Prototypist's Toolkit.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "The Zed Coordinate: Volume",
+      "author": [
+        "Rob Swigart"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Rob Swigart The Zed Coordinate- Volume.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Conversation with Cleverhuman",
+      "author": [
+        "Rollo Carpenter"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Rollo Carpenter–Conversation with Cleverhuman.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "this is not a text",
+      "author": [
+        "Samya Brata Roy"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Samya Brata Roy this is not a text.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "Don't Make Me Metadata. All I Want Is Text.",
+      "author": [
+        "Teodora Petkova"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Teodora Petkova Don’t Make Me Metadata.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "title": "The Future of Text is Art",
+      "author": [
+        "Tim Brookes"
+      ],
+      "year": "2024",
+      "type": "long",
+      "source": "./_ref/fot24/Tim Brookes - The Future of Text is Art.html",
+      "customData": [
+        {
+          "isFavorite": false,
+          "keywords": []
+        }
+      ]
+    }
+  ]
+}

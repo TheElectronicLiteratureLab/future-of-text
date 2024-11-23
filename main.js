@@ -1528,7 +1528,7 @@ function tryPointerOver(object) {
 
                     target.userData.minitimer = 0;
 
-                    minifiyCountdown(target);
+                    minifyCountdown(target);
 
                 }
 
@@ -2318,7 +2318,7 @@ function tryPointerSelect(object) {
                     } else {
                         const clippingStart = docGroup.userData.clippingStart.position.y;
                         const clippingEnd = docGroup.userData.clippingEnd.position.y;
-                        const viewHeight = clippingEnd - clippingStart + 0.05;
+                        const viewHeight = clippingEnd - clippingStart + 0.55;
 
                         scrollPercent = norm( thisText.position.y, textBlock[0].position.y - 0.1, -totalHeight - viewHeight + 0.1 );
                         scrollPercent = clamp(scrollPercent, 0, 1);
@@ -3933,7 +3933,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
                 newText.fontWeight = newText.fontWeight;
                 newText.userData.type = 'docoutline-0';
             } else {
-                var headerText = allHeaders[i-1].replace(/[\n\r]/g, "");
+                var headerText = allHeaders[i-1].replace(/[\n\r]/g, "").trimEnd();
                 if (headerText.length > 70) {
                     newText.text = headerText.slice(0,67) + '...';
                 } else {
@@ -5759,51 +5759,61 @@ function stopSwipe() {
 
                         console.log( domswipeObj );
 
-                        // jump to citation
-                        var num = domswipeObj.userData.num;
-                        var docGroup = domswipeObj.parent.parent;
-                        var textBlock = docGroup.userData.textBlock;
-                        var textBlockToScrollTo = undefined;
-                        
-                        for (var i = textBlock.length - 1; i >= 0; i--) {
-                            var element = textBlock[i];
-                            var citations = element.userData.citations;
-                            console.log( element );
-                            console.log( citations );
-                            for (var j = citations.length - 1; j >= 0; j--) {
-                                if ( citations[j] == num && textBlockToScrollTo == undefined ) {
-                                    textBlockToScrollTo = textBlock[i];
+                        try {
+
+                            // jump to citation
+                            var num = domswipeObj.userData.num;
+                            var docGroup = domswipeObj.parent.parent;
+                            var textBlock = docGroup.userData.textBlock;
+                            var textBlockToScrollTo = undefined;
+
+                            console.log( textBlock );
+                            
+                            for (var i = textBlock.length - 1; i >= 0; i--) {
+                                var element = textBlock[i];
+                                var citations = element.userData.citations;
+                                console.log( element );
+                                console.log( citations );
+                                if ( citations.length > 0 ) {
+                                    for (var j = citations.length - 1; j >= 0; j--) {
+                                        if ( citations[j] == num && textBlockToScrollTo == undefined ) {
+                                            textBlockToScrollTo = textBlock[i];
+                                        }
+                                    }
                                 }
                             }
-                        }
 
-                        // console.log( "Scroll to: " + textBlockToScrollTo );
+                            if ( textBlockToScrollTo != undefined ) {
+                                console.log( "Scroll to: " + textBlockToScrollTo );
 
-                        const thisText = textBlockToScrollTo;
-                        var scrollPercent;
+                                const thisText = textBlockToScrollTo;
+                                var scrollPercent;
 
-                            const clippingStart = docGroup.userData.clippingStart.position.y;
-                            const clippingEnd = docGroup.userData.clippingEnd.position.y;
-                            const viewHeight = clippingEnd - clippingStart + 0.05;
-                            const totalHeight = docGroup.userData.totalHeight;
+                                    const clippingStart = docGroup.userData.clippingStart.position.y;
+                                    const clippingEnd = docGroup.userData.clippingEnd.position.y;
+                                    const viewHeight = clippingEnd - clippingStart + 0.55;
+                                    const totalHeight = docGroup.userData.totalHeight;
 
-                            scrollPercent = norm( thisText.position.y, textBlock[0].position.y - 0.1, -totalHeight - viewHeight + 0.1 );
-                            scrollPercent = clamp( scrollPercent, 0, 1 );
+                                    scrollPercent = norm( thisText.position.y, textBlock[0].position.y - 0.1, -totalHeight - viewHeight + 0.1 );
+                                    scrollPercent = clamp( scrollPercent, 0, 1 );
 
-                        // scroll to that position
-                        docGroup.userData.scrollPercent = scrollPercent;
-                        scrollDocument(docGroup);
-                        reclipDocument(docGroup);
+                                // scroll to that position
+                                docGroup.userData.scrollPercent = scrollPercent;
+                                scrollDocument(docGroup);
+                                reclipDocument(docGroup);
 
-                        // briefly tween the text
-                        const targetPos = thisText.position.y;
-                        thisText.position.y = thisText.position.y + 0.05;
+                                // briefly tween the text
+                                const targetPos = thisText.position.y;
+                                thisText.position.y = thisText.position.y + 0.05;
 
-                        new TWEEN.Tween( thisText.position )
-                            .to( {y: targetPos}, 1000 )
-                            .easing( TWEEN.Easing.Elastic.Out )
-                            .start()
-                        ;
+                                new TWEEN.Tween( thisText.position )
+                                    .to( {y: targetPos}, 1000 )
+                                    .easing( TWEEN.Easing.Elastic.Out )
+                                    .start()
+                                ;
+                            }
+
+                        } catch {}
 
                     } else {
                         // spawn reference preview box
@@ -6756,13 +6766,15 @@ function initLibrary( source = undefined ) {
 
     var endofpath = source.lastIndexOf( '/' );
     libFileName = source.slice( endofpath + 1, source.length - 5 );
+
+    applyUrlParam( src );
     
     fetch(source)
     .then((response) => response.json())
     .then((json) => {
         globalLIB = json;
 
-        if ( globalLIB.saveState != undefined ) {
+        if ( globalLIB.saveState != undefined && globalLIB.saveState != null) {
             console.log( globalLIB.saveState );
             globalSAVE = true;
         }
@@ -7682,7 +7694,6 @@ $( '#debugBtn' ).on( 'click', function() {
 
     debugMannaLine.translateZ((-length/2) - 0.003);
 
-
 });
 
 function newMannaLine(object, length = 0.045, rotation = -28, offset = [0,0,0], mannaDebug = false) {
@@ -8079,16 +8090,18 @@ function initBoxMenu(argument) {        // The start menu box for selecting cate
     var prePadder = "                                                                      ";
 
     const header = new Text();
-    header.text = prePadder.concat(headerTxt);
+    header.text = headerTxt;
     header.fontSize = 0.05;
     header.curveRadius = snapDistanceMenuValue + 0.1;
     header.color = _colorBXmain;
     header.maxWidth = 0.8;
     header.anchorY = "bottom";
+    header.anchorX = "center";
     header.textAlign = 'center';
     header.font = _fontserifbold;
     boxMenu.add(header);
-    header.position.z = -snapDistanceMenuValue - 0.1;
+    header.rotation.y =  0.4 / -(snapDistanceMenuValue + 0.1);
+    header.translateZ( -snapDistanceMenuValue - 0.1 );
     header.sync();
 
     const headbar = genBar( boxMenu, 0.5, 0.8, snapDistanceMenuValue + 0.1 );
@@ -8297,7 +8310,7 @@ function initBoxCatalog(argument) {     // The large box that lists all document
         elements.push( header );
 
         // build the bib for every paper in the library
-        for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
+        for (var i = 0; i <= globalLIB.documents.length - 1; i++) {
             
             var element = globalLIB.documents[i].title;
             element = element.concat(" -- ");
@@ -8323,7 +8336,7 @@ function initBoxCatalog(argument) {     // The large box that lists all document
         elements.push( header );
 
         // build the bib for all 'long' papers in the library
-        for (var i = globalLIB.documents.length - 1; i >= 0; i--) {
+        for (var i = 0; i <= globalLIB.documents.length - 1; i++) {
             if ( globalLIB.documents[i].type == argument ) {
 
                 var element = globalLIB.documents[i].title;
@@ -8833,7 +8846,7 @@ function showBoxPreview( target, height, catalog, freeform=false, collapsed=fals
 
         newClone.userData.minitimer = 0;
 
-        minifiyCountdown(newClone);
+        minifyCountdown(newClone);
 
 
 
@@ -8940,18 +8953,23 @@ function stepBoxPreview(parent, title, author, year, source, type, step = 0) {
                 // Find the class 'abstract' and read the inner html
                 var abstract = $html.find('.abstract');
                 var result = abstract.text();
-                // console.log(result);
-                newText.text = "\n".concat(result);
-                newText.sync();
-                newText.name = "abstract";
-                newText.userData.sync = "previewBuilder";
-                newText.userData.syncParent = parent;
-                newText.userData.syncAuthor = author;
-                newText.userData.syncYear = year;
-                newText.userData.syncSource = source;
-                newText.userData.syncType = type;
-                newText.userData.syncStep = step + 1;
-                syncCheck.push( newText );
+                console.log(result);
+
+                if ( result != "" ) {
+                    newText.text = "\n".concat(result);
+                    newText.sync();
+                    newText.name = "abstract";
+                    newText.userData.sync = "previewBuilder";
+                    newText.userData.syncParent = parent;
+                    newText.userData.syncAuthor = author;
+                    newText.userData.syncYear = year;
+                    newText.userData.syncSource = source;
+                    newText.userData.syncType = type;
+                    newText.userData.syncStep = step + 1;
+                    syncCheck.push( newText );
+                } else {
+                    stepBoxPreview( parent, title, author, year, source, type, 3 );
+                }
                 
             },
             error: function(xhr, status, error) {
@@ -9404,20 +9422,24 @@ function genBar( parent, width, maxWidth = width, distance = snapDistanceMenuVal
 }
 
 
-function minifiyCountdown( target ) {
+function minifyCountdown( target ) {
 
     const threshold = 3;
 
     if ( target.userData.minitimer != undefined && target.userData.minitimer < threshold ) {
 
-        if ( !isDomPinching ) {
-            target.userData.minitimer += 1;
-        }
+        if ( target.userData.miniheight + 0.3 < target.userData.totalHeight ) {
 
-        setTimeout(() => {
-            minifiyCountdown( target );
-            consoleLog( "minify countdown: " + target.userData.minitimer );
-        }, 1000);
+            if ( !isDomPinching ) {
+                target.userData.minitimer += 1;
+            }
+
+            setTimeout(() => {
+                minifyCountdown( target );
+                consoleLog( "minify countdown: " + target.userData.minitimer );
+            }, 1000);
+
+        }
 
     } else if ( target.userData.minitimer != undefined && target.userData.minitimer >= threshold ) {
 
@@ -9547,7 +9569,7 @@ function saveState() {
 
     // iterate through all elements that need to be saved
     for (var i = savedElement.length - 1; i >= 0; i--) {
-        try {
+        // try {
 
             console.log( savedElement );
             console.log( i );
@@ -9579,19 +9601,23 @@ function saveState() {
 
                 newJSON.botPos = savedElement[i].userData.clippingEnd.position.y;
 
-                const allRefs = savedElement[i].userData.refGroup.userData.allRefs;
-                var refHighlights = [];
+                if ( savedElement[i].userData.refGroup != undefined ) {
+                    
+                    const allRefs = savedElement[i].userData.refGroup.userData.allRefs;
+                    var refHighlights = [];
 
-                for (var j = allRefs.length - 1; j >= 0; j--) {
-                    if ( allRefs[j].children[0].userData.highlight != undefined ) {
-                        var thisJSON = {};
-                        thisJSON.index = i;
-                        thisJSON.highlight = allRefs[j].children[0].userData.highlight;
-                        refHighlights.push( thisJSON );
+                    for (var j = allRefs.length - 1; j >= 0; j--) {
+                        if ( allRefs[j].children[0].userData.highlight != undefined ) {
+                            var thisJSON = {};
+                            thisJSON.index = i;
+                            thisJSON.highlight = allRefs[j].children[0].userData.highlight;
+                            refHighlights.push( thisJSON );
+                        }
                     }
-                }
 
-                newJSON.highlights = refHighlights;
+                    newJSON.highlights = refHighlights;
+
+                }
 
             } else if ( savedElement[i].userData.type == "boxpreview" && savedElement[i].userData.typealt == "refpreview" ) {
 
@@ -9607,7 +9633,9 @@ function saveState() {
 
             globalLIB.saveState.push( newJSON );
 
-        } catch { } 
+            console.log( newJSON );
+
+        // } catch { } 
     }
 
     // save the box menu
@@ -9775,7 +9803,71 @@ function restoreReference( yPos, yRot, title, author, year, source, zdistance, p
 }
 
 
+$( '#acm22' ).on( 'click', function() {
+    addUrlParam( 'library-acm22' );
+});
 
+$( '#acm22-save' ).on( 'click', function() {
+    addUrlParam( 'library-acm22_demo' );
+});
+
+$( '#acm24' ).on( 'click', function() {
+    addUrlParam( 'library-acm24' );
+});
+
+$( '#acm24-save' ).on( 'click', function() {
+    addUrlParam( 'library-acm24_demo' );
+});
+
+$( '#ftlv5' ).on( 'click', function() {
+    addUrlParam( 'library-ftvol5' );
+});
+
+$( '#ftlv5-save' ).on( 'click', function() {
+    addUrlParam( 'library-ftvol5_demo' );
+});
+
+
+function addUrlParam( param = 'lib' ) {
+    let currentURL = window.location.href;
+    let params = new URLSearchParams( location.search );
+    let src = params.get( 'src' );
+    let newURL;
+
+    if ( src != null ) {
+        newURL = currentURL.slice( 0, -src.length - 5 ) + "?src=" + param + ".json";
+    } else {
+        newURL = currentURL + "?src=" + param + ".json";
+    }
+
+    window.location.href = newURL;
+}
+
+ 
+function applyUrlParam( src ) {
+
+    if ( src == "library-acm22.json" ) {
+        $( '#acm22' ).addClass( 'libactive' );
+
+    } else if ( src == "library-acm22_demo.json" ) {
+        $( '#acm22-save' ).addClass( 'libactive' );
+
+    } else if ( src == "library-acm24.json" ) {
+        $( '#acm24' ).addClass( 'libactive' );
+
+    } else if ( src == "library-acm24_demo.json" ) {
+        $( '#acm24-save' ).addClass( 'libactive' );
+
+    } else if ( src == "library-ftvol5.json" ) {
+        $( '#ftlv5' ).addClass( 'libactive' );
+
+    } else if ( src == "library-ftvol5_demo.json" ) {
+        $( '#ftlv5-save' ).addClass( 'libactive' );
+    }
+
+    console.log( src );
+
+}
 
 
 
@@ -9892,8 +9984,6 @@ if ( WebGL.isWebGLAvailable() ) {
 
                 animateCitationLines();
                 animateConsoleLog();
-
-                console.log( savedElement );
                 
             }
 
@@ -9951,7 +10041,6 @@ camera.position.z = 1;
 // export workspace
 // catalog loader for each category instead of global
 
-
 // WIP:
 
 // COMPLETE THIS UPDATE:
@@ -9962,8 +10051,4 @@ camera.position.z = 1;
 // saving state downloads the library .json file
 // Bugfix: when saving over an old save, the new save export would lose preview boxes
 // update saved-on data in a save
-
-
-
-
-
+// created example save
