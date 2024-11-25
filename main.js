@@ -3508,6 +3508,8 @@ function generateDocumentContent(content,title,author,url,restoration=undefined)
     var body = content.find('.body').first();
     var baseText = body.text();
 
+    console.log( baseText );
+
     var headers = body.find('header');
     headers.each(function() {
         allHeaders.push($(this).text());
@@ -3522,7 +3524,7 @@ function generateDocumentContent(content,title,author,url,restoration=undefined)
     fullText.push(baseText);
     fullText.splice(0,1,author);
     fullText.splice(0,0,title);
-    // console.log(fullText);
+    console.log(fullText);
 
     let docGroup = new THREE.Group();
     let txtGroup = new THREE.Group();
@@ -3555,6 +3557,8 @@ function generateDocumentContent(content,title,author,url,restoration=undefined)
 
 function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined, restoration = undefined) {
 
+    // console.log( fullText );
+
     const tempBox = new THREE.Box3().setFromObject(docGroup);
     tempBox.getSize(tempSize);
     var docTotalHeight = tempSize.y;
@@ -3583,6 +3587,11 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         newText.position.set(0, -docTotalHeight, 0);
 
         newText.text = fullText[i];
+
+        if ( fullText[i] == "null" ) {
+            newText.text = " ";
+        }
+
         newText.color = _colorTXmain;
         newText.anchorX = 'left';
         newText.anchorY = 'top';
@@ -3605,7 +3614,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
 
         // find any citation in the text
-        // console.log( fullText[i] );
+        // console.log( i );
         var re = /\[\d/g;
         let match;
         
@@ -9602,7 +9611,7 @@ function saveState() {
                 newJSON.botPos = savedElement[i].userData.clippingEnd.position.y;
 
                 if ( savedElement[i].userData.refGroup != undefined ) {
-                    
+
                     const allRefs = savedElement[i].userData.refGroup.userData.allRefs;
                     var refHighlights = [];
 
@@ -10051,4 +10060,7 @@ camera.position.z = 1;
 // saving state downloads the library .json file
 // Bugfix: when saving over an old save, the new save export would lose preview boxes
 // update saved-on data in a save
-// created example save
+// created example saves
+// lots of bugfixes in the save system to support edge cases
+// created future text vol 5 library
+// added library selection buttons
