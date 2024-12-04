@@ -3506,9 +3506,8 @@ function generateDocumentContent(content,title,author,url,restoration=undefined)
     // var title = content.find('.title').first().text();
     // var authors = content.find('.authorGroup').first().text().replace(/( )+/g, ' ');
     var body = content.find('.body').first();
+    var imgs = content.find('img');
     var baseText = body.text();
-
-    console.log( baseText );
 
     var headers = body.find('header');
     headers.each(function() {
@@ -3524,7 +3523,7 @@ function generateDocumentContent(content,title,author,url,restoration=undefined)
     fullText.push(baseText);
     fullText.splice(0,1,author);
     fullText.splice(0,0,title);
-    console.log(fullText);
+    // console.log(fullText);
 
     let docGroup = new THREE.Group();
     let txtGroup = new THREE.Group();
@@ -3547,6 +3546,43 @@ function generateDocumentContent(content,title,author,url,restoration=undefined)
         addLoader(docGroup, [documentMaxWidth/2, centerPoint, - snapDistanceOneValue - specialReaderOffset]);
     } else {
         addLoader(docGroup, [documentMaxWidth/2, centerPoint, - snapDistanceOneValue - specialReaderOffset], restoration.yRot );
+    }
+
+    for (var i = 0; i <= imgs.length - 1; i++) {
+
+        let currentURL = window.location.href;
+        let params = new URLSearchParams( location.search );
+        let src = params.get( 'src' );
+        let baseURL;
+
+        if ( src != null ) {
+            baseURL = currentURL.slice( 0, -src.length - 5 );
+        } else {
+            baseURL = currentURL;
+        }
+
+        let rootURL = url;
+        let root = rootURL.slice( 0, rootURL.lastIndexOf("/") );
+
+        let newURL;
+
+        if ( root.slice( 0, 2 ) == "./" ) {
+            newURL = baseURL + root.slice( 2 ) + "/" + imgs[i].src.slice( baseURL.length );
+        } else {
+            newURL = root + "/" + imgs[i].src.slice( baseURL.length );
+        }
+
+        if ( docGroup.userData.images == undefined ) {
+            docGroup.userData.images = [];
+        }
+
+        var thisJSON = {};
+        thisJSON.index = i;
+        thisJSON.src = newURL;
+
+        docGroup.userData.images.push( thisJSON );
+
+        // console.log( docGroup.userData.images );
     }
 
     generateDocumentContentStep(docGroup, fullText, 0, undefined, restoration);
@@ -3588,7 +3624,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         newText.text = fullText[i];
 
-        if ( fullText[i] == "null" ) {
+        if ( fullText[i].trim() == "null" ) {
             newText.text = " ";
         }
 
@@ -3663,7 +3699,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         // newText.outlineColor = 0xffffff * Math.random();
 
         if (i == 0 ) {
-            newText.text = "\n".concat(fullText[i]);
+            newText.text = "\n".concat(newText.text);
             newText.fontSize = 0.05;
             newText.fontWeight = 'bold';
             newText.fontWeight = newText.fontWeight;
@@ -3921,7 +3957,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         docGroup.add(outlineGroup);
         let totalHeight = 0.020;
 
-        for (var i = 1; i <= allHeaders.length; i++) {
+        for (var i = 0; i <= allHeaders.length - 1; i++) {
 
             let newText = new Text();
             outlineGroup.add(newText);
@@ -3937,6 +3973,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
                 } else {
                     newText.text = fullText[0];
                 }
+
                 newText.fontSize = 0.035;
                 newText.fontWeight = 'bold';
                 newText.fontWeight = newText.fontWeight;
@@ -4112,7 +4149,10 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
                 // console.log(outbg);
             });
 
-
+        if ( docGroup.userData.images != undefined ) {
+            // re-enable this when image generation is complete
+            // genImages( docGroup );
+        }
 
         addSaved(docGroup);
 
@@ -4785,7 +4825,49 @@ function newXan( refGroup ) {
 }
 
 
+function genImages( docGroup ) {
 
+    var images = docGroup.userData.images;
+
+    for (var i = 0; i <= images.length - 1; i++) {
+
+        var thisJSON = docGroup.userData.images[i];
+
+        console.log ( thisJSON );
+
+        var imgTexture = new THREE.TextureLoader().load(
+            thisJSON.src,
+            (texture) => {
+
+                const width = texture.image.width;
+                const height = texture.image.height;
+
+                console.log( width + " x " + height );
+
+                var newMat = new THREE.MeshBasicMaterial( {
+                    map: texture,
+                    transparent: true,
+                    opacity: 0.7,
+                    side: THREE.DoubleSide
+                } );
+
+                var newGeo = new THREE.PlaneGeometry(width/3000, height/3000);
+
+                var newMesh = new THREE.Mesh( newGeo, newMat );
+
+                scene.add( newMesh );
+
+                newMesh.position.set( 0, 0, 0.6 );
+
+
+
+
+            }
+        );
+
+    }
+
+}
 
 
 
@@ -6971,7 +7053,7 @@ function addLoader(object, position = [0,0,0], rotation = undefined) {
     if ( rotation == undefined ) {
         spinner.rotation.y = camera.rotation.y;
     } else {
-        console.log("addloaderRot");
+        consoleLog("addloaderRot", 0xccf3dd);
         spinner.rotation.y = rotation;
     }
 
@@ -7861,33 +7943,37 @@ function tryManna() {
     }
 }
 
+const mannaFlashGeo = new THREE.SphereGeometry( 0.005 );
+const mannaFlashMat = new THREE.MeshBasicMaterial( {
+    color: _colorTools,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false
+} );
+const mannaFlash = new THREE.Mesh( mannaFlashGeo, mannaFlashMat );
 
 function triggerManna(funct) {
     consoleLog(funct, 0x55aaff);
 
+    mannaDot.add( mannaFlash );
+    mannaFlash.position.set( 0, 0, 0 );
+    scene.attach( mannaFlash );
 
-    // let newText = new Text();
+    new TWEEN.Tween( mannaFlash.scale )
+    .to( {x: 5, y: 5, z: 5}, 250 )
+    .easing( TWEEN.Easing.Quadratic.Out )
+    .start()
+    .onUpdate(function() {
+        mannaFlash.material.opacity = 5 - mannaFlash.scale.x;
+    })
+    .onComplete(() => {
+        mannaFlash.scale.set( 1, 1, 1 );
+        mannaFlash.material.opacity = 1;
+        scene.remove( mannaFlash );
+    });
 
-    // newText.fontSize = 0.3;
-    // newText.text = funct;
-    // newText.color = _colorManna;
-    // newText.anchorX = 'center';
-    // newText.anchorY = 'middle';
 
-    // scene.add(newText);
-    // newText.position.set(wrist2.position.x,wrist2.position.y,wrist2.position.z);
-    // newText.lookAt(camera.position.x,camera.position.y,camera.position.z);
-    // newText.translateZ(-1);
 
-    // newText.sync();
-
-    // new TWEEN.Tween( newText.scale )
-    //     .to( {x: 0, y: 0, z: 0}, 2000 )
-    //     .easing( TWEEN.Easing.Back.In )
-    //     .start()
-    //     .onComplete(() => {
-    //         newText.parent.remove(newText);
-    // });
 
     if ( funct == "swaphands" ) {
         swapHands();
@@ -9874,7 +9960,7 @@ function applyUrlParam( src ) {
         $( '#ftlv5-save' ).addClass( 'libactive' );
     }
 
-    console.log( src );
+    // console.log( src );
 
 }
 
@@ -10025,7 +10111,7 @@ camera.position.z = 1;
 
 
 // loadTextBlock('./_ref/htconference/2022/3511095.3531270.html');
-// findDocumentContent('./_ref/htconference/2022/3511095.3531270.html','Placeholder Title','Author Name');
+// findDocumentContent('./_ref/fot24/Dene Grigar Spatial Computing for Use with Physical Artifacts Held in Museum and Library Repositories.html','Spacial Computing for Use with Physical Artifacts held in Museum and Library Repositories','Dene Grigar');
 // sphereHelper.visible=false;
 // findReferences('./_ref/htconference/2024/ht24-35.html');
 
@@ -10033,34 +10119,23 @@ camera.position.z = 1;
 // BUGS:
 // swap hands sometimes disables pointer until mana menu is viewed again
 // opening the menu catlog before things are done loading causes the menu to vanish
+// when the headset loses hand tracking while menu selecting, the manna dot can get stuck on the wrong hand
 
 // NOTES:
-// pass info to llm (chatgpt or claude) and return
-// word wrap for citation block?
-// Save files are way too large - find a way to trim troika text geometry
-// tags and sticky notes for document content
-// redesign energy lines
-// remove links from citation page?
-// close popup menu by tapping anywhere
-// history feature
-// 3D selection box? But where would it start?
-// voice commands
-// align and sort map view
+// pass info to llm (chatgpt or claude) and return?
+// tags and sticky notes for document content?
+// history feature?
+// voice commands?
 // dominant wrist slider to change snap distances?
-// export workspace
-// catalog loader for each category instead of global
+// catalog loader for each category instead of global?
 
 // WIP:
+// floating image generation for documents
 
 // COMPLETE THIS UPDATE:
-// save system to support citation boxes
-// Bugfix: fixed multiple popup warning boxes stacking
-// loading a library .json now checks for an embedded save and loads the state if it exists
-// libraries can be linked in the url using the ?src param (ex: https://code.futuretextlab.info/andrew/latest/?src=./library-acm24-save.json)
-// saving state downloads the library .json file
-// Bugfix: when saving over an old save, the new save export would lose preview boxes
-// update saved-on data in a save
-// created example saves
-// lots of bugfixes in the save system to support edge cases
-// created future text vol 5 library
-// added library selection buttons
+// indicator when activating a manna menu item
+// fixed images in fot24 library
+// fixed "null" printing sometimes in a document for placeholder headers
+// fixed references sometimes showing up in the document body
+// fixed outline view not displaying the doc title (trimmed)
+
