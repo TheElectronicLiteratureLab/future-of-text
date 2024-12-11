@@ -2236,6 +2236,31 @@ function tryPointerSelect(object) {
             .delay( 100 )
             .start();
 
+        // tween the images (if any)
+        const images = docGroup.userData.genImages;
+        if ( images != undefined ) {
+            for (var i = images.length - 1; i >= 0; i--) {
+                const image = images[i].userData.image;
+
+                new TWEEN.Tween( image.scale )
+                .to( {x: 0, y: 0}, 500 )
+                .easing( TWEEN.Easing.Back.In )
+                .start();
+
+                try {
+
+                    const lines = image.parent.userData.centerpoint.userData.lines;
+
+                    if ( lines != undefined ) {
+                        for (var j = lines.length - 1; j >= 0; j--) {
+                            workspace.remove( lines[j] );
+                        }
+                    }
+
+                } catch {}
+            }
+        }
+
         // tween the bottom clip bounds
         new TWEEN.Tween( clippingEnd.position )
             .to( {y: centerPoint}, 500 )
@@ -2611,6 +2636,28 @@ function tryPointerSelect(object) {
 
             });
 
+    } else if ( object.userData.type == "image" ) {
+            
+        if ( globalLIB.xanLines == true && object.userData.persistent != true ) {
+            // console.log( object.parent.userData.centerpoint );
+            // console.log( object.parent.userData.docGroup.userData.centerpoint );
+            // createLine( object.parent.userData.centerpoint, object.parent.userData.docGroup.userData.centerpoint, true );
+            newXan( object.parent );
+        }
+
+        new TWEEN.Tween( object.scale )
+            .to( { x: 1, y: 1 }, 300 )
+            .easing( TWEEN.Easing.Circular.InOut )
+            .start()
+        ;
+
+        new TWEEN.Tween( object.material )
+            .to( { opacity: 1.0 }, 300 )
+            .easing( TWEEN.Easing.Circular.InOut )
+            .start()
+        ;
+
+        startSwipe( object );
     }
 }
 
@@ -2686,6 +2733,37 @@ function tryQuickPointerSelect(object) {
             object.outlineWidth = 0.01;
         }
 
+    } else if ( object.userData.type == "image" ) {
+
+        if ( object.userData.persistent != true ) {
+            object.userData.persistent = true;
+            new TWEEN.Tween( object.scale )
+                .to( { x: 1, y: 1 }, 300 )
+                .easing( TWEEN.Easing.Circular.InOut )
+                .start()
+            ;
+
+            new TWEEN.Tween( object.material )
+                .to( { opacity: 1.0 }, 300 )
+                .easing( TWEEN.Easing.Circular.InOut )
+                .start()
+            ;
+
+            newXan( object.parent );
+        } else {
+            object.userData.persistent = false;
+            new TWEEN.Tween( object.scale )
+                .to( { x: 0.2, y: 0.2 }, 300 )
+                .easing( TWEEN.Easing.Circular.InOut )
+                .start()
+            ;
+
+            new TWEEN.Tween( object.material )
+                .to( { opacity: 0.4 }, 300 )
+                .easing( TWEEN.Easing.Circular.InOut )
+                .start()
+            ;
+        }
     }
 }
 
@@ -3202,6 +3280,8 @@ function createLine(object, target, persistent = false) {
 
     temporaryCitationLine.userData.startObj = object.uuid;
     temporaryCitationLine.userData.endObj = target.uuid;
+    temporaryCitationLine.userData.startObjRef = object;
+    temporaryCitationLine.userData.endObjRef = target;
     temporaryCitationLine.name = "line";
 
     if (object.userData.lines != undefined) {
@@ -3574,6 +3654,7 @@ function generateDocumentContent(content,title,author,url,restoration=undefined)
 
         if ( docGroup.userData.images == undefined ) {
             docGroup.userData.images = [];
+            docGroup.userData.genImages = [];
         }
 
         var thisJSON = {};
@@ -3624,7 +3705,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
         newText.text = fullText[i];
 
-        if ( fullText[i].trim() == "null" ) {
+        if ( typeof fullText[i] == "string" && fullText[i].trim() == "null" ) {
             newText.text = " ";
         }
 
@@ -3957,6 +4038,9 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
         docGroup.add(outlineGroup);
         let totalHeight = 0.020;
 
+        var savedTitle = "";
+        var singleHeader = false;
+
         for (var i = 0; i <= allHeaders.length - 1; i++) {
 
             let newText = new Text();
@@ -3966,7 +4050,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
             totalHeight += 0.05;
 
-            if (i == 0) {
+            if (i == 0 && !singleHeader) {
                 var titleText = fullText[0];
                 if (titleText.length > 40) {
                     newText.text = titleText.slice(0,37) + '...';
@@ -3974,12 +4058,25 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
                     newText.text = fullText[0];
                 }
 
+                savedTitle = newText.text;
+
                 newText.fontSize = 0.035;
                 newText.fontWeight = 'bold';
                 newText.fontWeight = newText.fontWeight;
                 newText.userData.type = 'docoutline-0';
-            } else {
-                var headerText = allHeaders[i-1].replace(/[\n\r]/g, "").trimEnd();
+            } else if ( i > 0 || singleHeader ){                
+                var headerText;
+
+                if ( !singleHeader ) {
+                    headerText = allHeaders[i-1].replace(/[\n\r]/g, "").trimEnd();
+                } else {
+                    headerText = savedTitle;
+                }
+
+                if ( headerText.trim() == "null" ) {
+                    headerText = savedTitle;
+                }
+
                 if (headerText.length > 70) {
                     newText.text = headerText.slice(0,67) + '...';
                 } else {
@@ -3988,7 +4085,12 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
                 newText.fontSize = 0.020;
                 newText.layers.enable( 3 );
                 newText.userData.layers = 3;
-                newText.userData.type = 'docoutline-' + i;
+
+                if ( i <= 0 ) {
+                    newText.userData.type = 'docoutline-' + 1;
+                } else {
+                    newText.userData.type = 'docoutline-' + i;
+                }
             }
 
             newText.color = _colorTXalts;
@@ -4018,6 +4120,12 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
 
             // newText.outlineColor = 0xffffff * Math.random();
             // newText.outlineWidth = 1.5;
+
+            if ( allHeaders.length == 1 && !singleHeader ) {
+                singleHeader = true;
+                i = -1;
+                continue;
+            }
             
         }
 
@@ -4150,8 +4258,7 @@ function generateDocumentContentStep(docGroup, fullText, i, lastText = undefined
             });
 
         if ( docGroup.userData.images != undefined ) {
-            // re-enable this when image generation is complete
-            // genImages( docGroup );
+            genImages( docGroup, restoration );
         }
 
         addSaved(docGroup);
@@ -4825,42 +4932,114 @@ function newXan( refGroup ) {
 }
 
 
-function genImages( docGroup ) {
+function genImages( docGroup, restoration = undefined ) {
 
     var images = docGroup.userData.images;
 
-    for (var i = 0; i <= images.length - 1; i++) {
+    var runningWidth = 0.0;
+    var runningImgs = [];
+
+    for (var i = images.length - 1; i >= 0; i--) {
 
         var thisJSON = docGroup.userData.images[i];
 
-        console.log ( thisJSON );
+        const index = i;
+        var loaded = 0;
 
         var imgTexture = new THREE.TextureLoader().load(
             thisJSON.src,
             (texture) => {
 
+                loaded++;
+
                 const width = texture.image.width;
                 const height = texture.image.height;
+                const dividend = 1000;
 
-                console.log( width + " x " + height );
+                // var newReaderOffset = Math.random() * (0.2 - 0.1) + 0.1;
+                var newReaderOffset = 0.1;
+                var specialReaderOffset = docGroup.userData.specialReaderOffset;
+
+                consoleLog( "Image Generated @ " + width + " x " + height, 0x1188ff );
 
                 var newMat = new THREE.MeshBasicMaterial( {
                     map: texture,
                     transparent: true,
-                    opacity: 0.7,
+                    opacity: 0.4,
                     side: THREE.DoubleSide
                 } );
 
-                var newGeo = new THREE.PlaneGeometry(width/3000, height/3000);
+                var newGeo = new THREE.PlaneGeometry(width/dividend, height/dividend);
+                // var newGeo = new THREE.CylinderGeometry(
+                //     snapDistanceOneValue + specialReaderOffset - newReaderOffset,
+                //     snapDistanceOneValue + specialReaderOffset - newReaderOffset,
+                //     height/dividend, 32, 1, true, 0,
+                //     ( width/dividend ) / (snapDistanceOneValue + specialReaderOffset - newReaderOffset)
+                // );
 
                 var newMesh = new THREE.Mesh( newGeo, newMat );
 
-                scene.add( newMesh );
+                newMesh.scale.set( 0, 0, 1 );
 
-                newMesh.position.set( 0, 0, 0.6 );
+                new TWEEN.Tween( newMesh.scale )
+                    .to( {x: 0.2, y: 0.2}, 300 )
+                    .easing( TWEEN.Easing.Quadratic.Out )
+                    .start()
+                    .delay( 300 );
+                ;
+
+                var newGroup = new THREE.Group();
+
+                newGroup.add( newMesh );
+                docGroup.add( newGroup );
+
+                newMesh.position.z = snapDistanceOneValue + specialReaderOffset - newReaderOffset;
+                newMesh.layers.enable( 3 );
+                newMesh.userData.type = "image";
+
+                // generate the center point
+                const point = new THREE.Mesh( placeholderPointGeo, testMat );
+                newGroup.add( point );
+                
+                point.scale.set( 0.1, 0.1, 0.1 );
+
+                point.translateZ( (snapDistanceOneValue + specialReaderOffset - newReaderOffset + 0.04) );
+
+                newGroup.userData.centerpoint = point;
+
+                if ( loaded == 1 ) {
+                    runningWidth -= (((width/dividend)*0.2)/2) + 0.2;
+                }
 
 
+                if ( restoration == undefined ) {
+                    newGroup.position.set( 0, destinationClippingStart + ((height/dividend)*0.2*0.5), 0 );
+                    // newGroup.rotation.y = runningWidth + Math.PI - ( ( width/dividend ) / (snapDistanceOneValue + specialReaderOffset - newReaderOffset) ) / 2;
+                    newGroup.rotation.y = Math.PI - (( runningWidth )/( newMesh.position.z ));
+                    newGroup.userData.baseRot = newGroup.rotation.y;
+                } else {
+                    newGroup.position.set( 0, restoration.images[index].yPos, 0 );
+                    newGroup.rotation.y = restoration.images[index].yRot;
+                }
 
+                runningWidth -= ((width/dividend)*0.2) + 0.01;
+
+                runningImgs.push( newGroup );
+                docGroup.userData.genImages.push( newGroup );
+
+                newGroup.userData.docGroup = docGroup;
+                newGroup.userData.specialReaderOffset = specialReaderOffset - newReaderOffset;
+                newGroup.userData.parentTitle = docGroup.userData.title;
+                newGroup.userData.type = "imageGroup";
+                newGroup.userData.image = newMesh;
+
+                // center all images across the document
+                if ( restoration == undefined ) {
+                    for (var j = runningImgs.length - 1; j >= 0; j--) {
+                        const specialReaderOffset = runningImgs[j].userData.specialReaderOffset;
+                        runningImgs[j].rotation.y = runningImgs[j].userData.baseRot - ((documentMaxWidth/2) - (runningWidth/2)) / (runningImgs[j].userData.image.position.z);
+                    }
+                }
 
             }
         );
@@ -5959,18 +6138,46 @@ function stopSwipe() {
                     ;
                 }
             }
-        } else if ( domswipeObj.userData.type == "boxpreview" 
-            && domswipeObj.userData.centerpoint != undefined 
-            && domswipeObj.userData.centerpoint.userData.lines != undefined
-            && domswipeObj.userData.centerpoint.userData.lines.length > 0 ) {
+        } else if ( domswipeObj.userData.type == "boxpreview" || domswipeObj.userData.type == "imageGroup" ) {
 
-            var centerpoint = domswipeObj.userData.centerpoint;
+            if ( domswipeObj.userData.centerpoint != undefined 
+                && domswipeObj.userData.centerpoint.userData.lines != undefined
+                && domswipeObj.userData.centerpoint.userData.lines.length > 0 ) {
 
-            for (var i = centerpoint.userData.lines.length - 1; i >= 0; i--) {
-                workspace.remove( centerpoint.userData.lines[i] );
+                if ( domswipeObj.userData.image != undefined
+                && domswipeObj.userData.image.userData.persistent == true ) {
+                } else {
+
+                    var centerpoint = domswipeObj.userData.centerpoint;
+
+                    for (var i = centerpoint.userData.lines.length - 1; i >= 0; i--) {
+                        workspace.remove( centerpoint.userData.lines[i] );
+                    }
+
+                    centerpoint.userData.lines = undefined;
+
+                }
             }
 
-            centerpoint.userData.lines = undefined;
+            if ( domswipeObj.userData.type == "imageGroup" 
+                && domswipeObj.userData.image != undefined
+                && domswipeObj.userData.image.userData.persistent != true ) {
+
+                new TWEEN.Tween( domswipeObj.userData.image.scale )
+                    .to( { x: 0.2, y: 0.2 }, 300 )
+                    .easing( TWEEN.Easing.Circular.InOut )
+                    .start()
+                ;
+
+                new TWEEN.Tween( domswipeObj.userData.image.material )
+                    .to( { opacity: 0.4 }, 300 )
+                    .easing( TWEEN.Easing.Circular.InOut )
+                    .start()
+                ;
+
+                // newXan( domswipeObj );
+
+            }
 
         }
 
@@ -9666,9 +9873,9 @@ function saveState() {
     for (var i = savedElement.length - 1; i >= 0; i--) {
         // try {
 
-            console.log( savedElement );
-            console.log( i );
-            console.log( savedElement[i] );
+            // console.log( savedElement );
+            // console.log( i );
+            // console.log( savedElement[i] );
 
             var newJSON = {};
 
@@ -9712,6 +9919,22 @@ function saveState() {
 
                     newJSON.highlights = refHighlights;
 
+                }
+
+                if ( savedElement[i].userData.genImages != undefined ) {
+
+                    const images = savedElement[i].userData.genImages;
+                    var refImages = [];
+
+                    for (var j = 0; j <= images.length - 1; j++) {
+                        var thisJSON = {};
+                        thisJSON.index = j;
+                        thisJSON.yPos = images[j].position.y;
+                        thisJSON.yRot = images[j].rotation.y;
+                        refImages.push( thisJSON );
+                    }
+
+                    newJSON.images = refImages;
                 }
 
             } else if ( savedElement[i].userData.type == "boxpreview" && savedElement[i].userData.typealt == "refpreview" ) {
@@ -9791,7 +10014,8 @@ function loadState() {
                 globalLIB.saveState[i].dist,
                 globalLIB.saveState[i].scroll,
                 globalLIB.saveState[i].botPos,
-                globalLIB.saveState[i].highlights
+                globalLIB.saveState[i].highlights,
+                globalLIB.saveState[i].images
             );
 
         } else if ( type == "boxpreview" ) {
@@ -9834,9 +10058,9 @@ function loadState() {
 }
 
 
-function restoreDocument( docindex, yPos, yRot, dist, scroll, botPos, highlights ) {
+function restoreDocument( docindex, yPos, yRot, dist, scroll, botPos, highlights, images ) {
 
-    var restoration = { "yPos":yPos, "yRot":yRot, "dist":dist, "scroll":scroll, "botPos":botPos, "highlights":highlights };
+    var restoration = { "yPos":yPos, "yRot":yRot, "dist":dist, "scroll":scroll, "botPos":botPos, "highlights":highlights, "images":images };
 
     findDocumentContent(
         globalLIB.documents[docindex].source,
@@ -10130,12 +10354,10 @@ camera.position.z = 1;
 // catalog loader for each category instead of global?
 
 // WIP:
-// floating image generation for documents
 
 // COMPLETE THIS UPDATE:
-// indicator when activating a manna menu item
-// fixed images in fot24 library
-// fixed "null" printing sometimes in a document for placeholder headers
-// fixed references sometimes showing up in the document body
-// fixed outline view not displaying the doc title (trimmed)
+// floating image generation for documents
+    // drag to move them
+    // quick tap to keep in focus, or unfocus
+    // save and load with documents
 
